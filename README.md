@@ -12,7 +12,7 @@
 <br>
 
 ## To compile the code :  
-  - run <code>g++ -std=c++20 smooth.cpp -o ../smooth.exe</code>
+  - default <code>g++ -std=c++20 smooth.cpp -o ../smooth.exe</code>
   - debug <code>g++ -std=c++20 -g3 smooth.cpp -o ../smooth.exe</code>
 
 <br>
