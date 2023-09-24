@@ -22,19 +22,18 @@ public:
     for (; index < node.stmts.size(); index++) {
       stmt = node.stmts.at(index);
 
-      try {
+      if (std::holds_alternative<Node::StmtScope*>(stmt->var)) {
         Node::StmtScope* scopeStmt = std::get<Node::StmtScope*>(stmt->var);
         int depth = scopes.size();
         
         if (scopeStmt->close && depth == scopeDepth) break;
         else if (scopeDepth == -1) scopeDepth = depth + 1;
-      } catch (std::bad_variant_access const& e) {}
+
+      } else if (scopeDepth == -1) scopeDepth = -2;
       
       genStmt(stmt, breakLabel, continueLabel);
-      output << "\n\n";
+      if (scopeDepth == -2) return NULL;
     }
-    output.seekp(-2, output.cur);
-
     return stmt;
   }
 
@@ -46,22 +45,22 @@ public:
     pop("rax");
 
     if (binExprNode->type == ExprBinType::add)
-      output << "  add rax, rbx\n\n";
+      output << "  add rax, rbx\n";
 
     else if (binExprNode->type == ExprBinType::sub)
-      output << "  sub rax, rbx\n\n";
+      output << "  sub rax, rbx\n";
 
     else if (binExprNode->type == ExprBinType::mult)
-      output << "  mul rbx\n\n";
+      output << "  mul rbx\n";
 
     else if (binExprNode->type == ExprBinType::div) {
       output << "  mov rdx, 0\n";
-      output << "  div rbx\n\n";
+      output << "  div rbx\n";
 
     } else if (binExprNode->type == ExprBinType::mod) {
       output << "  mov rdx, 0\n";
       output << "  div rbx\n";
-      output << "  mov rax, rdx\n\n";
+      output << "  mov rax, rdx\n";
 
     } else if (isBoolBinExpr(binExprNode->type)) {
       std::string binExprTrueLabel = getLabel("bool_bin_expr_true");
@@ -80,7 +79,7 @@ public:
       output << "  jmp " << binExprFalseLabel << "\n";
       output << binExprTrueLabel << ":\n";
       output << "  mov rax, 1\n";
-      output << binExprFalseLabel << ":\n\n";
+      output << binExprFalseLabel << ":\n";
 
     }
 
@@ -98,10 +97,12 @@ public:
         gen->output << intLitNode->value << "\n";
       }
 
+
       void operator()(const Node::ExprVar* varNode) {
         gen->output << "  mov " << reg << ", ";
         gen->output << "[rsp + " << (gen->stackPoint - gen->getVar(varNode->name).value().stackOffset) * 8 << "]\n";
       }
+
 
       void operator()(const Node::ExprBin* binExprNode) {
         gen->genBinExpr(binExprNode, reg);
@@ -110,6 +111,13 @@ public:
 
     Visitor visitor(this, reg_);
     std::visit(visitor, expr->var);
+    output << ";;;;;;;;;;;;; ";
+
+    if (std::holds_alternative<Node::ExprIntLit*>(expr->var)) output << "intLit";
+    else if (std::holds_alternative<Node::ExprVar*>(expr->var)) output << "var";
+    else if (std::holds_alternative<Node::ExprBin*>(expr->var)) output << "bin";
+
+    output << " expr ;;;;;;;;;;;;;\n";
   }
 
   void genStmt(Node::Stmt* stmt, std::string breakLabel_ = "", std::string continueLabel_ = "") {
@@ -126,6 +134,7 @@ public:
         gen->output << "  ret\n";
       }
 
+
       void operator()(const Node::StmtVar* varNode) {
         if (varNode->expr.has_value()) gen->genExpr(varNode->expr.value());
         else gen->output << "  mov rax, 0\n";
@@ -141,6 +150,7 @@ public:
         gen->push("rax");
         gen->vars.push_back({ .name = varNode->name, .stackOffset = gen->stackPoint });
       }
+
 
       void operator()(const Node::StmtScope* scopeNode) {
         if (scopeNode->close) {
@@ -162,50 +172,80 @@ public:
         gen->scopes.push_back({ .stackOffset = gen->stackPoint });
       }
 
+
       void operator()(const Node::StmtIf* ifNode) {
         std::string endIfLabel = gen->getLabel("end_if");
-        gen->genExpr(ifNode->expr);
 
-        gen->output << "  mov rbx, 0\n";
-        gen->output << "  cmp rax, rbx\n";
-        gen->output << "  je " << endIfLabel << "\n";
+        gen->genExpr(ifNode->expr);
+        gen->jumpIfFalse(endIfLabel);
 
         Node::Stmt* scopeStmt = gen->genInsideScope(breakLabel, continueLabel);
         gen->output << endIfLabel << ":\n";
 
-        gen->genStmt(scopeStmt);
+        if (scopeStmt != NULL) gen->genStmt(scopeStmt);
       }
+
 
       void operator()(const Node::StmtWhile* whileNode) {        
         std::string whileLoopLabel = gen->getLabel("while_loop");
         std::string endWhileLabel = gen->getLabel("end_while");
+
         gen->output << whileLoopLabel << ":\n";
         gen->genExpr(whileNode->expr);
-
-        gen->output << "  mov rbx, 0\n";
-        gen->output << "  cmp rax, rbx\n";
-        gen->output << "  je " << endWhileLabel << "\n";
+        gen->jumpIfFalse(endWhileLabel);
         
         Node::Stmt* scopeStmt = gen->genInsideScope(endWhileLabel, whileLoopLabel);
         gen->output << "  jmp " << whileLoopLabel << "\n";
         gen->output << endWhileLabel << ":\n";
 
-        gen->genStmt(scopeStmt);
+        if (scopeStmt != NULL) gen->genStmt(scopeStmt);
       }
+
 
       void operator()(const Node::StmtBreak* breakNode) {
         if (breakLabel == "") err("Cannot use 'break' while not in a loop");
         gen->output << "  jmp " << breakLabel << "\n";
       }
 
+
       void operator()(const Node::StmtContinue* continueNode) {
         if (continueLabel == "") err("Cannot use 'continue' while not in a loop");
         gen->output << "  jmp " << continueLabel << "\n";
+      }
+
+
+      void operator()(const Node::StmtFor* forNode) {
+        std::string forLoopLabel = gen->getLabel("for_loop");
+        std::string endforLabel = gen->getLabel("end_for");
+
+        gen->genStmt(forNode->once);
+        gen->output << forLoopLabel << ":\n";
+        gen->genExpr(forNode->condition);
+        gen->jumpIfFalse(endforLabel);
+        gen->genStmt(forNode->repeat);
+
+        Node::Stmt* scopeStmt = gen->genInsideScope(endforLabel, forLoopLabel);
+        gen->output << "  jmp " << forLoopLabel << "\n";
+        gen->output << endforLabel << ":\n";
+
+        if (scopeStmt != NULL) gen->genStmt(scopeStmt);
       }
     };
 
     Visitor visitor(this, breakLabel_, continueLabel_);
     std::visit(visitor, stmt->var);
+    output << ";;;;;;;;;;;;; ";
+
+    if (std::holds_alternative<Node::StmtExit*>(stmt->var)) output << "exit";
+    else if (std::holds_alternative<Node::StmtVar*>(stmt->var)) output << "var";
+    else if (std::holds_alternative<Node::StmtScope*>(stmt->var)) output << "scope";
+    else if (std::holds_alternative<Node::StmtIf*>(stmt->var)) output << "if";
+    else if (std::holds_alternative<Node::StmtWhile*>(stmt->var)) output << "while";
+    else if (std::holds_alternative<Node::StmtBreak*>(stmt->var)) output << "break";
+    else if (std::holds_alternative<Node::StmtContinue*>(stmt->var)) output << "continue";
+    else if (std::holds_alternative<Node::StmtFor*>(stmt->var)) output << "for";
+
+    output << " stmt ;;;;;;;;;;;;;\n\n";
   }
 
   std::string generate() {
@@ -213,7 +253,6 @@ public:
 
     for (; index < node.stmts.size(); index++) {
       genStmt(node.stmts.at(index));
-      output << "\n\n";
     }
     if (scopes.size() != 0) err("Expected '}'");
     exit();
@@ -241,6 +280,12 @@ private:
     std::stringstream out;
     out << name << "__" << labelIndex++;
     return out.str();
+  }
+
+  void jumpIfFalse(std::string label) {
+    output << "  mov rbx, 0\n";
+    output << "  cmp rax, rbx\n";
+    output << "  je " << label << "\n";
   }
 
   struct Var {
