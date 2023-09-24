@@ -37,6 +37,14 @@ namespace Node {
   };
 
 
+  struct Stmt;
+
+  struct StmtFor {
+    Stmt* once;
+    Expr* condition;
+    Stmt* repeat;
+  };
+
   struct StmtContinue {};
 
   struct StmtBreak {};
@@ -64,7 +72,7 @@ namespace Node {
   };
 
   struct Stmt {
-    std::variant<StmtExit*, StmtVar*, StmtScope*, StmtIf*, StmtWhile*, StmtBreak*, StmtContinue*> var;
+    std::variant<StmtExit*, StmtVar*, StmtScope*, StmtIf*, StmtWhile*, StmtBreak*, StmtContinue*, StmtFor*> var;
   };
 
 
@@ -312,6 +320,18 @@ public:
       try_consume(TokenType::semi, "Expected ';'");
       Node::StmtContinue* stmtContinue = allocator.alloc<Node::StmtContinue>();
       ret->var = stmtContinue;
+
+    } else if (peek().value().type == TokenType::for_) {
+      consume();
+      try_consume(TokenType::open_paren, "Expected '('");
+      Node::StmtFor* stmtFor = allocator.alloc<Node::StmtFor>();
+
+      stmtFor->once = parseStmt();
+      stmtFor->condition = parseExpr();
+      try_consume(TokenType::semi, "Expected ';'");
+      stmtFor->repeat = parseStmt();
+      try_consume(TokenType::closed_paren, "Expected ')'");
+      ret->var = stmtFor;
 
     } else if (peek().value().type == TokenType::open_curly || peek().value().type == TokenType::closed_curly) {
       Node::StmtScope* scopeStmt = allocator.alloc<Node::StmtScope>();
