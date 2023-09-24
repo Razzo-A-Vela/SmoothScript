@@ -4,7 +4,7 @@
 
 ## Features :
   - variables
-  - if and while statments
+  - if, for and while statments (with break and continue)
   - math (+, -, *, /, ()) with variables (++, --)
   - exit with a code
   - scopes
