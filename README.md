@@ -12,6 +12,7 @@
   - scopes
   - int and char literals
   - put characters in the console
+  - get characters from the console
 
 <br>
 
