@@ -8,6 +8,7 @@
 #include <variant>
 #include <cassert>
 
+#include "util.hpp"
 #include "tokenizer.hpp"
 
 
@@ -134,6 +135,16 @@ bool isBoolBinExpr(ExprBinType type) {
   }
 }
 
+bool isType(TokenType type) {
+  switch (type) {
+    case TokenType::int_ :
+      return true;
+
+    default :
+      return false;
+  }
+}
+
 
 class Parser {
 public:
@@ -235,7 +246,7 @@ public:
 
       try_consume(TokenType::semi, "Expected ';'");
 
-    } else if (peek().value().type == TokenType::var) {
+    } else if (isType(peek().value().type)) {
       consume();
       if (!peek().has_value()) err("Syntax error", peek(-1).value().line);
       Token ident = consume();

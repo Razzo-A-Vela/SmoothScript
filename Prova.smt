@@ -1,14 +1,14 @@
 
 # Comment
-var x;
+int x;
 
 # y = 22;
-var y = (4 - 2) + 10 * 2;
-var z;
+int y = (4 - 2) + 10 * 2;
+int z;
 
 if (y == 22) x++;
 
-for (var i = 0; i != 10; i++;) 
+for (int i = 0; i != 10; i++;) 
   if (i == 5)
     break;
 
