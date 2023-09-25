@@ -9,7 +9,7 @@
 
 enum class TokenType {
   exit, int_lit, semi, var, open_paren, closed_paren, ident, eq, plus, minus, star, slash, open_curly, closed_curly,
-  mod, if_, double_eq, not_eq_, while_, break_, continue_, for_, char_lit, put
+  mod, if_, double_eq, not_eq_, while_, break_, continue_, for_, char_lit, put, get
 };
 
 struct Token {
@@ -118,6 +118,8 @@ public:
           tokens.push_back({ .type = TokenType::for_, .line = line });
         else if (buf.str() == "put")
           tokens.push_back({ .type = TokenType::put, .line = line });
+        else if (buf.str() == "get")
+          tokens.push_back({ .type = TokenType::get, .line = line });
         else
           tokens.push_back({ .type = TokenType::ident, .line = line, .value = buf.str() });
 

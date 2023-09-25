@@ -42,6 +42,14 @@ public:
         charLitNode->value = value.str();
         ret->var = charLitNode;
         
+      } else if (peek().value().type == TokenType::get) {
+        consume();
+        try_consume(TokenType::open_paren, "Expected '('");
+        try_consume(TokenType::closed_paren, "Expected ')'");
+        
+        Node::ExprGet* getNode = allocator.alloc<Node::ExprGet>();
+        ret->var = getNode;
+
       } else
         err("Syntax error", peek().value().line);
     }

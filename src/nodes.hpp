@@ -12,6 +12,8 @@ enum class ExprBinType {
 namespace Node {
   struct Expr;
 
+  struct ExprGet {};
+
   struct ExprCharLit {
     std::string value;
   };
@@ -31,7 +33,7 @@ namespace Node {
   };
 
   struct Expr {
-    std::variant<ExprIntLit*, ExprVar*, ExprBin*, ExprCharLit*> var;
+    std::variant<ExprIntLit*, ExprVar*, ExprBin*, ExprCharLit*, ExprGet*> var;
   };
 
 
