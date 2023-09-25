@@ -2,6 +2,8 @@
 ### *The worst language in the world*
 <br>
 
+## This compiler only compiles for windows
+
 ## Features :
   - variables
   - if, for and while statments (with break and continue)
@@ -9,6 +11,7 @@
   - exit with a code
   - scopes
   - int and char literals
+  - put characters in the console
 
 <br>
 
