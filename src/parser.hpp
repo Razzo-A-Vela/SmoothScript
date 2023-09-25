@@ -35,6 +35,13 @@ public:
         varNode->name = consume().value.value();
         ret->var = varNode;
 
+      } else if (peek().value().type == TokenType::char_lit) {
+        Node::ExprCharLit* charLitNode = allocator.alloc<Node::ExprCharLit>();
+        std::stringstream value;
+        value << ((int) consume().value.value().at(0));
+        charLitNode->value = value.str();
+        ret->var = charLitNode;
+        
       } else
         err("Syntax error", peek().value().line);
     }
@@ -50,32 +57,15 @@ public:
         binExpr->type = opType;
 
         if (prec > prev_prec) {
-          struct Visitor {
-            Node::ExprBin* binExpr;
-            Allocator* allocator;
-            Node::Expr* right;
-            Visitor(Node::ExprBin* _binExpr, Allocator* _allocator, Node::Expr* _right) : binExpr(_binExpr), allocator(_allocator), right(_right) {}
+          if (!std::holds_alternative<Node::ExprBin*>(ret->var)) err("How?");
+          Node::ExprBin* binExprNode = std::get<Node::ExprBin*>(ret->var);
 
-            void operator()(const Node::ExprIntLit* intLitExprNode) {
-              err("How?");
-            }
-            void operator()(const Node::ExprVar* varExprNode) {
-              err("How?");
-            }
+          binExpr->left = binExprNode->right;
+          Node::Expr* right_expr = allocator.alloc<Node::Expr>();
+          right_expr->var = binExpr;
+          binExprNode->right = right_expr;
+          binExpr->right = right;
 
-            void operator()(Node::ExprBin* binExprNode) {
-              binExpr->left = binExprNode->right;
-
-              Node::Expr* right_expr = allocator->alloc<Node::Expr>();
-              right_expr->var = binExpr;
-              binExprNode->right = right_expr;
-              
-              binExpr->right = right;
-            }
-          };
-
-          Visitor visitor(binExpr, &allocator, right);
-          std::visit(visitor, ret->var);
         } else {
           binExpr->left = ret;
           binExpr->right = right;
@@ -109,15 +99,14 @@ public:
 
       try_consume(TokenType::semi, "Expected ';'");
 
-    } else if (isType(peek().value().type)) {
-      TokenType varType = consume().type;
+    } else if (peek().value().type == TokenType::var) {
+      consume();
       if (!peek().has_value()) err("Syntax error", peek(-1).value().line);
       Token ident = consume();
       if (ident.type != TokenType::ident) err("Syntax error", ident.line);
 
       Node::StmtVar* varNode = allocator.alloc<Node::StmtVar>();
       varNode->name = ident.value.value();
-      varNode->byteSize = getTypeSize(varType);
 
       if (peek().value().type == TokenType::semi)
         varNode->expr = {};

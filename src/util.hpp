@@ -72,26 +72,6 @@ bool isBoolBinExpr(ExprBinType type) {
   }
 }
 
-bool isType(TokenType type) {
-  switch (type) {
-    case TokenType::int_ :
-      return true;
-
-    default :
-      return false;
-  }
-}
-
-int getTypeSize(TokenType type) {
-  switch (type) {
-    case TokenType::int_ :
-      return 8;
-
-    default :
-      return -1;
-  }
-}
-
 
 class Allocator {
 public:

@@ -106,6 +106,12 @@ public:
       void operator()(const Node::ExprBin* binExprNode) {
         gen->genBinExpr(binExprNode, reg);
       }
+
+
+      void operator()(const Node::ExprCharLit* charLitNode) {
+        gen->output << "  mov " << reg << ", ";
+        gen->output << charLitNode->value << "\n";
+      }
     };
 
     Visitor visitor(this, reg_);
@@ -146,7 +152,7 @@ public:
         }
 
         if (gen->getVar(varNode->name, false).has_value()) err("Identifier '" + varNode->name + "' alredy exists");
-        gen->push("rax", varNode->byteSize);
+        gen->push("rax");
         gen->vars.push_back({ .name = varNode->name, .stackOffset = gen->stackPoint });
       }
 
