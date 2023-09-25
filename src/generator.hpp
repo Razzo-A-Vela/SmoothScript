@@ -112,6 +112,14 @@ public:
         gen->output << "  mov " << reg << ", ";
         gen->output << charLitNode->value << "\n";
       }
+
+
+      void operator()(const Node::ExprGet* getNode) {
+        gen->output << "  sub rsp, 40\n";
+        gen->output << "  call getchar\n";
+        if (reg != "rax") gen->output << "  mov " << reg << ", rax\n";
+        gen->output << "  add rsp, 40\n";
+      }
     };
 
     Visitor visitor(this, reg_);
@@ -122,6 +130,7 @@ public:
     else if (std::holds_alternative<Node::ExprVar*>(expr->var)) output << "var";
     else if (std::holds_alternative<Node::ExprBin*>(expr->var)) output << "bin";
     else if (std::holds_alternative<Node::ExprCharLit*>(expr->var)) output << "charLit";
+    else if (std::holds_alternative<Node::ExprGet*>(expr->var)) output << "get";
 
     output << " expr ;;;;;;;;;;;;;\n";
   }
@@ -240,7 +249,9 @@ public:
       
       void operator()(const Node::StmtPut* putNode) {
         gen->genExpr(putNode->expr, "rcx");
-        gen->output << "call putchar\n";
+        gen->output << "  sub rsp, 40\n";
+        gen->output << "  call putchar\n";
+        gen->output << "  add rsp, 40\n";
       }
     };
 
@@ -262,7 +273,7 @@ public:
   }
 
   std::string generate() {
-    output << "global main\nextern putchar\nsection .text\n\nmain:\n";
+    output << "global main\nextern putchar\nextern getchar\nsection .text\n\nmain:\n";
 
     for (; index < node.stmts.size(); index++) {
       genStmt(node.stmts.at(index));
