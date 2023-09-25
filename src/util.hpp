@@ -82,6 +82,16 @@ bool isType(TokenType type) {
   }
 }
 
+int getTypeSize(TokenType type) {
+  switch (type) {
+    case TokenType::int_ :
+      return 8;
+
+    default :
+      return -1;
+  }
+}
+
 
 class Allocator {
 public:

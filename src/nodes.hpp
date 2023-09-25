@@ -58,6 +58,7 @@ namespace Node {
   struct StmtVar {
     std::string name;
     std::optional<Expr*> expr;
+    int byteSize;
     bool reAssign = false;
   };
 

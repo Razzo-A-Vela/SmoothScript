@@ -146,7 +146,7 @@ public:
         }
 
         if (gen->getVar(varNode->name, false).has_value()) err("Identifier '" + varNode->name + "' alredy exists");
-        gen->push("rax");
+        gen->push("rax", varNode->byteSize);
         gen->vars.push_back({ .name = varNode->name, .stackOffset = gen->stackPoint });
       }
 
@@ -262,14 +262,18 @@ public:
 
 private:
   void push(std::string reg, int byteSize = 8) {
+    if (byteSize > 8) err("Cannot push more than 8 bytes to stack");
     stackPoint += byteSize;
+    
     output << "  sub rsp, " << byteSize << "\n";
     output << "  mov [rsp + 0], " << reg << "\n";
     output << "; push " << reg << "\n";
   }
 
   void pop(std::string reg, int byteSize = 8) {
+    if (byteSize > 8) err("Cannot push more than 8 bytes to stack");
     stackPoint -= byteSize;
+
     output << "  mov " << reg << ", [rsp + 0]\n";
     output << "  add " << "rsp, " << byteSize << "\n";
     output << "; pop " << reg << "\n";

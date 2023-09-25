@@ -110,13 +110,14 @@ public:
       try_consume(TokenType::semi, "Expected ';'");
 
     } else if (isType(peek().value().type)) {
-      consume();
+      TokenType varType = consume().type;
       if (!peek().has_value()) err("Syntax error", peek(-1).value().line);
       Token ident = consume();
       if (ident.type != TokenType::ident) err("Syntax error", ident.line);
 
       Node::StmtVar* varNode = allocator.alloc<Node::StmtVar>();
       varNode->name = ident.value.value();
+      varNode->byteSize = getTypeSize(varType);
 
       if (peek().value().type == TokenType::semi)
         varNode->expr = {};
