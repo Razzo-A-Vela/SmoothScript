@@ -8,6 +8,7 @@
   - math (+, -, *, /, ()) with variables (++, --)
   - exit with a code
   - scopes
+  - int and char literals
 
 <br>
 
