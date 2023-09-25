@@ -99,7 +99,7 @@ public:
 
       void operator()(const Node::ExprVar* varNode) {
         gen->output << "  mov " << reg << ", ";
-        gen->output << "[rsp + " << (gen->stackPoint - gen->getVar(varNode->name).value().stackOffset) * 8 << "]\n";
+        gen->output << "[rsp + " << gen->stackPoint - gen->getVar(varNode->name).value().stackOffset << "]\n";
       }
 
 
@@ -140,7 +140,7 @@ public:
 
         if (varNode->reAssign) {
           Var var = gen->getVar(varNode->name).value();
-          gen->output << "  mov [rsp + " << (gen->stackPoint - var.stackOffset) * 8 << "], rax\n";
+          gen->output << "  mov [rsp + " << gen->stackPoint - var.stackOffset << "], rax\n";
           
           return;
         }
@@ -161,14 +161,14 @@ public:
           }
           gen->scopes.pop_back();
 
-          while (gen->stackPoint > scope.stackOffset) {
-            gen->pop("rbx");
+          while (gen->vars.size() > scope.varOffset) {
             gen->vars.pop_back();
           }
+          gen->output << "  add rsp, " << gen->stackPoint - scope.stackOffset << "\n";
           return;
         }
 
-        gen->scopes.push_back({ .stackOffset = gen->stackPoint });
+        gen->scopes.push_back({ .stackOffset = gen->stackPoint, .varOffset = gen->vars.size() });
       }
 
 
@@ -261,18 +261,22 @@ public:
   }
 
 private:
-  void push(std::string reg, bool update = true) {
-    if (update) stackPoint++;
-    output << "  push " << reg << "\n";
+  void push(std::string reg, int byteSize = 8) {
+    stackPoint += byteSize;
+    output << "  sub rsp, " << byteSize << "\n";
+    output << "  mov [rsp + 0], " << reg << "\n";
+    output << "; push " << reg << "\n";
   }
 
-  void pop(std::string reg, bool update = true) {
-    if (update) stackPoint--;
-    output << "  pop " << reg << "\n";
+  void pop(std::string reg, int byteSize = 8) {
+    stackPoint -= byteSize;
+    output << "  mov " << reg << ", [rsp + 0]\n";
+    output << "  add " << "rsp, " << byteSize << "\n";
+    output << "; pop " << reg << "\n";
   }
 
   void exit() {
-    for (int i = stackPoint; i > 0; i--) pop("rbx", false);
+    output << "  add rsp, " << stackPoint << "\n";
   }
 
   std::string getLabel(std::string name) {
@@ -287,6 +291,7 @@ private:
     output << "  je " << label << "\n";
   }
 
+
   struct Var {
     std::string name;
     int stackOffset;
@@ -294,6 +299,7 @@ private:
 
   struct Scope {
     int stackOffset;
+    size_t varOffset;
   };
 
   std::optional<Var> getVar(std::string name, bool doThrow = true) {
