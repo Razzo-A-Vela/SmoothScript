@@ -25,4 +25,7 @@ put('i');
 put('\n');
 
 # z = 7
-exit(z);
+var out = z + get();
+put(out);
+
+exit(out);
