@@ -197,6 +197,15 @@ public:
       try_consume(TokenType::closed_paren, "Expected ')'");
       ret->var = stmtFor;
 
+    } else if (peek().value().type == TokenType::put) {
+      consume();
+      try_consume(TokenType::open_paren, "Expected '('");
+      Node::StmtPut* putStmt = allocator.alloc<Node::StmtPut>();
+      putStmt->expr = parseExpr(true);
+      
+      ret->var = putStmt;
+      try_consume(TokenType::semi, "Expected ';'");
+
     } else if (peek().value().type == TokenType::open_curly || peek().value().type == TokenType::closed_curly) {
       Node::StmtScope* scopeStmt = allocator.alloc<Node::StmtScope>();
       scopeStmt->close = consume().type == TokenType::closed_curly;

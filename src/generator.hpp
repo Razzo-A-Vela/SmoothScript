@@ -121,6 +121,7 @@ public:
     if (std::holds_alternative<Node::ExprIntLit*>(expr->var)) output << "intLit";
     else if (std::holds_alternative<Node::ExprVar*>(expr->var)) output << "var";
     else if (std::holds_alternative<Node::ExprBin*>(expr->var)) output << "bin";
+    else if (std::holds_alternative<Node::ExprCharLit*>(expr->var)) output << "charLit";
 
     output << " expr ;;;;;;;;;;;;;\n";
   }
@@ -235,6 +236,12 @@ public:
 
         if (scopeStmt != NULL) gen->genStmt(scopeStmt);
       }
+
+      
+      void operator()(const Node::StmtPut* putNode) {
+        gen->genExpr(putNode->expr, "rcx");
+        gen->output << "call putchar\n";
+      }
     };
 
     Visitor visitor(this, breakLabel_, continueLabel_);
@@ -249,12 +256,13 @@ public:
     else if (std::holds_alternative<Node::StmtBreak*>(stmt->var)) output << "break";
     else if (std::holds_alternative<Node::StmtContinue*>(stmt->var)) output << "continue";
     else if (std::holds_alternative<Node::StmtFor*>(stmt->var)) output << "for";
+    else if (std::holds_alternative<Node::StmtPut*>(stmt->var)) output << "put";
 
     output << " stmt ;;;;;;;;;;;;;\n\n";
   }
 
   std::string generate() {
-    output << "global main\nsection .text\n\nmain:\n";
+    output << "global main\nextern putchar\nsection .text\n\nmain:\n";
 
     for (; index < node.stmts.size(); index++) {
       genStmt(node.stmts.at(index));

@@ -9,7 +9,7 @@
 
 enum class TokenType {
   exit, int_lit, semi, var, open_paren, closed_paren, ident, eq, plus, minus, star, slash, open_curly, closed_curly,
-  mod, if_, double_eq, not_eq_, while_, break_, continue_, for_, char_lit
+  mod, if_, double_eq, not_eq_, while_, break_, continue_, for_, char_lit, put
 };
 
 struct Token {
@@ -88,7 +88,13 @@ public:
 
 
       else if (try_consume('\'')) {
-        buf << consume();
+        if (try_consume('\\')) {
+          if (try_consume('n')) buf << '\n';
+          else if (try_consume('\\')) buf << '\\';
+          else err("Expected character after '\\'", line);
+
+        } else buf << consume();
+
         if (!try_consume('\'')) err("Character literals can only have one character", line);
         tokens.push_back({ .type = TokenType::char_lit, .line = line, .value = buf.str() });
 
@@ -110,6 +116,8 @@ public:
           tokens.push_back({ .type = TokenType::continue_, .line = line });
         else if (buf.str() == "for")
           tokens.push_back({ .type = TokenType::for_, .line = line });
+        else if (buf.str() == "put")
+          tokens.push_back({ .type = TokenType::put, .line = line });
         else
           tokens.push_back({ .type = TokenType::ident, .line = line, .value = buf.str() });
 
