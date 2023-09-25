@@ -9,6 +9,7 @@
 #include "util.hpp"
 #include "tokenizer.hpp"
 #include "parser.hpp"
+#include "nodes.hpp"
 
 
 class Generator {
