@@ -18,6 +18,74 @@ void err(std::string msg, int line) {
 }
 
 
+#include "tokenizer.hpp"
+#include "nodes.hpp"
+
+
+std::optional<ExprBinType> getBinType(TokenType type) {
+  switch (type) {
+    case TokenType::mod :
+      return ExprBinType::mod;
+    case TokenType::slash :
+      return ExprBinType::div;
+    case TokenType::star :
+      return ExprBinType::mult;
+    case TokenType::minus :
+      return ExprBinType::sub;
+    case TokenType::plus :
+      return ExprBinType::add;
+    case TokenType::double_eq :
+      return ExprBinType::eq;
+    case TokenType::not_eq_ :
+      return ExprBinType::not_eq_;
+
+    default :
+      return {};
+  }
+}
+
+bool isBinOp(TokenType type) {
+  return getBinType(type).has_value();
+}
+
+int getBinExprPrec(ExprBinType type) {
+  switch (type) {
+    case ExprBinType::mod :   
+    case ExprBinType::div :
+    case ExprBinType::mult :
+      return 2;
+    
+    default :
+      return 1;
+    
+    case ExprBinType::eq :
+    case ExprBinType::not_eq_ :
+      return 0;
+  }
+}
+
+bool isBoolBinExpr(ExprBinType type) {
+  switch (type) {
+    case ExprBinType::eq :
+    case ExprBinType::not_eq_ :
+      return true;
+
+    default :
+      return false;
+  }
+}
+
+bool isType(TokenType type) {
+  switch (type) {
+    case TokenType::int_ :
+      return true;
+
+    default :
+      return false;
+  }
+}
+
+
 class Allocator {
 public:
   Allocator(size_t _size) : size(_size) {
