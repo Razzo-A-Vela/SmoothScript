@@ -20,5 +20,9 @@ while (x != 3) {
   x++;
 }
 
-# z = 55
-exit(z + '0');
+put('H');
+put('i');
+put('\n');
+
+# z = 7
+exit(z);
