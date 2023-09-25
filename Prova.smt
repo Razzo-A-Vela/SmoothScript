@@ -1,14 +1,14 @@
 
 # Comment
-int x;
+var x;
 
 # y = 22;
-int y = (4 - 2) + 10 * 2;
-int z;
+var y = (4 - 2) + 10 * 2;
+var z;
 
 if (y == 22) x++;
 
-for (int i = 0; i != 10; i++;) 
+for (var i = 0; i != 10; i++;) 
   if (i == 5)
     break;
 
@@ -20,5 +20,5 @@ while (x != 3) {
   x++;
 }
 
-# z = 7
-exit(z);
+# z = 55
+exit(z + '0');
