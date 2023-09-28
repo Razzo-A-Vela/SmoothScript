@@ -1,3 +1,4 @@
+$main
 
 # Comment
 var x;
