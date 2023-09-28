@@ -107,6 +107,7 @@ public:
 
       try_consume(TokenType::semi, "Expected ';'");
 
+
     } else if (peek().value().type == TokenType::var) {
       consume();
       if (!peek().has_value()) err("Syntax error", peek(-1).value().line);
@@ -125,6 +126,7 @@ public:
       }
       try_consume(TokenType::semi, "Expected ';'");
       ret->var = varNode;
+
 
     } else if (peek().value().type == TokenType::ident) {
       Token ident = consume();
@@ -165,6 +167,7 @@ public:
       ret->var = varNode;
       try_consume(TokenType::semi, "Expected ';'");
 
+
     } else if (peek().value().type == TokenType::if_) {
       consume();
       try_consume(TokenType::open_paren, "Expected '('");
@@ -172,6 +175,7 @@ public:
       Node::Expr* expr = parseExpr(true);
       ifStmt->expr = expr;
       ret->var = ifStmt;
+
 
     } else if (peek().value().type == TokenType::while_) {
       consume();
@@ -181,17 +185,20 @@ public:
       stmtWhile->expr = expr;
       ret->var = stmtWhile;
 
+
     } else if (peek().value().type == TokenType::break_) {
       consume();
       try_consume(TokenType::semi, "Expected ';'");
       Node::StmtBreak* stmtBreak = allocator.alloc<Node::StmtBreak>();
       ret->var = stmtBreak;
 
+
     } else if (peek().value().type == TokenType::continue_) {
       consume();
       try_consume(TokenType::semi, "Expected ';'");
       Node::StmtContinue* stmtContinue = allocator.alloc<Node::StmtContinue>();
       ret->var = stmtContinue;
+
 
     } else if (peek().value().type == TokenType::for_) {
       consume();
@@ -214,10 +221,18 @@ public:
       ret->var = putStmt;
       try_consume(TokenType::semi, "Expected ';'");
 
+
+    } else if (peek().value().type == TokenType::dollar) {
+      consume();
+      try_consume(TokenType::main, "Expected 'main' after '$'");
+      Node::StmtMain* mainNode = allocator.alloc<Node::StmtMain>();
+      ret->var = mainNode;
+
     } else if (peek().value().type == TokenType::open_curly || peek().value().type == TokenType::closed_curly) {
       Node::StmtScope* scopeStmt = allocator.alloc<Node::StmtScope>();
       scopeStmt->close = consume().type == TokenType::closed_curly;
       ret->var = scopeStmt;
+
 
     } else
       err("Syntax error", peek().value().line);

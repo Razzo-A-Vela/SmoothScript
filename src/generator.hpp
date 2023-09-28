@@ -253,6 +253,13 @@ public:
         gen->output << "  call putchar\n";
         gen->output << "  add rsp, 40\n";
       }
+
+
+      void operator()(const Node::StmtMain* mainNode) {
+        if (gen->hasMain) err("Main alredy defined");
+        gen->output << "main:\n";
+        gen->hasMain = true;
+      }
     };
 
     Visitor visitor(this, breakLabel_, continueLabel_);
@@ -273,11 +280,12 @@ public:
   }
 
   std::string generate() {
-    output << "global main\nextern putchar\nextern getchar\nsection .text\n\nmain:\n";
+    output << "global main\nextern putchar\nextern getchar\nsection .text\n\n";
 
     for (; index < node.stmts.size(); index++) {
       genStmt(node.stmts.at(index));
     }
+    if (!hasMain) err("Expected main");
     if (scopes.size() != 0) err("Expected '}'");
     exit();
 
@@ -348,4 +356,5 @@ private:
   int stackPoint = 0;
   int labelIndex = 0;
   int index = 0;
+  bool hasMain = false;
 };

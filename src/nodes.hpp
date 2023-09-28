@@ -39,6 +39,8 @@ namespace Node {
 
   struct Stmt;
 
+  struct StmtMain {};
+
   struct StmtPut {
     Expr* expr;
   };
@@ -76,7 +78,7 @@ namespace Node {
   };
 
   struct Stmt {
-    std::variant<StmtExit*, StmtVar*, StmtScope*, StmtIf*, StmtWhile*, StmtBreak*, StmtContinue*, StmtFor*, StmtPut*> var;
+    std::variant<StmtExit*, StmtVar*, StmtScope*, StmtIf*, StmtWhile*, StmtBreak*, StmtContinue*, StmtFor*, StmtPut*, StmtMain*> var;
   };
 
 
