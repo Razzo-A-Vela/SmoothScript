@@ -268,11 +268,6 @@ public:
         else gen->currentFuncName = defFuncNode->name;
         std::string label = gen->getLabel(defFuncNode->name);
         gen->funcs.push_back({ .name = defFuncNode->name, .label = label, .params = defFuncNode->params });
-        
-        std::vector<Var> temp_vars;
-        for (Var var : gen->vars)
-          temp_vars.push_back(var);
-        gen->vars.clear();
 
         for (int i = 0; i < defFuncNode->params.size(); i++) {
           gen->stackPoint += 8;
@@ -290,8 +285,6 @@ public:
           gen->vars.pop_back();
           gen->stackPoint -= 8;
         }
-        for (Var var : temp_vars)
-          gen->vars.push_back(var);
 
         gen->output << "  mov rax, 0\n";
         gen->output << "  ret\n";
