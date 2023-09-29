@@ -1,3 +1,14 @@
+
+print : () {
+  put('H');
+  put('i');
+  put('\n');
+}
+
+add : (a, b) {
+  return a + b;
+}
+
 $main
 
 # Comment
