@@ -130,42 +130,60 @@ public:
 
     } else if (peek().value().type == TokenType::ident) {
       Token ident = consume();
-      Node::StmtVar* varNode = allocator.alloc<Node::StmtVar>();
-      varNode->name = ident.value.value();
-      varNode->reAssign = true;
 
-      TokenType op = peek().value().type;
-      if (op == TokenType::plus || op == TokenType::minus) {
-        try_consume(op, "Syntax error");
-        try_consume(op, "Syntax error");
+      if (peek().value().type == TokenType::colon) {
+        consume();
+        try_consume(TokenType::open_paren, "Expected '('");
+        Node::StmtDefFunc* defFuncNode = allocator.alloc<Node::StmtDefFunc>();
+        defFuncNode->name = ident.value.value();
 
-        Node::Expr* expr = allocator.alloc<Node::Expr>();
-        Node::ExprBin* binExpr = allocator.alloc<Node::ExprBin>();
-        Node::ExprVar* varExpr = allocator.alloc<Node::ExprVar>();
-        Node::ExprIntLit* intExpr = allocator.alloc<Node::ExprIntLit>();
+        while (!try_consume(TokenType::closed_paren).has_value()) {
+          Token t = consume();
+          if (t.type != TokenType::ident) err("Expected parameter name", t.line);
+          defFuncNode->params.push_back(t.value.value());
 
-        varExpr->name = varNode->name;
-        Node::Expr* var_expr = allocator.alloc<Node::Expr>();
-        var_expr->var = varExpr;
-        
-        intExpr->value = "1";
-        Node::Expr* int_expr = allocator.alloc<Node::Expr>();
-        int_expr->var = intExpr;
+          if (peek().has_value() && peek().value().type != TokenType::closed_paren) try_consume(TokenType::comma, "Expected ','");
+        }
+        ret->var = defFuncNode;
 
-        binExpr->left = var_expr;
-        binExpr->right = int_expr;
-        binExpr->type = getBinType(op).value();
-        expr->var = binExpr;
-        varNode->expr = expr;
+      } else {      
+        Node::StmtVar* varNode = allocator.alloc<Node::StmtVar>();
+        varNode->name = ident.value.value();
+        varNode->reAssign = true;
 
-      } else {
-        try_consume(TokenType::eq, "Expected '='");
-        Node::Expr* expr = parseExpr();
-        varNode->expr = expr;
+        TokenType op = peek().value().type;
+        if (op == TokenType::plus || op == TokenType::minus) {
+          try_consume(op, "Syntax error");
+          try_consume(op, "Syntax error");
 
+          Node::Expr* expr = allocator.alloc<Node::Expr>();
+          Node::ExprBin* binExpr = allocator.alloc<Node::ExprBin>();
+          Node::ExprVar* varExpr = allocator.alloc<Node::ExprVar>();
+          Node::ExprIntLit* intExpr = allocator.alloc<Node::ExprIntLit>();
+
+          varExpr->name = varNode->name;
+          Node::Expr* var_expr = allocator.alloc<Node::Expr>();
+          var_expr->var = varExpr;
+          
+          intExpr->value = "1";
+          Node::Expr* int_expr = allocator.alloc<Node::Expr>();
+          int_expr->var = intExpr;
+
+          binExpr->left = var_expr;
+          binExpr->right = int_expr;
+          binExpr->type = getBinType(op).value();
+          expr->var = binExpr;
+          varNode->expr = expr;
+
+        } else {
+          try_consume(TokenType::eq, "Expected '='");
+          Node::Expr* expr = parseExpr();
+          varNode->expr = expr;
+        }
+
+        ret->var = varNode;
+        try_consume(TokenType::semi, "Expected ';'");
       }
-      ret->var = varNode;
-      try_consume(TokenType::semi, "Expected ';'");
 
 
     } else if (peek().value().type == TokenType::if_) {
@@ -227,6 +245,15 @@ public:
       try_consume(TokenType::main, "Expected 'main' after '$'");
       Node::StmtMain* mainNode = allocator.alloc<Node::StmtMain>();
       ret->var = mainNode;
+
+    } else if (peek().value().type == TokenType::return_) {
+      consume();
+      Node::StmtReturn* returnNode = allocator.alloc<Node::StmtReturn>();
+      if (!try_consume(TokenType::semi).has_value()) {
+        returnNode->expr = parseExpr();
+        try_consume(TokenType::semi, "Expected ';'");
+      }
+      ret->var = returnNode;
 
     } else if (peek().value().type == TokenType::open_curly || peek().value().type == TokenType::closed_curly) {
       Node::StmtScope* scopeStmt = allocator.alloc<Node::StmtScope>();

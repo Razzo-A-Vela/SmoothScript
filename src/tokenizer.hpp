@@ -9,7 +9,8 @@
 
 enum class TokenType {
   exit, int_lit, semi, var, open_paren, closed_paren, ident, eq, plus, minus, star, slash, open_curly, closed_curly,
-  mod, if_, double_eq, not_eq_, while_, break_, continue_, for_, char_lit, put, get, dollar, main
+  mod, if_, double_eq, not_eq_, while_, break_, continue_, for_, char_lit, put, get, dollar, main, colon, comma,
+  return_
 };
 
 struct Token {
@@ -88,6 +89,12 @@ public:
       
       else if (try_consume('$'))
         tokens.push_back({ .type = TokenType::dollar, .line = line });
+      
+      else if (try_consume(':'))
+        tokens.push_back({ .type = TokenType::colon, .line = line });
+      
+      else if (try_consume(','))
+        tokens.push_back({ .type = TokenType::comma, .line = line });
 
 
       else if (try_consume('\'')) {
@@ -125,6 +132,8 @@ public:
           tokens.push_back({ .type = TokenType::get, .line = line });
         else if (buf.str() == "main")
           tokens.push_back({ .type = TokenType::main, .line = line });
+        else if (buf.str() == "return")
+          tokens.push_back({ .type = TokenType::return_, .line = line });
         else
           tokens.push_back({ .type = TokenType::ident, .line = line, .value = buf.str() });
 

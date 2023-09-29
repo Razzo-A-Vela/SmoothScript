@@ -177,9 +177,8 @@ public:
           }
           gen->scopes.pop_back();
 
-          while (gen->vars.size() > scope.varOffset) {
+          while (gen->vars.size() > scope.varOffset)
             gen->vars.pop_back();
-          }
           gen->output << "  add rsp, " << gen->stackPoint - scope.stackOffset << "\n";
           return;
         }
@@ -260,6 +259,57 @@ public:
         gen->output << "main:\n";
         gen->hasMain = true;
       }
+
+
+      void operator()(const Node::StmtDefFunc* defFuncNode) {
+        if (gen->hasMain) err("Cannot define a function inside main");
+        if (gen->getFunc(defFuncNode->name, false).has_value()) err("Trying to redefine function '" + defFuncNode->name + "'");
+        if (gen->currentFuncName != "") err("Cannot define a function inside a function");
+        else gen->currentFuncName = defFuncNode->name;
+        std::string label = gen->getLabel(defFuncNode->name);
+        gen->funcs.push_back({ .name = defFuncNode->name, .label = label, .params = defFuncNode->params });
+        
+        std::vector<Var> temp_vars;
+        for (Var var : gen->vars)
+          temp_vars.push_back(var);
+        gen->vars.clear();
+
+        for (int i = 0; i < defFuncNode->params.size(); i++) {
+          gen->stackPoint += 8;
+          gen->vars.push_back({ .name = defFuncNode->params.at(i), .stackOffset = gen->stackPoint });
+        }
+
+        gen->stackPoint += 8;
+        gen->output << label << ":\n";
+        Node::Stmt* scopeStmt = gen->genInsideScope("", "");
+        if (scopeStmt == NULL) err("Expected scope after function declaration of '" + defFuncNode->name + "'");
+        gen->genStmt(scopeStmt);
+        gen->stackPoint -= 8;
+
+        for (int i = 0; i < defFuncNode->params.size(); i++) {
+          gen->vars.pop_back();
+          gen->stackPoint -= 8;
+        }
+        for (Var var : temp_vars)
+          gen->vars.push_back(var);
+
+        gen->output << "  mov rax, 0\n";
+        gen->output << "  ret\n";
+        gen->currentFuncName = "";
+      }
+
+
+      void operator()(const Node::StmtReturn* returnNode) {
+        if (gen->currentFuncName == "") err("Return can only be used in functions");
+        Scope scope = gen->scopes.at(gen->scopes.size() - 1);
+        Func func = gen->getFunc(gen->currentFuncName).value();
+
+        if (returnNode->expr.has_value()) gen->genExpr(returnNode->expr.value());
+        else gen->output << "  mov rax, 0";
+        
+        gen->output << "  add rsp, " << gen->stackPoint - scope.stackOffset << "\n";
+        gen->output << "  ret\n";
+      }
     };
 
     Visitor visitor(this, breakLabel_, continueLabel_);
@@ -275,6 +325,9 @@ public:
     else if (std::holds_alternative<Node::StmtContinue*>(stmt->var)) output << "continue";
     else if (std::holds_alternative<Node::StmtFor*>(stmt->var)) output << "for";
     else if (std::holds_alternative<Node::StmtPut*>(stmt->var)) output << "put";
+    else if (std::holds_alternative<Node::StmtMain*>(stmt->var)) output << "main";
+    else if (std::holds_alternative<Node::StmtDefFunc*>(stmt->var)) output << "defFunc";
+    else if (std::holds_alternative<Node::StmtReturn*>(stmt->var)) output << "return";
 
     output << " stmt ;;;;;;;;;;;;;\n\n";
   }
@@ -339,12 +392,29 @@ private:
     size_t varOffset;
   };
 
+  struct Func {
+    std::string name;
+    std::string label;
+    std::vector<std::string> params;
+  };
+
   std::optional<Var> getVar(std::string name, bool doThrow = true) {
     for (Var var : vars) {
       if (var.name == name)
         return var;
     }
+    
     if (doThrow) err("No variable with identifier '" + name + "' found");
+    return {};
+  }
+
+  std::optional<Func> getFunc(std::string name, bool doThrow = true) {
+    for (Func func : funcs) {
+      if (func.name == name)
+        return func;
+    }
+    
+    if (doThrow) err("No function with identifier '" + name + "' found");
     return {};
   }
 
@@ -353,6 +423,8 @@ private:
   std::stringstream output;
   std::vector<Var> vars;
   std::vector<Scope> scopes;
+  std::vector<Func> funcs;
+  std::string currentFuncName = "";
   int stackPoint = 0;
   int labelIndex = 0;
   int index = 0;

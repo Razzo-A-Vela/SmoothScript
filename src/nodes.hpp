@@ -39,6 +39,15 @@ namespace Node {
 
   struct Stmt;
 
+  struct StmtReturn {
+    std::optional<Expr*> expr;
+  };
+
+  struct StmtDefFunc {
+    std::string name;
+    std::vector<std::string> params;
+  };
+
   struct StmtMain {};
 
   struct StmtPut {
@@ -78,7 +87,7 @@ namespace Node {
   };
 
   struct Stmt {
-    std::variant<StmtExit*, StmtVar*, StmtScope*, StmtIf*, StmtWhile*, StmtBreak*, StmtContinue*, StmtFor*, StmtPut*, StmtMain*> var;
+    std::variant<StmtExit*, StmtVar*, StmtScope*, StmtIf*, StmtWhile*, StmtBreak*, StmtContinue*, StmtFor*, StmtPut*, StmtMain*, StmtDefFunc*, StmtReturn*> var;
   };
 
 
