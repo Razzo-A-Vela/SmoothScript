@@ -32,12 +32,10 @@ while (x != 3) {
   x++;
 }
 
-put('H');
-put('i');
-put('\n');
+print();
 
 # z = 7
-var out = z + get();
+var out = add(z, get());
 put(out);
 
 exit(out);
