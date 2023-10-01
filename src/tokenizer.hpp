@@ -10,7 +10,7 @@
 enum class TokenType {
   exit, int_lit, semi, var, open_paren, closed_paren, ident, eq, plus, minus, star, slash, open_curly, closed_curly,
   mod, if_, double_eq, not_eq_, while_, break_, continue_, for_, char_lit, put, get, dollar, main, colon, comma,
-  return_
+  return_, less_eq
 };
 
 struct Token {
@@ -95,6 +95,11 @@ public:
       
       else if (try_consume(','))
         tokens.push_back({ .type = TokenType::comma, .line = line });
+
+      else if (try_consume('<')) {
+        if (try_consume('=')) tokens.push_back({ .type = TokenType::less_eq, .line = line });
+        else err("Syntax error", line);
+      }
 
 
       else if (try_consume('\'')) {

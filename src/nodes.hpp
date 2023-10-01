@@ -6,7 +6,7 @@
 
 
 enum class ExprBinType {
-  add, sub, mult, div, mod, eq, not_eq_
+  add, sub, mult, div, mod, eq, not_eq_, less_eq
 };
 
 namespace Node {

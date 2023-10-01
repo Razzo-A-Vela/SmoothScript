@@ -77,22 +77,25 @@ public:
 
     } else if (isBoolBinExpr(binExprNode->type)) {
       std::string binExprTrueLabel = getLabel("bool_bin_expr_true");
-      std::string binExprFalseLabel = getLabel("bool_bin_expr_false");
+      std::string binExprEndLabel = getLabel("bool_bin_expr_end");
+      output << "  cmp rax, rbx\n";
       
-      if (binExprNode->type == ExprBinType::eq) {
-        output << "  cmp rax, rbx\n";
+      if (binExprNode->type == ExprBinType::eq)
         output << "  je " << binExprTrueLabel << "\n";
 
-      } else if (binExprNode->type == ExprBinType::not_eq_) {
-        output << "  cmp rax, rbx\n";
+      else if (binExprNode->type == ExprBinType::not_eq_)
         output << "  jne " << binExprTrueLabel << "\n";
+
+      else if (binExprNode->type == ExprBinType::less_eq) {
+        output << "  je " << binExprTrueLabel << "\n";
+        output << "  jl " << binExprTrueLabel << "\n";
       }
       
       output << "  mov rax, 0\n";
-      output << "  jmp " << binExprFalseLabel << "\n";
+      output << "  jmp " << binExprEndLabel << "\n";
       output << binExprTrueLabel << ":\n";
       output << "  mov rax, 1\n";
-      output << binExprFalseLabel << ":\n";
+      output << binExprEndLabel << ":\n";
 
     }
 
@@ -130,15 +133,16 @@ public:
 
 
       void operator()(const Node::ExprGet* getNode) {
-        gen->output << "  sub rsp, 40\n";
+        gen->push("", 40);
         gen->output << "  call getchar\n";
         if (reg != "rax") gen->output << "  mov " << reg << ", rax\n";
-        gen->output << "  add rsp, 40\n";
+        gen->pop("", 40);
       }
 
 
       void operator()(const Node::Func* funcNode) {
         gen->genFunc(funcNode);
+        if (reg != "rax") gen->output << "  mov " << reg << ", rax\n";
       }
     };
 
@@ -201,7 +205,7 @@ public:
 
           while (gen->vars.size() > scope.varOffset)
             gen->vars.pop_back();
-          gen->output << "  add rsp, " << gen->stackPoint - scope.stackOffset << "\n";
+          gen->pop("", gen->stackPoint - scope.stackOffset);
           return;
         }
 
@@ -270,9 +274,9 @@ public:
       
       void operator()(const Node::StmtPut* putNode) {
         gen->genExpr(putNode->expr, "rcx");
-        gen->output << "  sub rsp, 40\n";
+        gen->push("", 40);
         gen->output << "  call putchar\n";
-        gen->output << "  add rsp, 40\n";
+        gen->pop("", 40);
       }
 
 
@@ -322,7 +326,7 @@ public:
         if (returnNode->expr.has_value()) gen->genExpr(returnNode->expr.value());
         else gen->output << "  mov rax, 0";
         
-        gen->output << "  add rsp, " << gen->stackPoint - scope.stackOffset << "\n";
+        gen->pop("", gen->stackPoint - scope.stackOffset);
         gen->output << "  ret\n";
       }
 
@@ -385,7 +389,7 @@ private:
   }
 
   void exit() {
-    output << "  add rsp, " << stackPoint << "\n";
+    pop("", stackPoint);
   }
 
   std::string getLabel(std::string name) {
