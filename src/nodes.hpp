@@ -12,6 +12,12 @@ enum class ExprBinType {
 namespace Node {
   struct Expr;
 
+  struct Func {
+    std::string name;
+    std::vector<Expr*> exprs;
+  };
+
+
   struct ExprGet {};
 
   struct ExprCharLit {
@@ -33,7 +39,7 @@ namespace Node {
   };
 
   struct Expr {
-    std::variant<ExprIntLit*, ExprVar*, ExprBin*, ExprCharLit*, ExprGet*> var;
+    std::variant<ExprIntLit*, ExprVar*, ExprBin*, ExprCharLit*, ExprGet*, Func*> var;
   };
 
 
@@ -87,7 +93,7 @@ namespace Node {
   };
 
   struct Stmt {
-    std::variant<StmtExit*, StmtVar*, StmtScope*, StmtIf*, StmtWhile*, StmtBreak*, StmtContinue*, StmtFor*, StmtPut*, StmtMain*, StmtDefFunc*, StmtReturn*> var;
+    std::variant<StmtExit*, StmtVar*, StmtScope*, StmtIf*, StmtWhile*, StmtBreak*, StmtContinue*, StmtFor*, StmtPut*, StmtMain*, StmtDefFunc*, StmtReturn*, Func*> var;
   };
 
 

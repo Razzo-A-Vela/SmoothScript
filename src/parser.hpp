@@ -31,9 +31,27 @@ public:
         ret->var = intLitNode;
 
       } else if (peek().value().type == TokenType::ident) {
-        Node::ExprVar* varNode = allocator.alloc<Node::ExprVar>();
-        varNode->name = consume().value.value();
-        ret->var = varNode;
+        Token ident = consume();
+
+        if (peek().value().type == TokenType::open_paren) {
+          consume();
+          Node::Func* funcNode = allocator.alloc<Node::Func>();
+          funcNode->name = ident.value.value();
+          
+          while (!try_consume(TokenType::closed_paren).has_value()) {
+            funcNode->exprs.push_back(parseExpr());
+
+            if (peek().has_value() && peek().value().type != TokenType::closed_paren) try_consume(TokenType::comma, "Expected ','");
+          }
+          ret->var = funcNode;
+
+
+        } else {
+          Node::ExprVar* varNode = allocator.alloc<Node::ExprVar>();
+          varNode->name = ident.value.value();
+          ret->var = varNode;
+        }
+
 
       } else if (peek().value().type == TokenType::char_lit) {
         Node::ExprCharLit* charLitNode = allocator.alloc<Node::ExprCharLit>();
@@ -145,6 +163,21 @@ public:
           if (peek().has_value() && peek().value().type != TokenType::closed_paren) try_consume(TokenType::comma, "Expected ','");
         }
         ret->var = defFuncNode;
+
+
+      } else if (peek().value().type == TokenType::open_paren) {
+        consume();
+        Node::Func* funcNode = allocator.alloc<Node::Func>();
+        funcNode->name = ident.value.value();
+        
+        while (!try_consume(TokenType::closed_paren).has_value()) {
+          funcNode->exprs.push_back(parseExpr());
+
+          if (peek().has_value() && peek().value().type != TokenType::closed_paren) try_consume(TokenType::comma, "Expected ','");
+        }
+        ret->var = funcNode;
+        try_consume(TokenType::semi, "Expected ';'");
+
 
       } else {      
         Node::StmtVar* varNode = allocator.alloc<Node::StmtVar>();

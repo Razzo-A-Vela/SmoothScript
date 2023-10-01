@@ -14,6 +14,19 @@ class Generator {
 public:
   Generator(Node::Base _node) : node(_node) {}
 
+  void genFunc(const Node::Func* funcNode) {
+    Func func = getFunc(funcNode->name).value();
+
+    for (Node::Expr* expr : funcNode->exprs) {
+      genExpr(expr);
+      push("rax");
+    }
+
+    output << "  call " << func.label << "\n";
+    pop("", funcNode->exprs.size() * 8);
+  }
+
+
   Node::Stmt* genInsideScope(std::string breakLabel, std::string continueLabel) {
     index++;
     Node::Stmt* stmt;
@@ -35,6 +48,7 @@ public:
     }
     return stmt;
   }
+
 
   void genBinExpr(const Node::ExprBin* binExprNode, std::string reg) {
     genExpr(binExprNode->left);
@@ -85,6 +99,7 @@ public:
     if (reg != "rax") output << "  mov " << reg << ", rax\n";
   }
 
+
   void genExpr(Node::Expr* expr, std::string reg_ = "rax") {
     struct Visitor {
       Generator* gen;
@@ -120,6 +135,11 @@ public:
         if (reg != "rax") gen->output << "  mov " << reg << ", rax\n";
         gen->output << "  add rsp, 40\n";
       }
+
+
+      void operator()(const Node::Func* funcNode) {
+        gen->genFunc(funcNode);
+      }
     };
 
     Visitor visitor(this, reg_);
@@ -131,9 +151,11 @@ public:
     else if (std::holds_alternative<Node::ExprBin*>(expr->var)) output << "bin";
     else if (std::holds_alternative<Node::ExprCharLit*>(expr->var)) output << "charLit";
     else if (std::holds_alternative<Node::ExprGet*>(expr->var)) output << "get";
+    else if (std::holds_alternative<Node::Func*>(expr->var)) output << "func";
 
     output << " expr ;;;;;;;;;;;;;\n";
   }
+
 
   void genStmt(Node::Stmt* stmt, std::string breakLabel_ = "", std::string continueLabel_ = "") {
     struct Visitor {
@@ -303,6 +325,11 @@ public:
         gen->output << "  add rsp, " << gen->stackPoint - scope.stackOffset << "\n";
         gen->output << "  ret\n";
       }
+
+
+      void operator()(const Node::Func* funcNode) {
+        gen->genFunc(funcNode);
+      }
     };
 
     Visitor visitor(this, breakLabel_, continueLabel_);
@@ -321,6 +348,7 @@ public:
     else if (std::holds_alternative<Node::StmtMain*>(stmt->var)) output << "main";
     else if (std::holds_alternative<Node::StmtDefFunc*>(stmt->var)) output << "defFunc";
     else if (std::holds_alternative<Node::StmtReturn*>(stmt->var)) output << "return";
+    else if (std::holds_alternative<Node::Func*>(stmt->var)) output << "func";
 
     output << " stmt ;;;;;;;;;;;;;\n\n";
   }
@@ -341,19 +369,17 @@ public:
 
 private:
   void push(std::string reg, int byteSize = 8) {
-    if (byteSize > 8) err("Cannot push more than 8 bytes to stack");
     stackPoint += byteSize;
-    
+
     output << "  sub rsp, " << byteSize << "\n";
-    output << "  mov [rsp + 0], " << reg << "\n";
+    if (reg != "") output << "  mov [rsp + 0], " << reg << "\n";
     output << "; push " << reg << "\n";
   }
 
   void pop(std::string reg, int byteSize = 8) {
-    if (byteSize > 8) err("Cannot push more than 8 bytes to stack");
     stackPoint -= byteSize;
 
-    output << "  mov " << reg << ", [rsp + 0]\n";
+    if (reg != "") output << "  mov " << reg << ", [rsp + 0]\n";
     output << "  add " << "rsp, " << byteSize << "\n";
     output << "; pop " << reg << "\n";
   }
