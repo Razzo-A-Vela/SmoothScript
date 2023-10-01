@@ -11,11 +11,13 @@
 int main(int argc, char* argv[]) {
   std::string filename;
   bool outAsm = false;
-  if (argc < 2)
-    err("Expected filename\n\nUsage: smooth <filename>\n");
-  else if (argc == 3) {
+  bool noLink = false;
+  if (argc < 2) err("Expected filename\n\nUsage: smooth <filename> [-asm [-noLink]]\n");
+  
+  if (argc >= 3)
     outAsm = std::string(argv[2]) == "-asm";
-  }
+  if (argc >= 4)
+    noLink = std::string(argv[3]) == "-noLink";
   filename = argv[1];
 
   std::string contents;
@@ -40,6 +42,7 @@ int main(int argc, char* argv[]) {
     fileStream.write(output.c_str(), output.length());
   }
 
+  if (noLink) return EXIT_SUCCESS;
   system("nasm -fwin64 out.asm");
   system("gcc out.obj -o out.exe");
   system("del out.obj");
