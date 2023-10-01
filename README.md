@@ -4,6 +4,9 @@
 <br>
 
 ## This compiler only compiles for windows
+### You need to have mingw64 installed
+
+<br>
 
 ## Features :
   - variables
@@ -22,9 +25,10 @@
 ## See <a href="Prova.smt">Prova.smt</a> for syntax
 
 ## Usage :
-#### <code>smooth \<filename\> [-asm]</code>
+#### <code>smooth \<filename\> [-asm [-noLink]]</code>
   - filename: the name of the .smt file
   - -asm: generate assembly
+  - -noLink: do not assemble and link
 
 <br>
 
