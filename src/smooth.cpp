@@ -23,11 +23,8 @@ int main(int argc, char* argv[]) {
   if (argc >= 4)
     noLink = std::string(argv[3]) == "-noLink";
   fileName = argv[1];
-  
-  if (fileName.at(fileName.size() - 4) != '.' || 
-      fileName.at(fileName.size() - 3) != 's' || 
-      fileName.at(fileName.size() - 2) != 'm' || 
-      fileName.at(fileName.size() - 1) != 't') err("Expected .smt file\n" + getUsage());
+
+  if (fileName.substr(fileName.size() - 4, fileName.size() - 1) != ".smt") err("Expected .smt file\n" + getUsage());
 
   std::string contents;
   {
