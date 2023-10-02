@@ -12,7 +12,7 @@
 
 class Generator {
 public:
-  Generator(Node::Base _node, bool _mainFile = true, std::string _labelName = "") : node(_node), mainFile(_mainFile), labelName(_labelName) {}
+  Generator(Node::Base _node, bool _mainFile = true, int _labelIndex = 0, std::string _labelName = "", std::string _alias = "") : node(_node), mainFile(_mainFile), labelIndex(_labelIndex), labelName(_labelName), alias(_alias) {}
 
   void genFunc(const Node::Func* funcNode) {
     Func func = getFunc(funcNode->name).value();
@@ -285,9 +285,7 @@ public:
         if (gen->mainFile) {
           gen->output << "main:\n";
 
-          for (std::string extend : gen->extends) {
-            gen->output << "  call " << extend << "\n";
-          }
+          for (Extend extend : gen->extends) gen->output << "  call " << extend.label << "\n";
         } else gen->output << gen->labelName + ":\n";
         gen->hasMain = true;
       }
@@ -298,7 +296,7 @@ public:
         if (gen->getFunc(defFuncNode->name, false).has_value()) gen->genErr("Trying to redefine function '" + defFuncNode->name + "'");
         if (gen->currentFuncName != "") gen->genErr("Cannot define a function inside a function");
         else gen->currentFuncName = defFuncNode->name;
-        std::string label = gen->getLabel(defFuncNode->name);
+        std::string label = gen->getLabel(gen->alias + "_" + defFuncNode->name);
         gen->funcs.push_back({ .name = defFuncNode->name, .label = label, .params = defFuncNode->params });
 
         for (int i = 0; i < defFuncNode->params.size(); i++) {
@@ -352,11 +350,11 @@ public:
           contents = stream.str();
         }
         std::string label = gen->getLabel(extendNode->fileName.substr(0, extendNode->fileName.size() - 4) + "_main");
-        gen->extends.push_back(label);
+        gen->extends.push_back({ .label = label, .alias = extendNode->alias });
 
         Tokenizer tokenizer(contents);
         Parser parser(tokenizer.tokenize());
-        Generator generator(parser.parse(), false, label);
+        Generator generator(parser.parse(), false, gen->labelIndex, label, extendNode->alias);
         gen->output << generator.generate() << "\n";
         gen->output << ";;;;;;;;;;;;; " << extendNode->fileName << ";;;;;;;;;;;;;\n";
         gen->addFromExtend(&generator);
@@ -458,6 +456,11 @@ private:
     std::vector<std::string> params;
   };
 
+  struct Extend {
+    std::string label;
+    std::string alias = "";
+  };
+
   std::optional<Var> getVar(std::string name, bool doThrow = true) {
     for (Var var : vars) {
       if (var.name == name)
@@ -481,6 +484,7 @@ private:
   void addFromExtend(Generator* gen) {
     for (Var var : gen->vars) vars.push_back(var);
     for (Func func : gen->funcs) funcs.push_back(func);
+    labelIndex = gen->labelIndex;
   }
 
 
@@ -489,12 +493,13 @@ private:
   std::vector<Var> vars;
   std::vector<Scope> scopes;
   std::vector<Func> funcs;
-  std::vector<std::string> extends;
+  std::vector<Extend> extends;
   std::string labelName;
+  std::string alias;
   std::string currentFuncName = "";
   bool mainFile;
+  int labelIndex;
   int stackPoint = 0;
-  int labelIndex = 0;
   int index = 0;
   bool hasMain = false;
 };
