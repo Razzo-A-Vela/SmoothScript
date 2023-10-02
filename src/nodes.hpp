@@ -47,6 +47,7 @@ namespace Node {
 
   struct StmtExtend {
     std::string fileName;
+    std::string alias = "";
   };
 
   struct StmtReturn {
