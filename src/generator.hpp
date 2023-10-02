@@ -359,6 +359,7 @@ public:
         Generator generator(parser.parse(), false, label);
         gen->output << generator.generate() << "\n";
         gen->output << ";;;;;;;;;;;;; " << extendNode->fileName << ";;;;;;;;;;;;;\n";
+        gen->addFromExtend(&generator);
       }
     };
 
@@ -475,6 +476,11 @@ private:
     
     if (doThrow) genErr("No function with identifier '" + name + "' found");
     return {};
+  }
+
+  void addFromExtend(Generator* gen) {
+    for (Var var : gen->vars) vars.push_back(var);
+    for (Func func : gen->funcs) funcs.push_back(func);
   }
 
 
