@@ -214,13 +214,13 @@ public:
     } else if (try_consume(TokenType::extend).has_value()) {
       Node::StmtExtend* extendNode = allocator.alloc<Node::StmtExtend>();
       Token file = consume();
-      try_consume(TokenType::dot, "Expected .sml file");
+      try_consume(TokenType::dot, "Expected .smt file");
       Token ext = consume();
       try_consume(TokenType::semi, "Expected ';'");
 
-      if (file.type != TokenType::ident || ext.type != TokenType::ident) err("Expected .sml file", file.line);
-      if (ext.value.value() != "sml") err("Expected .sml file", ext.line);
-      extendNode->filename = file.value.value() + "." + ext.value.value();;
+      if (file.type != TokenType::ident || ext.type != TokenType::ident) err("Expected .smt file", file.line);
+      if (ext.value.value() != "smt") err("Expected .smt file", ext.line);
+      extendNode->fileName = file.value.value() + "." + ext.value.value();;
       ret->var = extendNode;
 
 
