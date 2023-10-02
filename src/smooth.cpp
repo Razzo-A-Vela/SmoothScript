@@ -8,21 +8,30 @@
 #include "generator.hpp"
 
 
+std::string getUsage() {
+  return "\nUsage: smooth <filename> [-asm [-noLink]]\n";
+}
+
 int main(int argc, char* argv[]) {
-  std::string filename;
+  std::string fileName;
   bool outAsm = false;
   bool noLink = false;
-  if (argc < 2) err("Expected filename\n\nUsage: smooth <filename> [-asm [-noLink]]\n");
+  if (argc < 2) err("Expected filename\n" + getUsage());
   
   if (argc >= 3)
     outAsm = std::string(argv[2]) == "-asm";
   if (argc >= 4)
     noLink = std::string(argv[3]) == "-noLink";
-  filename = argv[1];
+  fileName = argv[1];
+  
+  if (fileName.at(fileName.size() - 4) != '.' || 
+      fileName.at(fileName.size() - 3) != 's' || 
+      fileName.at(fileName.size() - 2) != 'm' || 
+      fileName.at(fileName.size() - 1) != 't') err("Expected .smt file\n" + getUsage());
 
   std::string contents;
   {
-    std::fstream fileStream(filename, std::ios::in);
+    std::fstream fileStream(fileName, std::ios::in);
     std::stringstream stream;
     stream << fileStream.rdbuf();
     contents = stream.str();
