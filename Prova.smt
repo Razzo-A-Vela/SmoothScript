@@ -1,9 +1,4 @@
-
-print : () {
-  put('H');
-  put('i');
-  put('\n');
-}
+extend ext.smt;
 
 add : (a, b) {
   return a + b;
@@ -37,7 +32,6 @@ while (x != 3) {
   x++;
 }
 
-print();
 # z = 7
 z = fib(z) - 11;
 
