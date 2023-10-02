@@ -296,7 +296,11 @@ public:
         if (gen->getFunc(defFuncNode->name, false).has_value()) gen->genErr("Trying to redefine function '" + defFuncNode->name + "'");
         if (gen->currentFuncName != "") gen->genErr("Cannot define a function inside a function");
         else gen->currentFuncName = defFuncNode->name;
-        std::string label = gen->getLabel(gen->alias + "_" + defFuncNode->name);
+
+        std::string labelName;
+        if (gen->alias == "") labelName = defFuncNode->name;
+        else labelName = gen->alias + "_" + defFuncNode->name;
+        std::string label = gen->getLabel(labelName);
         gen->funcs.push_back({ .name = defFuncNode->name, .label = label, .params = defFuncNode->params });
 
         for (int i = 0; i < defFuncNode->params.size(); i++) {
