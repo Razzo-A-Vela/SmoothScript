@@ -345,6 +345,7 @@ public:
 
 
       void operator()(const Node::StmtExtend* extendNode) {
+        if (!gen->mainFile) gen->genErr("Cannot extend a file outside of the main file");
         if (gen->hasMain) gen->genErr("Cannot extend a file after main");
         std::string contents;
         {
