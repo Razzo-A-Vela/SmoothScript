@@ -12,7 +12,7 @@
 
 class Generator {
 public:
-  Generator(Node::Base _node) : node(_node) {}
+  Generator(Node::Base _node, bool _mainFile = true, std::string _labelName = "") : node(_node), mainFile(_mainFile), labelName(_labelName) {}
 
   void genFunc(const Node::Func* funcNode) {
     Func func = getFunc(funcNode->name).value();
@@ -187,7 +187,7 @@ public:
           return;
         }
 
-        if (gen->getVar(varNode->name, false).has_value()) err("Identifier '" + varNode->name + "' alredy exists");
+        if (gen->getVar(varNode->name, false).has_value()) gen->genErr("Identifier '" + varNode->name + "' alredy exists");
         gen->push("rax");
         gen->vars.push_back({ .name = varNode->name, .stackOffset = gen->stackPoint });
       }
@@ -199,7 +199,7 @@ public:
           try {
             scope = gen->scopes.at(gen->scopes.size() - 1);
           } catch (std::out_of_range const& e) {
-            err("Expected '{' before '}'");
+            gen->genErr("Expected '{' before '}'");
           }
           gen->scopes.pop_back();
 
@@ -243,13 +243,13 @@ public:
 
 
       void operator()(const Node::StmtBreak* breakNode) {
-        if (breakLabel == "") err("Cannot use 'break' while not in a loop");
+        if (breakLabel == "") gen->genErr("Cannot use 'break' while not in a loop");
         gen->output << "  jmp " << breakLabel << "\n";
       }
 
 
       void operator()(const Node::StmtContinue* continueNode) {
-        if (continueLabel == "") err("Cannot use 'continue' while not in a loop");
+        if (continueLabel == "") gen->genErr("Cannot use 'continue' while not in a loop");
         gen->output << "  jmp " << continueLabel << "\n";
       }
 
@@ -281,16 +281,22 @@ public:
 
 
       void operator()(const Node::StmtMain* mainNode) {
-        if (gen->hasMain) err("Main alredy defined");
-        gen->output << "main:\n";
+        if (gen->hasMain) gen->genErr("Main alredy defined");
+        if (gen->mainFile) {
+          gen->output << "main:\n";
+
+          for (std::string extend : gen->extends) {
+            gen->output << "  call " << extend << "\n";
+          }
+        } else gen->output << gen->labelName + ":\n";
         gen->hasMain = true;
       }
 
 
       void operator()(const Node::StmtDefFunc* defFuncNode) {
-        if (gen->hasMain) err("Cannot define a function inside main");
-        if (gen->getFunc(defFuncNode->name, false).has_value()) err("Trying to redefine function '" + defFuncNode->name + "'");
-        if (gen->currentFuncName != "") err("Cannot define a function inside a function");
+        if (gen->hasMain) gen->genErr("Cannot define a function inside main");
+        if (gen->getFunc(defFuncNode->name, false).has_value()) gen->genErr("Trying to redefine function '" + defFuncNode->name + "'");
+        if (gen->currentFuncName != "") gen->genErr("Cannot define a function inside a function");
         else gen->currentFuncName = defFuncNode->name;
         std::string label = gen->getLabel(defFuncNode->name);
         gen->funcs.push_back({ .name = defFuncNode->name, .label = label, .params = defFuncNode->params });
@@ -303,7 +309,7 @@ public:
         gen->stackPoint += 8;
         gen->output << label << ":\n";
         Node::Stmt* scopeStmt = gen->genInsideScope("", "");
-        if (scopeStmt == NULL) err("Expected scope after function declaration of '" + defFuncNode->name + "'");
+        if (scopeStmt == NULL) gen->genErr("Expected scope after function declaration of '" + defFuncNode->name + "'");
         gen->genStmt(scopeStmt);
         gen->stackPoint -= 8;
 
@@ -319,7 +325,7 @@ public:
 
 
       void operator()(const Node::StmtReturn* returnNode) {
-        if (gen->currentFuncName == "") err("Return can only be used in functions");
+        if (gen->currentFuncName == "") gen->genErr("Return can only be used in functions");
         Scope scope = gen->scopes.at(gen->scopes.size() - 1);
         Func func = gen->getFunc(gen->currentFuncName).value();
 
@@ -333,6 +339,26 @@ public:
 
       void operator()(const Node::Func* funcNode) {
         gen->genFunc(funcNode);
+      }
+
+
+      void operator()(const Node::StmtExtend* extendNode) {
+        if (gen->hasMain) gen->genErr("Cannot extend a file after main");
+        std::string contents;
+        {
+          std::fstream fileStream(extendNode->fileName, std::ios::in);
+          std::stringstream stream;
+          stream << fileStream.rdbuf();
+          contents = stream.str();
+        }
+        std::string label = gen->getLabel(extendNode->fileName.substr(0, extendNode->fileName.size() - 4) + "_main");
+        gen->extends.push_back(label);
+
+        Tokenizer tokenizer(contents);
+        Parser parser(tokenizer.tokenize());
+        Generator generator(parser.parse(), false, label);
+        gen->output << generator.generate() << "\n";
+        gen->output << ";;;;;;;;;;;;; " << extendNode->fileName << ";;;;;;;;;;;;;\n";
       }
     };
 
@@ -353,19 +379,20 @@ public:
     else if (std::holds_alternative<Node::StmtDefFunc*>(stmt->var)) output << "defFunc";
     else if (std::holds_alternative<Node::StmtReturn*>(stmt->var)) output << "return";
     else if (std::holds_alternative<Node::Func*>(stmt->var)) output << "func";
+    else if (std::holds_alternative<Node::StmtExtend*>(stmt->var)) output << "extend";
 
     output << " stmt ;;;;;;;;;;;;;\n\n";
   }
 
   std::string generate() {
-    output << "global main\nextern putchar\nextern getchar\nsection .text\n\n";
+    if (mainFile) output << "global main\nextern putchar\nextern getchar\nsection .text\n\n";
 
     for (; index < node.stmts.size(); index++) {
       genStmt(node.stmts.at(index));
     }
-    if (!hasMain) err("Expected main");
-    if (scopes.size() != 0) err("Expected '}'");
-    exit();
+    if (!hasMain) genErr("Expected main");
+    if (scopes.size() != 0) genErr("Expected '}'");
+    this->exit();
 
     output << "  mov rax, 0\n  ret\n";
     return output.str();
@@ -390,6 +417,15 @@ private:
 
   void exit() {
     pop("", stackPoint);
+  }
+
+  void genErr(std::string msg) {
+    if (mainFile) err(msg);
+
+    std::string name = labelName;
+    std::size_t start = name.find("_main__");
+    name.replace(start, name.size() - start, ".smt");
+    err(msg + " in file: " + name);
   }
 
   std::string getLabel(std::string name) {
@@ -427,7 +463,7 @@ private:
         return var;
     }
     
-    if (doThrow) err("No variable with identifier '" + name + "' found");
+    if (doThrow) genErr("No variable with identifier '" + name + "' found");
     return {};
   }
 
@@ -437,7 +473,7 @@ private:
         return func;
     }
     
-    if (doThrow) err("No function with identifier '" + name + "' found");
+    if (doThrow) genErr("No function with identifier '" + name + "' found");
     return {};
   }
 
@@ -447,7 +483,10 @@ private:
   std::vector<Var> vars;
   std::vector<Scope> scopes;
   std::vector<Func> funcs;
+  std::vector<std::string> extends;
+  std::string labelName;
   std::string currentFuncName = "";
+  bool mainFile;
   int stackPoint = 0;
   int labelIndex = 0;
   int index = 0;
