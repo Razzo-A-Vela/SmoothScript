@@ -16,19 +16,19 @@ public:
 
   Node::Expr* parseExpr(bool parenExpr = false, bool parseBin = true) {
     Node::Expr* ret;
-    if (!peek().has_value()) err("Syntax error", peek().value().line);
+    if (!peek().has_value()) err("Syntax error", peek(-1).value().line);
 
-    if (peek().value().type == TokenType::open_paren) {
-      consume();
+    if (try_consume(TokenType::open_paren).has_value())
       ret = parseExpr(true);
 
-    } else {
+    else {
       ret = allocator.alloc<Node::Expr>();
   
       if (peek().value().type == TokenType::int_lit) {
         Node::ExprIntLit* intLitNode = allocator.alloc<Node::ExprIntLit>();
         intLitNode->value = consume().value.value();
         ret->var = intLitNode;
+
 
       } else if (peek().value().type == TokenType::ident) {
         Token ident = consume();
@@ -59,6 +59,7 @@ public:
         value << ((int) consume().value.value().at(0));
         charLitNode->value = value.str();
         ret->var = charLitNode;
+
         
       } else if (peek().value().type == TokenType::get) {
         consume();
@@ -68,9 +69,11 @@ public:
         Node::ExprGet* getNode = allocator.alloc<Node::ExprGet>();
         ret->var = getNode;
 
+
       } else
-        err("Syntax error", peek().value().line);
+        err("Syntax error", peek(-1).value().line);
     }
+    
 
     if (parseBin && peek().has_value() && isBinOp(peek().value().type)) {
       int prev_prec = getBinExprPrec(getBinType(peek().value().type).value());
@@ -112,11 +115,10 @@ public:
 
   Node::Stmt* parseStmt() {
     Node::Stmt* ret = allocator.alloc<Node::Stmt>();
-    if (!peek().has_value()) err("Syntax error", peek().value().line);
+    if (!peek().has_value()) err("Syntax error", peek(-1).value().line);
 
 
-    if (peek().value().type == TokenType::exit) {
-      consume();
+    if (try_consume(TokenType::exit).has_value()) {
       try_consume(TokenType::open_paren, "Expected '('");
 
       Node::StmtExit* exitNode = allocator.alloc<Node::StmtExit>();
@@ -126,8 +128,7 @@ public:
       try_consume(TokenType::semi, "Expected ';'");
 
 
-    } else if (peek().value().type == TokenType::var) {
-      consume();
+    } else if (try_consume(TokenType::var).has_value()) {
       if (!peek().has_value()) err("Syntax error", peek(-1).value().line);
       Token ident = consume();
       if (ident.type != TokenType::ident) err("Syntax error", ident.line);
@@ -146,11 +147,87 @@ public:
       ret->var = varNode;
 
 
+    } else if (try_consume(TokenType::if_).has_value()) {
+      try_consume(TokenType::open_paren, "Expected '('");
+      Node::StmtIf* ifStmt = allocator.alloc<Node::StmtIf>();
+      Node::Expr* expr = parseExpr(true);
+      ifStmt->expr = expr;
+      ret->var = ifStmt;
+
+
+    } else if (try_consume(TokenType::while_).has_value()) {
+      try_consume(TokenType::open_paren, "Expected '('");
+      Node::StmtWhile* stmtWhile = allocator.alloc<Node::StmtWhile>();
+      Node::Expr* expr = parseExpr(true);
+      stmtWhile->expr = expr;
+      ret->var = stmtWhile;
+
+
+    } else if (try_consume(TokenType::break_).has_value()) {
+      try_consume(TokenType::semi, "Expected ';'");
+      Node::StmtBreak* stmtBreak = allocator.alloc<Node::StmtBreak>();
+      ret->var = stmtBreak;
+
+
+    } else if (try_consume(TokenType::break_).has_value()) {
+      try_consume(TokenType::semi, "Expected ';'");
+      Node::StmtContinue* stmtContinue = allocator.alloc<Node::StmtContinue>();
+      ret->var = stmtContinue;
+
+
+    } else if (try_consume(TokenType::for_).has_value()) {
+      try_consume(TokenType::open_paren, "Expected '('");
+      Node::StmtFor* stmtFor = allocator.alloc<Node::StmtFor>();
+
+      stmtFor->once = parseStmt();
+      stmtFor->condition = parseExpr();
+      try_consume(TokenType::semi, "Expected ';'");
+      stmtFor->repeat = parseStmt();
+      try_consume(TokenType::closed_paren, "Expected ')'");
+      ret->var = stmtFor;
+
+
+    } else if (try_consume(TokenType::put).has_value()) {
+      try_consume(TokenType::open_paren, "Expected '('");
+      Node::StmtPut* putStmt = allocator.alloc<Node::StmtPut>();
+      putStmt->expr = parseExpr(true);
+      
+      ret->var = putStmt;
+      try_consume(TokenType::semi, "Expected ';'");
+
+
+    } else if (try_consume(TokenType::dollar).has_value()) {
+      try_consume(TokenType::main, "Expected 'main' after '$'");
+      Node::StmtMain* mainNode = allocator.alloc<Node::StmtMain>();
+      ret->var = mainNode;
+
+
+    } else if (try_consume(TokenType::return_).has_value()) {
+      Node::StmtReturn* returnNode = allocator.alloc<Node::StmtReturn>();
+      if (!try_consume(TokenType::semi).has_value()) {
+        returnNode->expr = parseExpr();
+        try_consume(TokenType::semi, "Expected ';'");
+      }
+      ret->var = returnNode;
+
+
+    } else if (try_consume(TokenType::extend).has_value()) {
+      Node::StmtExtend* extendNode = allocator.alloc<Node::StmtExtend>();
+      Token file = consume();
+      try_consume(TokenType::dot, "Expected .sml file");
+      Token ext = consume();
+      try_consume(TokenType::semi, "Expected ';'");
+
+      if (file.type != TokenType::ident || ext.type != TokenType::ident) err("Expected .sml file", file.line);
+      if (ext.value.value() != "sml") err("Expected .sml file", ext.line);
+      extendNode->filename = file.value.value() + "." + ext.value.value();;
+      ret->var = extendNode;
+
+
     } else if (peek().value().type == TokenType::ident) {
       Token ident = consume();
 
-      if (peek().value().type == TokenType::colon) {
-        consume();
+      if (try_consume(TokenType::colon).has_value()) {
         try_consume(TokenType::open_paren, "Expected '('");
         Node::StmtDefFunc* defFuncNode = allocator.alloc<Node::StmtDefFunc>();
         defFuncNode->name = ident.value.value();
@@ -165,8 +242,7 @@ public:
         ret->var = defFuncNode;
 
 
-      } else if (peek().value().type == TokenType::open_paren) {
-        consume();
+      } else if (try_consume(TokenType::open_paren).has_value()) {
         Node::Func* funcNode = allocator.alloc<Node::Func>();
         funcNode->name = ident.value.value();
         
@@ -219,75 +295,6 @@ public:
       }
 
 
-    } else if (peek().value().type == TokenType::if_) {
-      consume();
-      try_consume(TokenType::open_paren, "Expected '('");
-      Node::StmtIf* ifStmt = allocator.alloc<Node::StmtIf>();
-      Node::Expr* expr = parseExpr(true);
-      ifStmt->expr = expr;
-      ret->var = ifStmt;
-
-
-    } else if (peek().value().type == TokenType::while_) {
-      consume();
-      try_consume(TokenType::open_paren, "Expected '('");
-      Node::StmtWhile* stmtWhile = allocator.alloc<Node::StmtWhile>();
-      Node::Expr* expr = parseExpr(true);
-      stmtWhile->expr = expr;
-      ret->var = stmtWhile;
-
-
-    } else if (peek().value().type == TokenType::break_) {
-      consume();
-      try_consume(TokenType::semi, "Expected ';'");
-      Node::StmtBreak* stmtBreak = allocator.alloc<Node::StmtBreak>();
-      ret->var = stmtBreak;
-
-
-    } else if (peek().value().type == TokenType::continue_) {
-      consume();
-      try_consume(TokenType::semi, "Expected ';'");
-      Node::StmtContinue* stmtContinue = allocator.alloc<Node::StmtContinue>();
-      ret->var = stmtContinue;
-
-
-    } else if (peek().value().type == TokenType::for_) {
-      consume();
-      try_consume(TokenType::open_paren, "Expected '('");
-      Node::StmtFor* stmtFor = allocator.alloc<Node::StmtFor>();
-
-      stmtFor->once = parseStmt();
-      stmtFor->condition = parseExpr();
-      try_consume(TokenType::semi, "Expected ';'");
-      stmtFor->repeat = parseStmt();
-      try_consume(TokenType::closed_paren, "Expected ')'");
-      ret->var = stmtFor;
-
-    } else if (peek().value().type == TokenType::put) {
-      consume();
-      try_consume(TokenType::open_paren, "Expected '('");
-      Node::StmtPut* putStmt = allocator.alloc<Node::StmtPut>();
-      putStmt->expr = parseExpr(true);
-      
-      ret->var = putStmt;
-      try_consume(TokenType::semi, "Expected ';'");
-
-
-    } else if (peek().value().type == TokenType::dollar) {
-      consume();
-      try_consume(TokenType::main, "Expected 'main' after '$'");
-      Node::StmtMain* mainNode = allocator.alloc<Node::StmtMain>();
-      ret->var = mainNode;
-
-    } else if (peek().value().type == TokenType::return_) {
-      consume();
-      Node::StmtReturn* returnNode = allocator.alloc<Node::StmtReturn>();
-      if (!try_consume(TokenType::semi).has_value()) {
-        returnNode->expr = parseExpr();
-        try_consume(TokenType::semi, "Expected ';'");
-      }
-      ret->var = returnNode;
-
     } else if (peek().value().type == TokenType::open_curly || peek().value().type == TokenType::closed_curly) {
       Node::StmtScope* scopeStmt = allocator.alloc<Node::StmtScope>();
       scopeStmt->close = consume().type == TokenType::closed_curly;
@@ -295,7 +302,7 @@ public:
 
 
     } else
-      err("Syntax error", peek().value().line);
+      err("Syntax error", peek(-1).value().line);
 
     return ret;
   }
@@ -332,7 +339,7 @@ private:
 
   std::optional<Token> try_consume(TokenType type, std::string msg) {
     std::optional<Token> optional = try_consume(type);
-    if (!optional.has_value()) err(msg, peek().value().line);
+    if (!optional.has_value()) err(msg, peek(-1).value().line);
     return optional;
   }
 
