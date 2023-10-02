@@ -1,4 +1,4 @@
-extend ext.smt;
+extend ext.smt as ext;
 
 add : (a, b) {
   return a + b;
