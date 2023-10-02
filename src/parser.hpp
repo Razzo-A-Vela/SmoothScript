@@ -31,26 +31,7 @@ public:
 
 
       } else if (peek().value().type == TokenType::ident) {
-        Token ident = consume();
-
-        if (peek().value().type == TokenType::open_paren) {
-          consume();
-          Node::Func* funcNode = allocator.alloc<Node::Func>();
-          funcNode->name = ident.value.value();
-          
-          while (!try_consume(TokenType::closed_paren).has_value()) {
-            funcNode->exprs.push_back(parseExpr());
-
-            if (peek().has_value() && peek().value().type != TokenType::closed_paren) try_consume(TokenType::comma, "Expected ','");
-          }
-          ret->var = funcNode;
-
-
-        } else {
-          Node::ExprVar* varNode = allocator.alloc<Node::ExprVar>();
-          varNode->name = ident.value.value();
-          ret->var = varNode;
-        }
+        parseExprIdent(consume(), ret);
 
 
       } else if (peek().value().type == TokenType::char_lit) {
@@ -216,11 +197,19 @@ public:
       Token file = consume();
       try_consume(TokenType::dot, "Expected .smt file");
       Token ext = consume();
+
+      std::string alias = "";
+      if (try_consume(TokenType::as).has_value()) {
+        Token al = consume();
+        if (al.type != TokenType::ident) err("Expected identifier after 'as'");
+        alias = al.value.value();
+      }
       try_consume(TokenType::semi, "Expected ';'");
 
       if (file.type != TokenType::ident || ext.type != TokenType::ident) err("Expected .smt file", file.line);
       if (ext.value.value() != "smt") err("Expected .smt file", ext.line);
-      extendNode->fileName = file.value.value() + "." + ext.value.value();;
+      extendNode->fileName = file.value.value() + "." + ext.value.value();
+      extendNode->alias = alias;
       ret->var = extendNode;
 
 
@@ -241,58 +230,7 @@ public:
         }
         ret->var = defFuncNode;
 
-
-      } else if (try_consume(TokenType::open_paren).has_value()) {
-        Node::Func* funcNode = allocator.alloc<Node::Func>();
-        funcNode->name = ident.value.value();
-        
-        while (!try_consume(TokenType::closed_paren).has_value()) {
-          funcNode->exprs.push_back(parseExpr());
-
-          if (peek().has_value() && peek().value().type != TokenType::closed_paren) try_consume(TokenType::comma, "Expected ','");
-        }
-        ret->var = funcNode;
-        try_consume(TokenType::semi, "Expected ';'");
-
-
-      } else {      
-        Node::StmtVar* varNode = allocator.alloc<Node::StmtVar>();
-        varNode->name = ident.value.value();
-        varNode->reAssign = true;
-
-        TokenType op = peek().value().type;
-        if (op == TokenType::plus || op == TokenType::minus) {
-          try_consume(op, "Syntax error");
-          try_consume(op, "Syntax error");
-
-          Node::Expr* expr = allocator.alloc<Node::Expr>();
-          Node::ExprBin* binExpr = allocator.alloc<Node::ExprBin>();
-          Node::ExprVar* varExpr = allocator.alloc<Node::ExprVar>();
-          Node::ExprIntLit* intExpr = allocator.alloc<Node::ExprIntLit>();
-
-          varExpr->name = varNode->name;
-          Node::Expr* var_expr = allocator.alloc<Node::Expr>();
-          var_expr->var = varExpr;
-          
-          intExpr->value = "1";
-          Node::Expr* int_expr = allocator.alloc<Node::Expr>();
-          int_expr->var = intExpr;
-
-          binExpr->left = var_expr;
-          binExpr->right = int_expr;
-          binExpr->type = getBinType(op).value();
-          expr->var = binExpr;
-          varNode->expr = expr;
-
-        } else {
-          try_consume(TokenType::eq, "Expected '='");
-          Node::Expr* expr = parseExpr();
-          varNode->expr = expr;
-        }
-
-        ret->var = varNode;
-        try_consume(TokenType::semi, "Expected ';'");
-      }
+      } else parseStmtIdent(ident, ret);
 
 
     } else if (peek().value().type == TokenType::open_curly || peek().value().type == TokenType::closed_curly) {
@@ -342,6 +280,85 @@ private:
     if (!optional.has_value()) err(msg, peek(-1).value().line);
     return optional;
   }
+
+
+  void parseStmtIdent(Token ident, Node::Stmt* ret) {
+    if (ident.type != TokenType::ident) err("Expected identifier", ident.line);
+
+    if (try_consume(TokenType::open_paren).has_value()) {
+      Node::Func* funcNode = allocator.alloc<Node::Func>();
+      funcNode->name = ident.value.value();
+      
+      while (!try_consume(TokenType::closed_paren).has_value()) {
+        funcNode->exprs.push_back(parseExpr());
+
+        if (peek().has_value() && peek().value().type != TokenType::closed_paren) try_consume(TokenType::comma, "Expected ','");
+      }
+      ret->var = funcNode;
+
+
+    } else {      
+      Node::StmtVar* varNode = allocator.alloc<Node::StmtVar>();
+      varNode->name = ident.value.value();
+      varNode->reAssign = true;
+
+      TokenType op = peek().value().type;
+      if (op == TokenType::plus || op == TokenType::minus) {
+        try_consume(op, "Syntax error");
+        try_consume(op, "Syntax error");
+
+        Node::Expr* expr = allocator.alloc<Node::Expr>();
+        Node::ExprBin* binExpr = allocator.alloc<Node::ExprBin>();
+        Node::ExprVar* varExpr = allocator.alloc<Node::ExprVar>();
+        Node::ExprIntLit* intExpr = allocator.alloc<Node::ExprIntLit>();
+
+        varExpr->name = varNode->name;
+        Node::Expr* var_expr = allocator.alloc<Node::Expr>();
+        var_expr->var = varExpr;
+        
+        intExpr->value = "1";
+        Node::Expr* int_expr = allocator.alloc<Node::Expr>();
+        int_expr->var = intExpr;
+
+        binExpr->left = var_expr;
+        binExpr->right = int_expr;
+        binExpr->type = getBinType(op).value();
+        expr->var = binExpr;
+        varNode->expr = expr;
+
+      } else {
+        try_consume(TokenType::eq, "Expected '='");
+        Node::Expr* expr = parseExpr();
+        varNode->expr = expr;
+      }
+
+      ret->var = varNode;
+    }
+    try_consume(TokenType::semi, "Expected ';'");
+  }
+
+  void parseExprIdent(Token ident, Node::Expr* ret) {
+    if (ident.type != TokenType::ident) err("Expected identifier", ident.line);
+
+    if (try_consume(TokenType::open_paren).has_value()) {
+      Node::Func* funcNode = allocator.alloc<Node::Func>();
+      funcNode->name = ident.value.value();
+      
+      while (!try_consume(TokenType::closed_paren).has_value()) {
+        funcNode->exprs.push_back(parseExpr());
+
+        if (peek().has_value() && peek().value().type != TokenType::closed_paren) try_consume(TokenType::comma, "Expected ','");
+      }
+      ret->var = funcNode;
+
+
+    } else {
+      Node::ExprVar* varNode = allocator.alloc<Node::ExprVar>();
+      varNode->name = ident.value.value();
+      ret->var = varNode;
+    }
+  }
+
 
   const std::vector<Token> tokens;
   Allocator allocator;
