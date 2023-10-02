@@ -46,7 +46,7 @@ namespace Node {
   struct Stmt;
 
   struct StmtExtend {
-    std::string filename;
+    std::string fileName;
   };
 
   struct StmtReturn {
