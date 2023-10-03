@@ -293,11 +293,10 @@ public:
 
       void operator()(const Node::StmtMain* mainNode) {
         if (gen->hasMain) gen->genErr("Main alredy defined");
-        if (gen->mainFile) {
-          gen->output << "main:\n";
-
-          for (std::string extend : gen->extends) gen->output << "  call " << extend << "\n";
-        } else gen->output << gen->labelName + ":\n";
+        if (gen->mainFile) gen->output << "main:\n";
+        else gen->output << gen->labelName + ":\n";
+        
+        for (std::string extend : gen->extends) gen->output << "  call " << extend << "\n";
         gen->hasMain = true;
       }
 
