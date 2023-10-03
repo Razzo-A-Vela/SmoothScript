@@ -356,7 +356,6 @@ public:
 
 
       void operator()(const Node::StmtExtend* extendNode) {
-        if (!gen->mainFile) gen->genErr("Cannot extend a file outside of the main file");
         if (gen->hasMain) gen->genErr("Cannot extend a file after main");
         std::string contents;
         {
@@ -365,12 +364,12 @@ public:
           stream << fileStream.rdbuf();
           contents = stream.str();
         }
-        std::string label = gen->getLabel(extendNode->fileName.substr(0, extendNode->fileName.size() - 4) + "_main");
-        gen->extends.push_back(label);
+        std::string mainLabel = gen->getLabel(extendNode->fileName.substr(0, extendNode->fileName.size() - 4) + "_main");
+        gen->extends.push_back(mainLabel);
 
         Tokenizer tokenizer(contents);
         Parser parser(tokenizer.tokenize());
-        Generator generator(parser.parse(), false, gen->labelIndex, label, extendNode->alias);
+        Generator generator(parser.parse(), false, gen->labelIndex, mainLabel, extendNode->alias);
         gen->output << generator.generate() << "\n";
         gen->output << ";;;;;;;;;;;;; " << extendNode->fileName << " ;;;;;;;;;;;;;\n";
         gen->addFromExtend(&generator, extendNode->alias);
