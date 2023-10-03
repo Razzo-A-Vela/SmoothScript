@@ -37,6 +37,12 @@ std::optional<ExprBinType> getBinType(TokenType type) {
       return ExprBinType::not_eq_;
     case TokenType::less_eq :
       return ExprBinType::less_eq;
+    case TokenType::greater_eq :
+      return ExprBinType::greater_eq;
+    case TokenType::greater :
+      return ExprBinType::greater;
+    case TokenType::less :
+      return ExprBinType::less;
 
     default :
       return {};
@@ -60,6 +66,9 @@ int getBinExprPrec(ExprBinType type) {
     case ExprBinType::eq :
     case ExprBinType::not_eq_ :
     case ExprBinType::less_eq :
+    case ExprBinType::greater_eq :
+    case ExprBinType::greater :
+    case ExprBinType::less :
       return 0;
   }
 }
@@ -69,6 +78,9 @@ bool isBoolBinExpr(ExprBinType type) {
     case ExprBinType::eq :
     case ExprBinType::not_eq_ :
     case ExprBinType::less_eq :
+    case ExprBinType::greater_eq :
+    case ExprBinType::greater :
+    case ExprBinType::less :
       return true;
 
     default :

@@ -90,6 +90,16 @@ public:
       else if (binExprNode->type == ExprBinType::less_eq) {
         output << "  je " << binExprTrueLabel << "\n";
         output << "  jl " << binExprTrueLabel << "\n";
+
+      } else if (binExprNode->type == ExprBinType::greater_eq) {
+        output << "  je " << binExprTrueLabel << "\n";
+        output << "  jg " << binExprTrueLabel << "\n";
+
+      } else if (binExprNode->type == ExprBinType::greater) {
+        output << "  jg " << binExprTrueLabel << "\n";
+
+      } else if (binExprNode->type == ExprBinType::less) {
+        output << "  jl " << binExprTrueLabel << "\n";
       }
       
       output << "  mov rax, 0\n";
