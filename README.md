@@ -19,6 +19,7 @@
   - put characters in the console
   - get characters from the console
   - functions
+  - extending other files for functions and variables
 
 <br>
 
