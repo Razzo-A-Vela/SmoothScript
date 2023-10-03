@@ -220,7 +220,7 @@ public:
           return;
         }
 
-        gen->scopes.push_back({ .stackOffset = gen->stackPoint, .varOffset = gen->vars.size() });
+        gen->scopes.push_back({ .varOffset = gen->vars.size(), .stackOffset = gen->stackPoint });
       }
 
 
@@ -296,7 +296,7 @@ public:
         if (gen->mainFile) {
           gen->output << "main:\n";
 
-          for (Extend extend : gen->extends) gen->output << "  call " << extend.label << "\n";
+          for (std::string extend : gen->extends) gen->output << "  call " << extend << "\n";
         } else gen->output << gen->labelName + ":\n";
         gen->hasMain = true;
       }
@@ -366,7 +366,7 @@ public:
           contents = stream.str();
         }
         std::string label = gen->getLabel(extendNode->fileName.substr(0, extendNode->fileName.size() - 4) + "_main");
-        gen->extends.push_back({ .label = label, .alias = extendNode->alias });
+        gen->extends.push_back(label);
 
         Tokenizer tokenizer(contents);
         Parser parser(tokenizer.tokenize());
@@ -462,19 +462,14 @@ private:
   };
 
   struct Scope {
-    int stackOffset;
     size_t varOffset;
+    int stackOffset;
   };
 
   struct Func {
     std::string name;
     std::string label;
     std::vector<std::string> params;
-  };
-
-  struct Extend {
-    std::string label;
-    std::string alias = "";
   };
 
   std::optional<Var> getVar(std::string name, bool doThrow = true) {
@@ -518,7 +513,7 @@ private:
   std::vector<Var> vars;
   std::vector<Scope> scopes;
   std::vector<Func> funcs;
-  std::vector<Extend> extends;
+  std::vector<std::string> extends;
   std::string labelName;
   std::string alias;
   std::string currentFuncName = "";
