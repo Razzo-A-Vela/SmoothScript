@@ -23,7 +23,7 @@
 
 <br>
 
-## See <a href="Prova.smt">Prova.smt</a> for syntax
+## See <a href="test/Prova.smt">Prova.smt</a> for syntax
 
 ## Usage :
 #### <code>smooth \<filename\> [-asm [-noLink]]</code>
