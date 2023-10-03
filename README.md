@@ -12,7 +12,7 @@
   - variables
   - if, for and while statments (with break and continue)
   - math (+, -, *, /, ()) with variables (++, --)
-  - boolean operators (==, !=, <=)
+  - boolean operators (==, !=, <=, >=, >, <)
   - exit with a code
   - scopes
   - int and char literals
