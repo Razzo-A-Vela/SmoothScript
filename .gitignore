@@ -1,4 +1,7 @@
 /out.exe
 /out.asm
 /smooth.exe
+/test/out.exe
+/test/out.asm
+/test/smooth.exe
 /.vscode
