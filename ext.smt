@@ -1,3 +1,4 @@
+extend ext2.smt as EXT;
 
 print : () {
   put('H');

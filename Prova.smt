@@ -28,7 +28,7 @@ while (x != 3) {
 z = ext.fib(z) - 11;
 
 # z = 10
-var out = add(z, get());
+var out = ext.EXT.add(add(z, get()), 2);
 put(out);
 
 exit(out);
