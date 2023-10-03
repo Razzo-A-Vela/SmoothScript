@@ -295,7 +295,24 @@ private:
         if (peek().has_value() && peek().value().type != TokenType::closed_paren) try_consume(TokenType::comma, "Expected ','");
       }
       ret->var = funcNode;
+      try_consume(TokenType::semi, "Expected ';'");
 
+
+    } else if (try_consume(TokenType::dot).has_value()) {
+      Node::Stmt* stmt = allocator.alloc<Node::Stmt>();
+      parseStmtIdent(consume(), stmt);
+
+      if (std::holds_alternative<Node::Func*>(stmt->var)) {
+        Node::Func* funcNode = std::get<Node::Func*>(stmt->var);
+        funcNode->name = ident.value.value() + "#" + funcNode->name;
+        ret->var = funcNode;
+
+      } else if (std::holds_alternative<Node::StmtVar*>(stmt->var)) {
+        Node::StmtVar* varNode = std::get<Node::StmtVar*>(stmt->var);
+        varNode->name = ident.value.value() + "#" + varNode->name;
+        ret->var = varNode;
+
+      } else err("Syntax error", ident.line);
 
     } else {      
       Node::StmtVar* varNode = allocator.alloc<Node::StmtVar>();
@@ -333,8 +350,8 @@ private:
       }
 
       ret->var = varNode;
+      try_consume(TokenType::semi, "Expected ';'");
     }
-    try_consume(TokenType::semi, "Expected ';'");
   }
 
   void parseExprIdent(Token ident, Node::Expr* ret) {
@@ -351,6 +368,22 @@ private:
       }
       ret->var = funcNode;
 
+
+    } else if (try_consume(TokenType::dot).has_value()) {
+      Node::Expr* expr = allocator.alloc<Node::Expr>();
+      parseExprIdent(consume(), expr);
+
+      if (std::holds_alternative<Node::Func*>(expr->var)) {
+        Node::Func* funcNode = std::get<Node::Func*>(expr->var);
+        funcNode->name = ident.value.value() + "#" + funcNode->name;
+        ret->var = funcNode;
+
+      } else if (std::holds_alternative<Node::ExprVar*>(expr->var)) {
+        Node::ExprVar* varNode = std::get<Node::ExprVar*>(expr->var);
+        varNode->name = ident.value.value() + "#" + varNode->name;
+        ret->var = varNode;
+
+      } else err("Syntax error", ident.line);
 
     } else {
       Node::ExprVar* varNode = allocator.alloc<Node::ExprVar>();

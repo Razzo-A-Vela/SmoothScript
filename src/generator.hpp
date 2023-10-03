@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <fstream>
 #include <sstream>
 #include <vector>
 #include <optional>
@@ -362,7 +363,7 @@ public:
         Generator generator(parser.parse(), false, gen->labelIndex, label, extendNode->alias);
         gen->output << generator.generate() << "\n";
         gen->output << ";;;;;;;;;;;;; " << extendNode->fileName << ";;;;;;;;;;;;;\n";
-        gen->addFromExtend(&generator);
+        gen->addFromExtend(&generator, extendNode->alias);
       }
     };
 
@@ -486,9 +487,18 @@ private:
     return {};
   }
 
-  void addFromExtend(Generator* gen) {
-    for (Var var : gen->vars) vars.push_back(var);
-    for (Func func : gen->funcs) funcs.push_back(func);
+  void addFromExtend(Generator* gen, std::string alias) {
+    for (Var var : gen->vars) {
+      Var v = var;
+      v.name = alias + "#" + v.name;
+      vars.push_back(v);
+    }
+
+    for (Func func : gen->funcs) {
+      Func f = func;
+      f.name = alias + "#" + f.name;
+      funcs.push_back(f);
+    }
     labelIndex = gen->labelIndex;
   }
 
