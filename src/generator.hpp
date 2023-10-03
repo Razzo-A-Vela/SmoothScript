@@ -362,7 +362,7 @@ public:
         Parser parser(tokenizer.tokenize());
         Generator generator(parser.parse(), false, gen->labelIndex, label, extendNode->alias);
         gen->output << generator.generate() << "\n";
-        gen->output << ";;;;;;;;;;;;; " << extendNode->fileName << ";;;;;;;;;;;;;\n";
+        gen->output << ";;;;;;;;;;;;; " << extendNode->fileName << " ;;;;;;;;;;;;;\n";
         gen->addFromExtend(&generator, extendNode->alias);
       }
     };
@@ -490,13 +490,13 @@ private:
   void addFromExtend(Generator* gen, std::string alias) {
     for (Var var : gen->vars) {
       Var v = var;
-      v.name = alias + "#" + v.name;
+      if (alias != "") v.name = alias + "#" + v.name;
       vars.push_back(v);
     }
 
     for (Func func : gen->funcs) {
       Func f = func;
-      f.name = alias + "#" + f.name;
+      if (alias != "") f.name = alias + "#" + f.name;
       funcs.push_back(f);
     }
     labelIndex = gen->labelIndex;
