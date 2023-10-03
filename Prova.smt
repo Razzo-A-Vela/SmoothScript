@@ -1,14 +1,5 @@
 extend ext.smt as ext;
 
-add : (a, b) {
-  return a + b;
-}
-
-fib : (n) {
-  if (n <= 1) return 1;
-  return fib(n-1) + fib(n-2);
-}
-
 $main
 
 # Comment
@@ -33,10 +24,10 @@ while (x != 3) {
 }
 
 # z = 7
-z = fib(z) - 11;
+z = ext.fib(z) - 11;
 
 # z = 10
-var out = add(z, get());
+var out = ext.add(z, get());
 put(out);
 
 exit(out);
