@@ -1,4 +1,5 @@
 extend ext.smt as ext;
+extend ext2.smt;
 
 $main
 
@@ -27,7 +28,7 @@ while (x != 3) {
 z = ext.fib(z) - 11;
 
 # z = 10
-var out = ext.add(z, get());
+var out = add(z, get());
 put(out);
 
 exit(out);
