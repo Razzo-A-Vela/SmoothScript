@@ -231,9 +231,8 @@ public:
         gen->jumpIfFalse(endIfLabel);
 
         Node::Stmt* scopeStmt = gen->genInsideScope(breakLabel, continueLabel);
-        gen->output << endIfLabel << ":\n";
-
         if (scopeStmt != NULL) gen->genStmt(scopeStmt);
+        gen->output << endIfLabel << ":\n";
       }
 
 
