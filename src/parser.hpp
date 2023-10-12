@@ -133,6 +133,7 @@ public:
       Node::StmtIf* ifStmt = allocator.alloc<Node::StmtIf>();
       Node::Expr* expr = parseExpr(true);
       ifStmt->expr = expr;
+      ifStmt->scope = parseScope(ScopeType::generic);
       ret->var = ifStmt;
 
 
@@ -141,6 +142,7 @@ public:
       Node::StmtWhile* stmtWhile = allocator.alloc<Node::StmtWhile>();
       Node::Expr* expr = parseExpr(true);
       stmtWhile->expr = expr;
+      stmtWhile->scope = parseScope(ScopeType::loop);
       ret->var = stmtWhile;
 
 
@@ -150,7 +152,7 @@ public:
       ret->var = stmtBreak;
 
 
-    } else if (try_consume(TokenType::break_).has_value()) {
+    } else if (try_consume(TokenType::continue_).has_value()) {
       try_consume(TokenType::semi, "Expected ';'");
       Node::StmtContinue* stmtContinue = allocator.alloc<Node::StmtContinue>();
       ret->var = stmtContinue;
@@ -165,6 +167,7 @@ public:
       try_consume(TokenType::semi, "Expected ';'");
       stmtFor->repeat = parseStmt();
       try_consume(TokenType::closed_paren, "Expected ')'");
+      stmtFor->scope = parseScope(ScopeType::loop);
       ret->var = stmtFor;
 
 
@@ -228,19 +231,18 @@ public:
 
           if (peek().has_value() && peek().value().type != TokenType::closed_paren) try_consume(TokenType::comma, "Expected ','");
         }
+
+        defFuncNode->scope = parseScope(ScopeType::func, "Expected '{' after function declaration of '" + defFuncNode->name + "'");
         ret->var = defFuncNode;
 
       } else parseStmtIdent(ident, ret);
 
 
-    } else if (peek().value().type == TokenType::open_curly || peek().value().type == TokenType::closed_curly) {
-      Node::StmtScope* scopeStmt = allocator.alloc<Node::StmtScope>();
-      scopeStmt->close = consume().type == TokenType::closed_curly;
-      ret->var = scopeStmt;
+    } else if (peek().value().type == TokenType::open_curly) {
+      ret->var = parseScope(ScopeType::generic);
 
 
-    } else
-      err("Syntax error", peek(-1).value().line);
+    } else err("Syntax error", peek(-1).value().line);
 
     return ret;
   }
@@ -390,6 +392,22 @@ private:
       varNode->name = ident.value.value();
       ret->var = varNode;
     }
+  }
+
+  
+  Node::StmtScope* parseScope(ScopeType type, std::string needsCurlyErr = "") {
+    Node::StmtScope* ret = allocator.alloc<Node::StmtScope>();
+    ret->type = type;
+    bool foundCurly = true;
+    if (peek().value().type == TokenType::open_curly) consume();
+    else foundCurly = false;
+    if (!foundCurly && needsCurlyErr != "") err(needsCurlyErr, peek(-1).value().line);
+
+    do {
+      ret->stmts.push_back(parseStmt());
+    } while (foundCurly && !try_consume(TokenType::closed_curly).has_value());
+
+    return ret;
   }
 
 

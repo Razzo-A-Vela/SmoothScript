@@ -5,6 +5,10 @@
 #include <variant>
 
 
+enum class ScopeType {
+  generic, loop, func
+};
+
 enum class ExprBinType {
   add, sub, mult, div, mod, eq, not_eq_, less_eq, greater_eq, greater, less
 };
@@ -54,9 +58,12 @@ namespace Node {
     std::optional<Expr*> expr;
   };
 
+  struct StmtScope;
+
   struct StmtDefFunc {
     std::string name;
     std::vector<std::string> params;
+    StmtScope* scope;
   };
 
   struct StmtMain {};
@@ -69,6 +76,7 @@ namespace Node {
     Stmt* once;
     Expr* condition;
     Stmt* repeat;
+    StmtScope* scope;
   };
 
   struct StmtContinue {};
@@ -77,14 +85,17 @@ namespace Node {
 
   struct StmtWhile {
     Expr* expr;
+    StmtScope* scope;
   };
 
   struct StmtIf {
     Expr* expr;
+    StmtScope* scope;
   };
 
   struct StmtScope {
-    bool close = false;
+    std::vector<Stmt*> stmts;
+    ScopeType type;
   };
 
   struct StmtVar {

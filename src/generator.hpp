@@ -28,26 +28,15 @@ public:
   }
 
 
-  Node::Stmt* genInsideScope(std::string breakLabel, std::string continueLabel) {
-    index++;
-    Node::Stmt* stmt;
-    int scopeDepth = -1;
-    for (; index < node.stmts.size(); index++) {
-      stmt = node.stmts.at(index);
+  void genScope(const Node::StmtScope* scopeNode, std::string breakLabel = "", std::string continueLabel = "") {
+    Scope scope { .varOffset = vars.size(), .stackOffset = stackPoint, .type = scopeNode->type, .breakLabel = breakLabel, .continueLabel = continueLabel };
+    scopes.push_back(scope);
+    for (Node::Stmt* stmt : scopeNode->stmts) genStmt(stmt);
 
-      if (std::holds_alternative<Node::StmtScope*>(stmt->var)) {
-        Node::StmtScope* scopeStmt = std::get<Node::StmtScope*>(stmt->var);
-        int depth = scopes.size();
-        
-        if (scopeStmt->close && depth == scopeDepth) break;
-        else if (scopeDepth == -1) scopeDepth = depth + 1;
-
-      } else if (scopeDepth == -1) scopeDepth = -2;
-      
-      genStmt(stmt, breakLabel, continueLabel);
-      if (scopeDepth == -2) return NULL;
-    }
-    return stmt;
+    scopes.pop_back();
+    while (vars.size() > scope.varOffset)
+      vars.pop_back();
+    popVariables(scope.stackOffset);
   }
 
 
@@ -144,10 +133,7 @@ public:
 
 
       void operator()(const Node::ExprGet* getNode) {
-        gen->push("", 40);
-        gen->output << "  call getchar\n";
-        if (reg != "rax") gen->output << "  mov " << reg << ", rax\n";
-        gen->pop("", 40);
+        gen->call("getchar", reg);
       }
 
 
@@ -172,18 +158,15 @@ public:
   }
 
 
-  void genStmt(Node::Stmt* stmt, std::string breakLabel_ = "", std::string continueLabel_ = "") {
+  void genStmt(Node::Stmt* stmt) {
     struct Visitor {
       Generator* gen;
-      std::string breakLabel;
-      std::string continueLabel;
-      Visitor(Generator* _gen, std::string _breakLabel, std::string _continueLabel) : gen(_gen), breakLabel(_breakLabel), continueLabel(_continueLabel) {}
+      Visitor(Generator* _gen) : gen(_gen) {}
 
       void operator()(const Node::StmtExit* exitNode) {
-        gen->genExpr(exitNode->expr);
-        gen->exit();
-
-        gen->output << "  ret\n";
+        gen->genExpr(exitNode->expr, "rcx");
+        gen->popVariables(0, false);
+        gen->call("exit");
       }
 
 
@@ -205,22 +188,7 @@ public:
 
 
       void operator()(const Node::StmtScope* scopeNode) {
-        if (scopeNode->close) {
-          Scope scope;
-          try {
-            scope = gen->scopes.at(gen->scopes.size() - 1);
-          } catch (std::out_of_range const& e) {
-            gen->genErr("Expected '{' before '}'");
-          }
-          gen->scopes.pop_back();
-
-          while (gen->vars.size() > scope.varOffset)
-            gen->vars.pop_back();
-          gen->pop("", gen->stackPoint - scope.stackOffset);
-          return;
-        }
-
-        gen->scopes.push_back({ .varOffset = gen->vars.size(), .stackOffset = gen->stackPoint });
+        gen->genScope(scopeNode);
       }
 
 
@@ -229,9 +197,7 @@ public:
 
         gen->genExpr(ifNode->expr);
         gen->jumpIfFalse(endIfLabel);
-
-        Node::Stmt* scopeStmt = gen->genInsideScope(breakLabel, continueLabel);
-        if (scopeStmt != NULL) gen->genStmt(scopeStmt);
+        gen->genScope(ifNode->scope, gen->getLastBreak(), gen->getLastContinue());
         gen->output << endIfLabel << ":\n";
       }
 
@@ -244,22 +210,28 @@ public:
         gen->genExpr(whileNode->expr);
         gen->jumpIfFalse(endWhileLabel);
         
-        Node::Stmt* scopeStmt = gen->genInsideScope(endWhileLabel, whileLoopLabel);
+        gen->genScope(whileNode->scope, endWhileLabel, whileLoopLabel);
         gen->output << "  jmp " << whileLoopLabel << "\n";
         gen->output << endWhileLabel << ":\n";
-
-        if (scopeStmt != NULL) gen->genStmt(scopeStmt);
       }
 
 
       void operator()(const Node::StmtBreak* breakNode) {
+        std::string breakLabel = gen->getLastBreak();
         if (breakLabel == "") gen->genErr("Cannot use 'break' while not in a loop");
+
+        Scope scope = gen->getLastScope(ScopeType::loop);
+        gen->popVariables(scope.stackOffset, false);
         gen->output << "  jmp " << breakLabel << "\n";
       }
 
 
       void operator()(const Node::StmtContinue* continueNode) {
+        std::string continueLabel = gen->getLastContinue();
         if (continueLabel == "") gen->genErr("Cannot use 'continue' while not in a loop");
+
+        Scope scope = gen->getLastScope(ScopeType::loop);
+        gen->popVariables(scope.stackOffset, false);
         gen->output << "  jmp " << continueLabel << "\n";
       }
 
@@ -274,19 +246,15 @@ public:
         gen->jumpIfFalse(endforLabel);
         gen->genStmt(forNode->repeat);
 
-        Node::Stmt* scopeStmt = gen->genInsideScope(endforLabel, forLoopLabel);
+        gen->genScope(forNode->scope, endforLabel, forLoopLabel);
         gen->output << "  jmp " << forLoopLabel << "\n";
         gen->output << endforLabel << ":\n";
-
-        if (scopeStmt != NULL) gen->genStmt(scopeStmt);
       }
 
       
       void operator()(const Node::StmtPut* putNode) {
         gen->genExpr(putNode->expr, "rcx");
-        gen->push("", 40);
-        gen->output << "  call putchar\n";
-        gen->pop("", 40);
+        gen->call("putchar");
       }
 
 
@@ -319,9 +287,7 @@ public:
 
         gen->stackPoint += 8;
         gen->output << label << ":\n";
-        Node::Stmt* scopeStmt = gen->genInsideScope("", "");
-        if (scopeStmt == NULL) gen->genErr("Expected scope after function declaration of '" + defFuncNode->name + "'");
-        gen->genStmt(scopeStmt);
+        gen->genScope(defFuncNode->scope);
         gen->stackPoint -= 8;
 
         for (int i = 0; i < defFuncNode->params.size(); i++) {
@@ -337,13 +303,13 @@ public:
 
       void operator()(const Node::StmtReturn* returnNode) {
         if (gen->currentFuncName == "") gen->genErr("Return can only be used in functions");
-        Scope scope = gen->scopes.at(gen->scopes.size() - 1);
+        Scope scope = gen->getLastScope(ScopeType::func);
         Func func = gen->getFunc(gen->currentFuncName).value();
 
         if (returnNode->expr.has_value()) gen->genExpr(returnNode->expr.value());
         else gen->output << "  mov rax, 0";
         
-        gen->pop("", gen->stackPoint - scope.stackOffset);
+        gen->popVariables(scope.stackOffset, false);
         gen->output << "  ret\n";
       }
 
@@ -374,7 +340,7 @@ public:
       }
     };
 
-    Visitor visitor(this, breakLabel_, continueLabel_);
+    Visitor visitor(this);
     std::visit(visitor, stmt->var);
     output << ";;;;;;;;;;;;; ";
 
@@ -397,38 +363,37 @@ public:
   }
 
   std::string generate() {
-    if (mainFile) output << "global main\nextern putchar\nextern getchar\nsection .text\n\n";
+    if (mainFile) output << "global main\nextern putchar\nextern getchar\nextern exit\nsection .text\n\n";
 
-    for (; index < node.stmts.size(); index++) {
-      genStmt(node.stmts.at(index));
-    }
+    for (Node::Stmt* stmt : node.stmts)
+      genStmt(stmt);
     if (!hasMain) genErr("Expected main");
     if (scopes.size() != 0) genErr("Expected '}'");
-    this->exit();
+    popVariables();
 
     output << "  mov rax, 0\n  ret\n";
     return output.str();
   }
 
 private:
-  void push(std::string reg, int byteSize = 8) {
-    stackPoint += byteSize;
+  void push(std::string reg, int byteSize = 8, bool update = true) {
+    if (update) stackPoint += byteSize;
 
     output << "  sub rsp, " << byteSize << "\n";
     if (reg != "") output << "  mov [rsp + 0], " << reg << "\n";
     output << "; push " << reg << "\n";
   }
 
-  void pop(std::string reg, int byteSize = 8) {
-    stackPoint -= byteSize;
+  void pop(std::string reg, int byteSize = 8, bool update = true) {
+    if (update) stackPoint -= byteSize;
 
     if (reg != "") output << "  mov " << reg << ", [rsp + 0]\n";
     output << "  add " << "rsp, " << byteSize << "\n";
     output << "; pop " << reg << "\n";
   }
 
-  void exit() {
-    pop("", stackPoint);
+  void popVariables(int offset = 0, bool update = true) {
+    pop("", stackPoint - offset, update);
   }
 
   void genErr(std::string msg) {
@@ -452,6 +417,13 @@ private:
     output << "  je " << label << "\n";
   }
 
+  void call(std::string name, std::string reg = "rax") {
+    push("", 40);
+    output << "  call " << name << "\n";
+    if (reg != "rax") output << "  mov " << reg << ", rax\n";
+    pop("", 40);
+  }
+
 
   struct Var {
     std::string name;
@@ -461,6 +433,9 @@ private:
   struct Scope {
     size_t varOffset;
     int stackOffset;
+    ScopeType type;
+    std::string breakLabel;
+    std::string continueLabel;
   };
 
   struct Func {
@@ -504,6 +479,27 @@ private:
     labelIndex = gen->labelIndex;
   }
 
+  Scope getLastScope(ScopeType type = ScopeType::generic, std::string err = "") {
+    for (int i = scopes.size() - 1; i >= 0; i--) {
+      if (type == ScopeType::generic) return scopes.at(i);
+      else if (scopes.at(i).type == type) return scopes.at(i);
+    }
+    if (err != "") genErr(err);
+    return { .stackOffset = -1 };
+  }
+
+  std::string getLastBreak() {
+    Scope scope = getLastScope(ScopeType::loop);
+    if (scope.stackOffset == -1) return "";
+    return scope.breakLabel;
+  }
+
+  std::string getLastContinue() {
+    Scope scope = getLastScope(ScopeType::loop);
+    if (scope.stackOffset == -1) return "";
+    return scope.continueLabel;
+  }
+
 
   Node::Base node;
   std::stringstream output;
@@ -517,6 +513,5 @@ private:
   bool mainFile;
   int labelIndex;
   int stackPoint = 0;
-  int index = 0;
   bool hasMain = false;
 };
