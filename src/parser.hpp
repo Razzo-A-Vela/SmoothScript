@@ -183,6 +183,10 @@ public:
     } else if (try_consume(TokenType::dollar).has_value()) {
       try_consume(TokenType::main, "Expected 'main' after '$'");
       Node::StmtMain* mainNode = allocator.alloc<Node::StmtMain>();
+      
+      if (try_consume(TokenType::question).has_value()) mainNode->enforceMain = false;
+      else mainNode->enforceMain = true;
+
       ret->var = mainNode;
 
 

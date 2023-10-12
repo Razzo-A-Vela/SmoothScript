@@ -66,7 +66,9 @@ namespace Node {
     StmtScope* scope;
   };
 
-  struct StmtMain {};
+  struct StmtMain {
+    bool enforceMain;
+  };
 
   struct StmtPut {
     Expr* expr;

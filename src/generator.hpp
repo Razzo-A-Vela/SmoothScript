@@ -262,6 +262,7 @@ public:
         if (gen->hasMain) gen->genErr("Main alredy defined");
         if (gen->mainFile) gen->output << "main:\n";
         else gen->output << gen->labelName + ":\n";
+        if (!gen->mainFile && mainNode->enforceMain) gen->stop = true;
         
         for (std::string extend : gen->extends) gen->output << "  call " << extend << "\n";
         gen->hasMain = true;
@@ -365,8 +366,10 @@ public:
   std::string generate() {
     if (mainFile) output << "global main\nextern putchar\nextern getchar\nextern exit\nsection .text\n\n";
 
-    for (Node::Stmt* stmt : node.stmts)
+    for (Node::Stmt* stmt : node.stmts) {
       genStmt(stmt);
+      if (stop) break;
+    }
     if (!hasMain) genErr("Expected main");
     if (scopes.size() != 0) genErr("Expected '}'");
     popVariables();
@@ -514,4 +517,5 @@ private:
   int labelIndex;
   int stackPoint = 0;
   bool hasMain = false;
+  bool stop = false;
 };

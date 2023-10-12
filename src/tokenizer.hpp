@@ -10,7 +10,7 @@
 enum class TokenType {
   exit, int_lit, semi, var, open_paren, closed_paren, ident, eq, plus, minus, star, slash, open_curly, closed_curly,
   mod, if_, double_eq, not_eq_, while_, break_, continue_, for_, char_lit, put, get, dollar, main, colon, comma,
-  return_, less_eq, extend, dot, as, greater_eq, greater, less
+  return_, less_eq, extend, dot, as, greater_eq, greater, less, question
 };
 
 struct Token {
@@ -107,6 +107,9 @@ public:
       
       else if (try_consume('.'))
         tokens.push_back({ .type = TokenType::dot, .line = line });
+      
+      else if (try_consume('?'))
+        tokens.push_back({ .type = TokenType::question, .line = line });
 
 
       else if (try_consume('\'')) {
