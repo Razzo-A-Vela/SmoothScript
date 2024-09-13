@@ -6,6 +6,8 @@
 ## This compiler only compiles for windows
 ### You need to have mingw64 installed
 
+### I'm actually redoing everything from scratch because it's a bit too complicated.
+
 <br>
 
 ## Features :
