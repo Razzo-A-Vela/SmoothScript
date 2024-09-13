@@ -2,3 +2,5 @@
 test/out.exe
 test/out.asm
 test/smooth.exe
+
+.vscode/settings.json
