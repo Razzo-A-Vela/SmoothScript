@@ -3,4 +3,8 @@ test/out.exe
 test/out.asm
 test/smooth.exe
 
+legacy/test/out.exe
+legacy/test/out.asm
+legacy/test/smooth.exe
+
 .vscode/settings.json
