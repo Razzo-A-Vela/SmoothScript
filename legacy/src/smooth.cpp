@@ -2,10 +2,10 @@
 #include <fstream>
 #include <sstream>
 
-#include "legacy/util.hpp"
-#include "legacy/tokenizer.hpp"
-#include "legacy/parser.hpp"
-#include "legacy/generator.hpp"
+#include "util.hpp"
+#include "tokenizer.hpp"
+#include "parser.hpp"
+#include "generator.hpp"
 
 
 std::string getUsage() {
