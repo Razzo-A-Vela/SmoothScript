@@ -1,15 +1,16 @@
 
-# main file name
-mainFile = ""
-# out file name (without extension)
-outFile = ""
+# all paths are relative to smooth.exe
+# main file path
+mainFile = "Prova.smt"
+# out file path (without extension)
+outFile = "Prova"
 
 # should generate assembly
-genAssembly = false
+genAssembly = true
 # should assemble and link (genAssembly required)
-noLink = false
+noLink = true
 
-# files to include (relative to smooth.exe)
+# path for files to be included
 includes = []
 
 # arguments for gcc assembler and linker (ex. ["-nostdlib", "-lSDL_2"])
