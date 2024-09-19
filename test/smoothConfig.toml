@@ -1,0 +1,16 @@
+
+# main file name
+mainFile = ""
+# out file name (without extension)
+outFile = ""
+
+# should generate assembly
+genAssembly = false
+# should assemble and link (genAssembly required)
+noLink = false
+
+# files to include (relative to smooth.exe)
+includes = []
+
+# arguments for gcc assembler and linker (ex. ["-nostdlib", "-lSDL_2"])
+gccArgs = []
