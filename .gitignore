@@ -8,3 +8,4 @@ legacy/test/out.asm
 legacy/test/smooth.exe
 
 .vscode/settings.json
+.vscode/c_cpp_properties.json
