@@ -8,12 +8,13 @@
 
 #include "TOMLContent.hpp"
 #include <util/StringUtils.hpp>
+#include <util/FileUtils.hpp>
 
 namespace TOML {
   class File {
   private:
     std::string fileName;
-    std::ifstream file;
+    std::fstream file;
     TOML::Table contents;
     bool exists;
 

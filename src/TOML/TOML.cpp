@@ -3,7 +3,7 @@
 namespace TOML {
   File::File(std::string fileName_) {
     fileName = fileName_;
-    file = std::ifstream(fileName);
+    file = std::fstream(fileName, std::ios::in);
     exists = file.good();
   }
 
@@ -15,7 +15,7 @@ namespace TOML {
     std::ofstream out = std::ofstream(fileName);
     out << defaultContent;
     out.close();
-    file = std::ifstream(fileName);
+    file = std::fstream(fileName, std::ios::in);
     exists = file.good();
   }
 
@@ -109,11 +109,7 @@ namespace TOML {
   }
 
   void File::read() {
-    std::string fileString; {
-      std::stringstream stream;
-      stream << file.rdbuf();
-      fileString = stream.str();
-    }
+    std::string fileString = Utils::readEntireFile(&file);
 
     std::vector<std::string> lineSplit = Utils::split(fileString, '\n');
     for (std::string line : lineSplit) {
