@@ -1,10 +1,6 @@
 #include "TOMLContent.hpp"
 
 namespace TOML {
-  Content::Content() {
-    type = ContentType::null;
-  }
-
   Content::Content(ContentType type, void* value) : type(type) {
     switch(type) {
       case ContentType::boolean :
@@ -20,10 +16,6 @@ namespace TOML {
         u.table = (Table*) value;
         break;
     }
-  }
-
-  ContentType Content::getType() {
-    return type;
   }
 
   void* Content::getPointer() {
@@ -48,10 +40,6 @@ namespace TOML {
   }
 
 
-  int Array::getSize() {
-    return size;
-  }
-
   Content* Array::getContent(int index) {
     if (index < 0 || index >= size)
       return nullptr;
@@ -73,14 +61,6 @@ namespace TOML {
     return true;
   }
 
-
-  int Table::getSize() {
-    return contents.getSize();
-  }
-
-  std::string* Table::getNames() {
-    return names;
-  }
 
   Content* Table::getContent(std::string name) {
     int index = -1;

@@ -22,9 +22,9 @@ namespace TOML {
     } u;
 
   public:
-    Content();
+    Content() : type(ContentType::null) {}
     Content(ContentType type, void* value);
-    ContentType getType();
+    ContentType getType() { return type; }
     void* getPointer();
   };
 
@@ -35,7 +35,7 @@ namespace TOML {
     int size = 0;
 
   public:
-    int getSize();
+    int getSize() { return size; }
     Content* getContent(int index);
     bool addContent(Content* content);
   };
@@ -47,8 +47,8 @@ namespace TOML {
     Array contents;
   
   public:
-    int getSize();
-    std::string* getNames();
+    int getSize() { return contents.getSize(); }
+    std::string* getNames() { return names; }
     Content* getContent(std::string name);
     bool addContent(std::string name, Content* content);
   };
