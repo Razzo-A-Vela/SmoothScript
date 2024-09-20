@@ -29,5 +29,6 @@ namespace TOML {
     Content* calculateContent(std::string string);
     void read();
     void init(std::string defaultContent = "");
+    Content* getContent(std::string name) { return contents.getContent(name); }
   };
 }
