@@ -13,4 +13,11 @@ namespace Utils {
     file.close();
     return ret;
   }
+
+  bool fileExists(std::string fileName) {
+    std::fstream file = std::fstream(fileName, std::ios::in);
+    bool ret = file.good();
+    file.close();
+    return ret;
+  }
 }
