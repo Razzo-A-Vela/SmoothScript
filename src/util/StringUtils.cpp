@@ -96,4 +96,23 @@ namespace Utils {
       ret.insert(ret.end(), trim(string));
     return ret;
   }
+
+  char charUpper(char c) {
+    if (c >= 0x61 && c <= 0x7A)
+      return c - 0x20;
+    return c;
+  }
+
+  char charLower(char c) {
+    if (c >= 0x41 && c <= 0x5A)
+      return c + 0x20;
+    return c;
+  }
+
+  char* stringToCString(std::string str) {
+    const int retSize = str.size() + 1;
+    char* ret = (char*) malloc(retSize * sizeof(char)); //? sizeof(char) = 1
+    memcpy(ret, str.c_str(), retSize);
+    return ret;
+  }
 }
