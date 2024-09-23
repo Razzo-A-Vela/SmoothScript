@@ -62,7 +62,7 @@ namespace Utils {
 
 
   std::string trim(std::string toTrim, std::function<bool(char)> trimChar) {
-    std::stringstream ret;
+    std::stringstream stream;
     bool foundAlphaLeft = false;
     int foundAlphaRight = -1;
 
@@ -71,11 +71,11 @@ namespace Utils {
         foundAlphaLeft = true;
 
       if (foundAlphaLeft)
-        ret << c;
+        stream << c;
     }
 
-    std::string retString = ret.str();
-    for (int i = retString.length() - 1; i >= 0; i--) {
+    std::string retString = stream.str();
+    for (int i = retString.size() - 1; i >= 0; i--) {
       char c = retString.at(i);
       if (!trimChar(c)) {
         foundAlphaRight = i;
