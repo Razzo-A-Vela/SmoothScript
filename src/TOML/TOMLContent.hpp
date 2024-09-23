@@ -2,7 +2,7 @@
 #include <string>
 
 namespace TOML {
-  const int MAX_SIZE = 10;
+  const int MAX_SIZE = 25;
 
   struct Array;
   struct Table;
