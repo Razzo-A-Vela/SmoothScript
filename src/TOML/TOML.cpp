@@ -77,7 +77,7 @@ namespace TOML {
 
       std::cout << name << ": ";
       printContent(content);
-      std::cout << "\n";
+      std::cout << '\n';
     }
   }
 
@@ -85,9 +85,8 @@ namespace TOML {
     Content* ret;
 
     if (string.at(0) == '\"') {
-      char* copy = new char[string.size() + 1 - 1 - 1];
-      strcpy(copy, string.substr(1, string.size() - 1 - 1).c_str());
-      ret = new Content(TOML::ContentType::string, copy);
+      char* str = Utils::stringToCString(string.substr(1, string.size() - 1 - 1));
+      ret = new Content(TOML::ContentType::string, str);
     
     } else if (string.at(0) == '[') {
       std::string toSplit = string.substr(1, string.size() - 1 - 1);
@@ -119,18 +118,12 @@ namespace TOML {
       std::vector<std::string> commentSplit = Utils::contextSplit(line, '#', notInside);
       std::vector<std::string> equalSplit = Utils::contextSplit(commentSplit.at(0), '=', notInside);
       std::vector<std::string> equalSplitTrim = Utils::trimVector(equalSplit);
-      std::string name;
-      int index = 0;
-      for (std::string string : equalSplitTrim) {
-        if (index % 2 == 0)
-          name = string;
 
-        else {
-          TOML::Content* content = calculateContent(string);
-          contents.addContent(name, content);
-        }
-        index++;
-      }
+      if (equalSplitTrim.size() < 2)
+        continue;
+      std::string name = equalSplitTrim.at(0);
+      Content* content = calculateContent(equalSplitTrim.at(1));
+      contents.addContent(name, content);
     }
   }
 

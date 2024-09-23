@@ -1,14 +1,13 @@
 #pragma once
 #include <iostream>
 #include <string>
-#include <string.h>
 #include <sstream>
 #include <vector>
 #include <fstream>
 
-#include "TOMLContent.hpp"
 #include <util/StringUtils.hpp>
 #include <util/FileUtils.hpp>
+#include "TOMLContent.hpp"
 
 namespace TOML {
   class File {
