@@ -1,7 +1,7 @@
 
 # all paths are relative to smooth.exe
-# main file path
-mainFile = "Prova.smt"
+# main file(.smt) path (without extension)
+mainFile = "Prova"
 # out file path (without extension)
 outFile = "Prova"
 
