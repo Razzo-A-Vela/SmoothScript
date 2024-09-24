@@ -10,8 +10,5 @@ genAssembly = true
 # should assemble and link (genAssembly required)
 noLink = true
 
-# path for files to be included
-includes = []
-
 # arguments for gcc assembler and linker (ex. ["-nostdlib", "-lSDL_2"])
 gccArgs = []
