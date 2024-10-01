@@ -32,14 +32,14 @@ namespace Utils {
       }
 
       if (c == delimiter) {
-        ret.insert(ret.end(), stream.str());
+        ret.push_back(stream.str());
         stream = std::stringstream();
       } else
         stream << c;
     }
 
     if (stream.str() != "")
-      ret.insert(ret.end(), stream.str());
+      ret.push_back(stream.str());
     return ret;
   }
 
@@ -49,14 +49,14 @@ namespace Utils {
     
     for (char c : toSplit) {
       if (c == delimiter) {
-        ret.insert(ret.end(), stream.str());
+        ret.push_back(stream.str());
         stream = std::stringstream();
       } else
         stream << c;
     }
 
     if (stream.str() != "")
-      ret.insert(ret.end(), stream.str());
+      ret.push_back(stream.str());
     return ret;
   }
 
@@ -93,7 +93,7 @@ namespace Utils {
   std::vector<std::string> trimVector(std::vector<std::string> strings) {
     std::vector<std::string> ret;
     for (std::string string : strings)
-      ret.insert(ret.end(), trim(string));
+      ret.push_back(trim(string));
     return ret;
   }
 
