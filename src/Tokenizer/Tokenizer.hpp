@@ -17,8 +17,6 @@ namespace Tokenizer {
 
   class Tokenizer : public Processor<PreToken, Token> {
   private:
-    const std::function<bool(PreToken, PreToken)> typeEqual = [](PreToken preToken, PreToken toEqual) { return preToken.type == toEqual.type; };
-    const std::function<bool(PreToken, PreToken)> typeCharEqual = [](PreToken preToken, PreToken toEqual) { return preToken.type == toEqual.type && preToken.u.character == toEqual.u.character; };
     std::vector<PreToken> preTokens;
     
   public:
