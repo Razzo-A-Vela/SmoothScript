@@ -12,8 +12,8 @@ namespace PreTokenizer {
   private:
     const std::function<bool(char)> shouldIgnore = [](char c) { return c == ' ' || c == '\n'; };
     std::string file;
-    int line = 1;
     int commentState = 0;
+    int line = 1;
 
   public:
     PreTokenizer(std::string file) : file(file), Processor(file.size()) {}
@@ -23,7 +23,6 @@ namespace PreTokenizer {
   protected:
     virtual char get(int index) { return file.at(index); }
     std::optional<char> consume();
-    char* parsePreProcessor();
     bool isInComment(char c);
   };
 }

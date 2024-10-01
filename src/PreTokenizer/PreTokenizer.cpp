@@ -25,54 +25,25 @@ namespace PreTokenizer {
     return commentState;
   }
 
-  char* PreTokenizer::parsePreProcessor() {
-    bool isInBrace = false;
-    const int preLine = line;
-    std::stringstream stream;
-    while (peekNotEqual('\n') || isInBrace) {
-      if (!hasPeek())
-        Utils::error("Syntax Error", "PreProcessor Braces not closed", preLine);
-      char c = consume().value();
-      if (isInComment(c))
-        continue;
-
-      if (c == '\\' && peekEqual('\n')) {
-        consume();
-        continue;
-      } else if (c == '\\' && peekEqual('{')) {
-        consume();
-        stream << '{';
-        isInBrace = true;
-        continue;
-      } else if (c == '\\' && peekEqual('}')) {
-        consume();
-        stream << '}';
-        isInBrace = false;
-        continue;
-      }
-
-      if (c != '\n')
-        stream << c;
-    }
-    return Utils::stringToCString(stream.str());
-  }
-
   void PreTokenizer::process() {
     while (hasPeek()) {
       char c = consume().value();
-      if (isInComment(c) || shouldIgnore(c))
+      if (isInComment(c))
+        continue;
+      
+      if (shouldIgnore(c))
         continue;
       PreToken preToken;
       preToken.line = line;
 
-      if (!isalnum(c) && c != '_' && c != '\"' && c != '\'') {
-        if (c == '#') {
-          preToken.type = PreTokenType::preProcessor;
-          preToken.u.string = parsePreProcessor();
-          addToOutput(preToken);
-          continue;
-        }
+      if (c == '#' && (peekEqual('\n') || peekEqual(' '))) {
+        consume();
+        preToken.type = PreTokenType::endPreProcessor;
+        addToOutput(preToken);
+        continue;
+      }
 
+      if (!isalnum(c) && c != '_' && c != '\"' && c != '\'') {
         preToken.type = PreTokenType::symbol;
         preToken.u.character = c;
         addToOutput(preToken);
@@ -95,12 +66,12 @@ namespace PreTokenizer {
           if (c2 == literalQuote)
             break;
 
-          if (c2 == '\\' && hasPeek()) {
-            stream << "\\" << consume().value();
+          if (c2 == '\\' && peekEqual('\n')) {
+            consume();
             continue;
 
-          } else if (c2 == '\\' && peekEqual('\n')) {
-            consume();
+          } else if (c2 == '\\' && hasPeek()) {
+            stream << "\\" << consume().value();
             continue;
 
           } else if (c2 == '\n')
