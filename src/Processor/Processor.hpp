@@ -10,7 +10,7 @@ class Processor {
 private:
   std::vector<O> output;
   int index = 0;
-  const int maxIndex;
+  int maxIndex;
 
 public:
   Processor(int maxIndex) : maxIndex(maxIndex) {}
@@ -21,15 +21,18 @@ public:
 
 protected:
   virtual I get(int index) { Utils::error("Cannot call get from processor"); }
-  void addToOutput(O out) { output.insert(output.end(), out); }
+  void addToOutput(O out) { output.push_back(out); }
   int getIndex() { return index; }
+  void resetIndex() { index = 0; }
+  void resetOutput() { output = std::vector<O>(); }
+  void setMaxIndex(int index) { maxIndex = index; }
 
 
   bool peekEqual(I equal, std::function<bool(I, I)> equalFunc, int offset = 0) {return hasPeek(offset) && equalFunc(peekValue(offset), equal); }
   bool peekEqual(I equal, int offset = 0) { return hasPeek(offset) && peekValue(offset) == equal; }
 
-  bool peekNotEqual(I equal, std::function<bool(I, I)> equalFunc, int offset = 0) { return hasPeek(offset) && !equalFunc(peekValue(offset), equal); }
-  bool peekNotEqual(I notEqual, int offset = 0) { return hasPeek(offset) && peekValue(offset) != notEqual; }
+  bool peekNotEqual(I equal, std::function<bool(I, I)> equalFunc, int offset = 0) { return !hasPeek(offset) || !equalFunc(peekValue(offset), equal); }
+  bool peekNotEqual(I notEqual, int offset = 0) { return !hasPeek(offset) || peekValue(offset) != notEqual; }
 
   bool hasPeek(int offset = 0) { return peek(offset).has_value(); }
   I peekValue(int offset = 0) { return peek(offset).value(); }
