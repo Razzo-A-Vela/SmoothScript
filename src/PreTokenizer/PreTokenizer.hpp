@@ -4,7 +4,8 @@
 #include <vector>
 
 #include <util/StringUtils.hpp>
-#include "Processor/Processor.hpp"
+#include <util/ErrorUtils.hpp>
+#include <Processor/Processor.hpp>
 #include "PreToken.hpp"
 
 namespace PreTokenizer {
