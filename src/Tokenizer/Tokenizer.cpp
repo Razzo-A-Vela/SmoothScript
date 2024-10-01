@@ -18,8 +18,8 @@ namespace Tokenizer {
     token.line = preToken.line;
 
     if (preToken.u.character == '<' &&
-          peekEqual({ PreTokenType::numLiteral }, typeEqual) &&
-          peekEqual({ PreTokenType::symbol, { .character = '>' } }, typeCharEqual, 1)) {
+          peekEqual({ PreTokenType::numLiteral }, PreToken::typeEqual) &&
+          peekEqual({ PreTokenType::symbol, { .character = '>' } }, PreToken::typeCharEqual, 1)) {
       PreToken literalToken = consume().value();
       consume();
       
@@ -33,7 +33,11 @@ namespace Tokenizer {
       token.u.character = preToken.u.character;
       switch (preToken.u.character) {
         case ':' :
-          token.type = TokenType::colon;
+          if (peekEqual({ PreTokenType::symbol, { .character = ':' } }, PreToken::typeCharEqual)) {
+            consume();
+            token.type = TokenType::double_colon;
+          } else
+            token.type = TokenType::colon;
           break;
         
         case ';' :
@@ -41,7 +45,15 @@ namespace Tokenizer {
           break;
 
         case '?' :
-          token.type = TokenType::question;
+          if (peekEqual({ PreTokenType::symbol, { .character = '?' } }, PreToken::typeCharEqual)) {
+            consume();
+            token.type = TokenType::double_question;
+          } else
+            token.type = TokenType::question;
+          break;
+        
+        case '!' :
+          token.type = TokenType::exclamation;
           break;
 
         case '=' :
@@ -100,23 +112,35 @@ namespace Tokenizer {
       Token token;
       token.line = preToken.line;
 
-      if (preToken.type == PreTokenType::preProcessor)
-        Utils::error("Internal Error", "Preprocessor token inside tokenizer (how?)", token.line);
+      if (PreToken::typeCharEqual(preToken, { PreTokenType::symbol, { .character = '#' } })) {
+        if (peekNotEqual({ PreTokenType::identifier }, PreToken::typeEqual))
+          Utils::error("Syntax Error", "Expected PreProcessor Identifier", token.line);
+        
+        token.type = TokenType::preProcessor;
+        token.u.string = consume().value().u.string;
+        addToOutput(token);
+        continue;
 
-      if (preToken.type == PreTokenType::symbol) {
+      } else if (PreToken::typeEqual(preToken, { PreTokenType::symbol }) ) {
         processSymbol(preToken);
         continue;
 
-      } else if (preToken.type == PreTokenType::literal) {
+      } else if (PreToken::typeEqual(preToken, { PreTokenType::literal })) {
         token.type = TokenType::literal;
         token.u.literal = parseLiteral(std::string(preToken.u.string), token.line);
         
         addToOutput(token);
         continue;
-      } else if (preToken.type == PreTokenType::numLiteral) {
+        
+      } else if (PreToken::typeEqual(preToken, { PreTokenType::numLiteral })) {
         token.type = TokenType::literal;
         token.u.literal = parseNumLiteral(std::string(preToken.u.string), token.line);
 
+        addToOutput(token);
+        continue;
+
+      } else if (PreToken::typeEqual(preToken, { PreTokenType::endPreProcessor })) {
+        token.type = TokenType::endPreProcessor;
         addToOutput(token);
         continue;
       }
@@ -128,6 +152,10 @@ namespace Tokenizer {
         token.type = TokenType::proc;
       else if (str == "return")
         token.type = TokenType::ret;
+      else if (str == "struct")
+        token.type = TokenType::structu;
+      else if (str == "union")
+        token.type = TokenType::unioni;
       else {
         token.type = TokenType::identifier;
         token.u.string = preToken.u.string;
