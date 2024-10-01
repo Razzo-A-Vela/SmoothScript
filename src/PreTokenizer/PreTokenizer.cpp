@@ -90,7 +90,7 @@ namespace PreTokenizer {
       }
       
       preToken.type = isLiteral ? PreTokenType::literal : (isNumLiteral ? PreTokenType::numLiteral : PreTokenType::identifier);
-      preToken.u.string = Utils::stringToCString(stream.str());;
+      preToken.u.string = Utils::stringToCString(stream.str());
       addToOutput(preToken);
     }
   }
