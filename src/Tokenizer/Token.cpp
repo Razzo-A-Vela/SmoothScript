@@ -15,9 +15,22 @@ namespace Tokenizer {
         std::cout << "RETURN";
         break;
 
+      case TokenType::structu :
+        std::cout << "STRUCT";
+        break;
+
+      case TokenType::unioni :
+        std::cout << "UNION";
+        break;
+
+
 
       case TokenType::colon :
         std::cout << "COLON";
+        break;
+
+      case TokenType::double_colon :
+        std::cout << "DOUBLE_COLON";
         break;
       
       case TokenType::semi_colon :
@@ -26,6 +39,14 @@ namespace Tokenizer {
         
       case TokenType::question :
         std::cout << "QUESTION";
+        break;
+        
+      case TokenType::double_question :
+        std::cout << "DOUBLE_QUESTION";
+        break;
+        
+      case TokenType::exclamation :
+        std::cout << "EXCLAMATION";
         break;
       
       case TokenType::equals :
@@ -88,6 +109,20 @@ namespace Tokenizer {
       case TokenType::symbol :
         std::cout << "SYMBOL(" << u.character << ')';
         break;
+
+      case TokenType::preProcessor :
+        std::cout << "PRE_PROCESSOR(" << std::string(u.string) << ')';
+        break;
+
+      
+      case TokenType::endPreProcessor :
+        std::cout << "END_PRE_PROCESSOR";
+        break;
     }
   }
+
+  const std::function<bool(Token, Token)> Token::typeEqual = [](Token token, Token toEqual) { return token.type == toEqual.type; };
+  const std::function<bool(Token, Token)> Token::typeIntEqual = [](Token token, Token toEqual) { return token.type == toEqual.type && token.u.integer == toEqual.u.integer; };
+  const std::function<bool(Token, Token)> Token::typeCharEqual = [](Token token, Token toEqual) { return token.type == toEqual.type && token.u.character == toEqual.u.character; };
+  const std::function<bool(Token, Token)> Token::typeStringEqual = [](Token token, Token toEqual) { return token.type == toEqual.type && std::string(token.u.string) == std::string(toEqual.u.string); };
 }

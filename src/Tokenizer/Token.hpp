@@ -5,11 +5,13 @@
 
 namespace Tokenizer {
   enum class TokenType {
-    func, proc, ret,
-    colon, semi_colon, question, equals, minus, comma, star,
+    func, proc, ret, structu, unioni,
+    colon, double_colon, semi_colon, question, double_question, exclamation, equals, minus, comma, star,
     open_paren, closed_paren, open_bracket, closed_bracket, open_brace, closed_brace, // all symbols -> character;
 
-    identifier, byte_type, literal, symbol // identifier -> string; byte_type -> integer; literal -> literal; symbol -> character;
+    identifier, byte_type, literal, symbol, preProcessor, // identifier -> string; byte_type -> integer; literal -> literal; symbol -> character; preProcessor -> string;
+
+    endPreProcessor
   };
 
   struct Token {
@@ -23,5 +25,10 @@ namespace Tokenizer {
     } u;
 
     void print();
+
+    static const std::function<bool(Token, Token)> typeEqual;
+    static const std::function<bool(Token, Token)> typeIntEqual;
+    static const std::function<bool(Token, Token)> typeCharEqual;
+    static const std::function<bool(Token, Token)> typeStringEqual;
   };
 }
