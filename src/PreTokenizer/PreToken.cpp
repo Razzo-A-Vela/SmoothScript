@@ -19,9 +19,13 @@ namespace PreTokenizer {
         std::cout << "NUM_LITERAL(" << std::string(u.string) << ')';
         break;
 
-      case PreTokenType::preProcessor :
-        std::cout << "PRE_PROCESSOR(" << std::string(u.string) << ')';
+      case PreTokenType::endPreProcessor :
+        std::cout << "END_PRE_PROCESSOR";
         break;
     }
   }
+
+  const std::function<bool(PreToken, PreToken)> PreToken::typeEqual = [](PreToken preToken, PreToken toEqual) { return preToken.type == toEqual.type; };
+  const std::function<bool(PreToken, PreToken)> PreToken::typeCharEqual = [](PreToken preToken, PreToken toEqual) { return preToken.type == toEqual.type && preToken.u.character == toEqual.u.character; };
+  const std::function<bool(PreToken, PreToken)> PreToken::typeStringEqual = [](PreToken preToken, PreToken toEqual) { return preToken.type == toEqual.type && std::string(preToken.u.string) == std::string(toEqual.u.string); };
 }

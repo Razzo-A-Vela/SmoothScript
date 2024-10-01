@@ -1,9 +1,10 @@
 #pragma once
 #include <iostream>
+#include <functional>
 
 namespace PreTokenizer {
   enum class PreTokenType {
-    symbol, identifier, literal, numLiteral, preProcessor
+    symbol, identifier, literal, numLiteral, endPreProcessor
   };
 
   struct PreToken {
@@ -15,5 +16,9 @@ namespace PreTokenizer {
     int line;
 
     void print();
+
+    static const std::function<bool(PreToken, PreToken)> typeEqual;
+    static const std::function<bool(PreToken, PreToken)> typeCharEqual;
+    static const std::function<bool(PreToken, PreToken)> typeStringEqual;
   };
 }
