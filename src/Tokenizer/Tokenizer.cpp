@@ -152,10 +152,6 @@ namespace Tokenizer {
         token.type = TokenType::proc;
       else if (str == "return")
         token.type = TokenType::ret;
-      else if (str == "struct")
-        token.type = TokenType::structu;
-      else if (str == "union")
-        token.type = TokenType::unioni;
       else {
         token.type = TokenType::identifier;
         token.u.string = preToken.u.string;

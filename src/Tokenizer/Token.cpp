@@ -15,15 +15,6 @@ namespace Tokenizer {
         std::cout << "RETURN";
         break;
 
-      case TokenType::structu :
-        std::cout << "STRUCT";
-        break;
-
-      case TokenType::unioni :
-        std::cout << "UNION";
-        break;
-
-
 
       case TokenType::colon :
         std::cout << "COLON";
