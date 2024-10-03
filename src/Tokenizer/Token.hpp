@@ -16,13 +16,13 @@ namespace Tokenizer {
 
   struct Token {
     TokenType type;
-    int line;
     union {
       const char* string;
       char character;
       int integer;
       Literal literal;
     } u;
+    int line;
 
     void print();
 
