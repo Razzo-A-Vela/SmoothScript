@@ -30,36 +30,30 @@ namespace Utils {
   }
 
   template<typename T>
-  bool isInVector(std::vector<T> vec, T toCheck, std::function<bool(T, T)> equalFunc) {
-    for (T t : vec) {
-      if (equalFunc(t, toCheck))
-        return true;
-    }
-    return false;
-  }
-
-  template<typename T>
-  bool isInVector(std::vector<T> vec, T toCheck) {
-    for (T t : vec) {
-      if (t == toCheck)
-        return true;
-    }
-    return false;
-  }
-
-  template<typename T>
-  bool getVectorIndex(std::vector<T> vec, T toCheck, std::function<bool(T, T)> equalFunc) {
+  int getVectorIndex(std::vector<T> vec, T toCheck, std::function<bool(T, T)> equalFunc) {
     for (int i = 0; i < vec.size(); i++) {
       if (equalFunc(vec.at(i), toCheck))
         return i;
     }
+    return -1;
   }
 
   template<typename T>
-  bool getVectorIndex(std::vector<T> vec, T toCheck) {
+  int getVectorIndex(std::vector<T> vec, T toCheck) {
     for (int i = 0; i < vec.size(); i++) {
       if (vec.at(i) == toCheck)
         return i;
     }
+    return -1;
+  }
+
+  template<typename T>
+  bool isInVector(std::vector<T> vec, T toCheck, std::function<bool(T, T)> equalFunc) {
+    return getVectorIndex(vec, toCheck, equalFunc) != -1;
+  }
+
+  template<typename T>
+  bool isInVector(std::vector<T> vec, T toCheck) {
+    return getVectorIndex(vec, toCheck) != -1;
   }
 }
