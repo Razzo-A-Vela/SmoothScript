@@ -6,10 +6,6 @@ namespace Tokenizer {
       case TokenType::func :
         std::cout << "FUNC";
         break;
-      
-      case TokenType::proc :
-        std::cout << "PROC";
-        break;
 
       case TokenType::ret :
         std::cout << "RETURN";

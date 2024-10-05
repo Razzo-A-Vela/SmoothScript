@@ -5,7 +5,7 @@
 
 namespace Tokenizer {
   enum class TokenType {
-    func, proc, ret,
+    func, ret,
     colon, double_colon, semi_colon, question, double_question, exclamation, equals, minus, comma, star,
     open_paren, closed_paren, open_bracket, closed_bracket, open_brace, closed_brace, // all symbols -> character;
 

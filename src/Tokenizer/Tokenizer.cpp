@@ -148,8 +148,6 @@ namespace Tokenizer {
       std::string str = std::string(preToken.u.string);
       if (str == "func")
         token.type = TokenType::func;
-      else if (str == "proc")
-        token.type = TokenType::proc;
       else if (str == "return")
         token.type = TokenType::ret;
       else {
