@@ -15,7 +15,7 @@ namespace PreProcessor {
   using Tokenizer::TokenType;
 
   enum class PreProcessPass {
-    include, define, iff, namespaceWalker, namespaces, type, op, externer
+    include, define, iff, namespaceWalker, namespaces, type, sizeoff, op, externer
   };
 
   class PreProcessor : public Processor<Token, Token> {
