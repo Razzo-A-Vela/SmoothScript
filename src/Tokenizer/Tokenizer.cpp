@@ -27,6 +27,8 @@ namespace Tokenizer {
       Literal literal = parseNumLiteral(std::string(literalToken.u.string), token.line);
       if (literal.type != LiteralType::integer)
         Utils::error("Syntax Error", "Invalid byte type", token.line);
+      if (literal.u.integer == 0)
+        Utils::error("Syntax Error", "Cannot make a byte type of size zero", token.line);
       token.u.integer = literal.u.integer;
 
     } else {
