@@ -13,6 +13,7 @@ namespace PreTokenizer {
   private:
     const std::function<bool(char)> shouldIgnore = [](char c) { return c == ' ' || c == '\n'; };
     std::string file;
+    int multiLineCommentDepth = 0;
     int commentState = 0;
     int line = 1;
 

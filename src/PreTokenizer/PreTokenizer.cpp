@@ -11,14 +11,17 @@ namespace PreTokenizer {
       commentState = 0;
       return true;
 
-    } else if (commentState == 0 && c == '/' && peekEqual('*')) {
+    } else if ((commentState == 0 || commentState == 2) && c == '/' && peekEqual('*')) {
       consume();
+      multiLineCommentDepth++;
       commentState = 2;
       return true;
 
     } else if (commentState == 2 && c == '*' && peekEqual('/')) {
       consume();
-      commentState = 0;
+      multiLineCommentDepth--;
+      if (multiLineCommentDepth == 0)
+        commentState = 0;
       return true;
     }
 
