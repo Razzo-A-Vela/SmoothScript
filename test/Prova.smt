@@ -1,4 +1,11 @@
 
+
+func main : <4> {
+  return 0;
+}
+
+
+/*
 /*
 //TODO: Custom assembly
 func op_add(<4>!? a, <4>!? b) : <4> {     // Exclamation(!) means constant (All parameters MUST be constant)
@@ -75,3 +82,4 @@ func main : INT {
   player.posX += 2; // |-> player.posX = player.posX + 2; |-> player.posX = op_add(player.posX, 2);
   return player.posX;
 }
+*/
