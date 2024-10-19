@@ -4,13 +4,13 @@ namespace Tokenizer {
   Literal Tokenizer::parseLiteral(std::string str, int line) {
     LiteralParser literalParser(str, line, false);
     literalParser.process();
-    return literalParser.getOutput().at(0);
+    return literalParser.getSingleOutput();
   }
 
   Literal Tokenizer::parseNumLiteral(std::string str, int line) {
     LiteralParser literalParser(str, line, true);
     literalParser.process();
-    return literalParser.getOutput().at(0);
+    return literalParser.getSingleOutput();
   }
 
   void Tokenizer::processSymbol(PreToken preToken) {

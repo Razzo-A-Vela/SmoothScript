@@ -174,7 +174,7 @@ namespace Tokenizer {
 
   void LiteralParser::print() {
     std::cout << "LITERAL(";
-    getOutput().at(0).print();
+    getSingleOutput().print();
     std::cout << ")\n";
   }
 }

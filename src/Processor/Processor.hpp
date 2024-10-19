@@ -18,6 +18,7 @@ public:
   virtual void process() { Utils::error("Cannot call process from processor"); }
   virtual void print() { Utils::error("Cannot call print from processor"); }
   std::vector<O> getOutput() { return output; }
+  O getSingleOutput() { return output.at(0); }
 
 protected:
   virtual I get(int index) { Utils::error("Cannot call get from processor"); }
