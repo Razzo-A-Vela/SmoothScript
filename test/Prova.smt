@@ -45,11 +45,11 @@ $type EnumTest <4>;
   
 #
 
-$op op_add + 10;
 func op_add(int!? a, int!? b) : int {     // Exclamation(!) means mutable (mutable can be cast to constant but not the opposite)
   %add a, b;                              // %Assembly instruction with variables [calculate stack offset or use register (See Windows calling convention)]
   return a;
 }
+$op op_add + 10;
 
 $type TwoInts $struct {
   int? a;
@@ -64,13 +64,13 @@ $type BOH $struct {
   } u;
 };
 
-$inline fop_add;                          // ACTUALLY INLINE THE FUNCTION (if the compiler can't inline throw an error)
+$inline                                   // ACTUALLY INLINE THE FUNCTION (if the compiler can't inline throw an error)
 func fop_add(<4>?§ f1, <4>?§ f2) :§ <4> {
   %addss @xmm0, @xmm1, @xmm0;             // %Assembly instruction with @register
 }
 
-int!?? globall = 2;                       // Mutable global variable
-int?? globall = 2;                        // Constant global variable
+int!? global = 2;                        // Mutable global variable
+int? globall = 2;                        // Constant global variable
 
 func main : <4> {
   $struct {
