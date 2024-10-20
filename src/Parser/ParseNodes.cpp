@@ -2,16 +2,23 @@
 
 namespace Parser {
   void DataType::print() {
-    if (isMutable)
-      std::cout << "!";
-
     switch (type) {
       case DataTypeT::BYTE_TYPE :
         std::cout << "BYTE_TYPE(" << u.byteType << ')';
         break;
       
+      case DataTypeT::MUTABLE_BYTE_TYPE :
+        std::cout << "MUTABLE_BYTE_TYPE(" << u.byteType << ')';
+        break;
+      
       case DataTypeT::POINTER :
         std::cout << "POINTER(";
+        u.dataType->print();
+        std::cout << ')';
+        break;
+      
+      case DataTypeT::MUTABLE_POINTER :
+        std::cout << "MUTABLE_POINTER(";
         u.dataType->print();
         std::cout << ')';
         break;
