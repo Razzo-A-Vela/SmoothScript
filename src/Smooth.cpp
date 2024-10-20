@@ -5,6 +5,7 @@
 #include <PreTokenizer/PreTokenizer.hpp>
 #include <Tokenizer/Tokenizer.hpp>
 #include <PreProcessor/PreProcessor.hpp>
+#include <Parser/Parser.hpp>
 
 const std::string configTOMLName = "smoothConfig.toml";
 const std::string defaultConfigTOML = "\n\
@@ -56,5 +57,11 @@ int main(int argc, char* argv[]) {
   PreProcessor::PreProcessor preProcessor(tokenizer.getOutput());
   preProcessor.process();
   std::cout << "\nPrinting PreProcessed Tokens...\n";
-  preProcessor.print();
+  preProcessor.print();  
+
+  std::cout << "\nParsing...\n";
+  Parser::Parser parser(preProcessor.getOutput());
+  parser.process();
+  std::cout << "\nPrinting Parse Tree...\n";
+  parser.print();
 }

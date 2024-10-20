@@ -135,7 +135,7 @@ namespace PreProcessor {
 
         while (peekNotEqual({ TokenType::semi_colon }, Token::typeEqual)) {
           if (!hasPeek() || !notEndPreProcessor(currToken.line))
-            Utils::error("Syntax Error", "Expected ';' after global variable declaration(??)", currToken.line);
+            Utils::error("Syntax Error", "Expected ';' after global variable declaration (type??identifier;)", currToken.line);
 
           Token currCurrToken = consume().value();
           if (!namespaceFind(currCurrToken))
@@ -251,7 +251,7 @@ namespace PreProcessor {
           addToOutput(token);
       }
       
-      if (currentPass == PreProcessPass::externer)
+      if (currentPass == PreProcessPass::namespaces)
         break;
       
       cycleOutput();
