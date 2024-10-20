@@ -9,12 +9,11 @@
 
 namespace Parser {
   enum class DataTypeT {
-    BYTE_TYPE, POINTER, VOID
+    BYTE_TYPE, MUTABLE_BYTE_TYPE, POINTER, MUTABLE_POINTER, VOID
   };
   
   struct DataType {
     DataTypeT type;
-    bool isMutable;
     union {
       unsigned int byteType;
       DataType* dataType;

@@ -48,11 +48,9 @@ namespace Parser {
     if (Token::typeEqual(token, { TokenType::byte_type })) {
       if (token.u.integer == 0) {
         dataType->type = DataTypeT::VOID;
-        dataType->isMutable = false;
 
       } else {
         dataType->type = DataTypeT::BYTE_TYPE;
-        dataType->isMutable = false;
         dataType->u.byteType = token.u.integer;
       }
 
