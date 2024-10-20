@@ -106,6 +106,10 @@ namespace Tokenizer {
         std::cout << "PRE_PROCESSOR(" << std::string(u.string) << ')';
         break;
 
+      case TokenType::parserParameter :
+        std::cout << "PARSER_PARAMETER(" << std::string(u.string) << ')';
+        break;
+
       
       case TokenType::endPreProcessor :
         std::cout << "END_PRE_PROCESSOR";

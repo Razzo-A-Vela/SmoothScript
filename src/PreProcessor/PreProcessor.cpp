@@ -119,6 +119,17 @@ namespace PreProcessor {
       if (isPreProcessor(currToken, "namespace")) {
         namespacePass(currToken);
       
+      } else if (Token::typeStringEqual(currToken, { TokenType::parserParameter, { .string = "type" } })) {
+        std::string toAddString = namespaceReplace(currToken, "parserParameter");
+
+        while (peekNotEqual({ TokenType::semi_colon }, Token::typeEqual)) {
+          Token currCurrToken = consume().value();
+          if (!namespaceFind(currCurrToken))
+            addToOutput(currCurrToken);
+        }
+        addToOutput(consume().value());
+        namespaceIdentifiers.push_back(toAddString);
+
       } else if (Token::typeEqual(currToken, { TokenType::preProcessor })) {
         std::string toAddString = namespaceReplace(currToken, "preProcessor");
 
