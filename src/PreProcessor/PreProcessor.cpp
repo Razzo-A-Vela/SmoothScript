@@ -147,9 +147,9 @@ namespace PreProcessor {
       } else if (Token::typeEqual(currToken, { TokenType::func })) {
         std::string toAddString = namespaceReplace(currToken, "func");
 
-        while (peekNotEqual({ TokenType::colon }, Token::typeEqual)) {
+        while (peekNotEqual({ TokenType::open_brace }, Token::typeEqual) && peekNotEqual({ TokenType::semi_colon }, Token::typeEqual)) {
           if (!hasPeek() || !notEndPreProcessor(currToken.line))
-            Utils::error("Syntax Error", "Expected ':' after function declaration(func)", currToken.line);
+            Utils::error("Syntax Error", "Expected '{' or ';' after function declaration (func)", currToken.line);
 
           Token currCurrToken = consume().value();
           if (!namespaceFind(currCurrToken))
