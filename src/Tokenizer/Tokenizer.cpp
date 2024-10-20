@@ -17,19 +17,25 @@ namespace Tokenizer {
     Token token;
     token.line = preToken.line;
 
-    if (preToken.u.character == '<' &&
-          peekEqual({ PreTokenType::numLiteral }, PreToken::typeEqual) &&
+    if (preToken.u.character == '<') {
+      if (peekEqual({ PreTokenType::symbol, { .character = '>' } }, PreToken::typeCharEqual)) {
+        consume();
+        token.type = TokenType::byte_type;
+        token.u.integer = 0; // VOID BYTE TYPE
+
+      } else if (peekEqual({ PreTokenType::numLiteral }, PreToken::typeEqual) &&
           peekEqual({ PreTokenType::symbol, { .character = '>' } }, PreToken::typeCharEqual, 1)) {
-      PreToken literalToken = consume().value();
-      consume();
-      
-      token.type = TokenType::byte_type;
-      Literal literal = parseNumLiteral(std::string(literalToken.u.string), token.line);
-      if (literal.type != LiteralType::integer)
-        Utils::error("Syntax Error", "Invalid byte type", token.line);
-      if (literal.u.integer == 0)
-        Utils::error("Syntax Error", "Cannot make a byte type of size zero", token.line);
-      token.u.integer = literal.u.integer;
+        PreToken literalToken = consume().value();
+        consume();
+        
+        token.type = TokenType::byte_type;
+        Literal literal = parseNumLiteral(std::string(literalToken.u.string), token.line);
+        if (literal.type != LiteralType::integer)
+          Utils::error("Syntax Error", "Invalid byte type", token.line);
+        if (literal.u.integer == 0)
+          Utils::error("Syntax Error", "Cannot make a byte type of size zero", token.line);
+        token.u.integer = literal.u.integer;
+      }
 
     } else {
       token.u.character = preToken.u.character;

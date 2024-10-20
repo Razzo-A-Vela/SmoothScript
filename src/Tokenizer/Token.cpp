@@ -84,7 +84,12 @@ namespace Tokenizer {
         break;
 
       case TokenType::byte_type :
-        std::cout << "BYTE_TYPE(" << u.integer << ')';
+        std::cout << "BYTE_TYPE(";
+        if (u.integer == 0)
+          std::cout << "VOID";
+        else
+          std::cout << u.integer;
+        std::cout << ')';
         break;
 
       case TokenType::literal :
