@@ -14,6 +14,17 @@ func main : <4> {
 //TODO: REDO TOML PARSER (USE PROCESSOR SYSTEM?)
 //TODO: GENERATOR (WITH CUSTOM ASSEMBLY GENERATION WITH (TOML FILE || OTHER FILE))
 
+// MUTABLE AND CONSTANT:
+// <4>        -> constant 4 bytes (OPTIMIZATION: preCalculate?)
+// <4>!       -> mutable 4 bytes
+// *<4>       -> constant pointer to constant 4 bytes
+// *!<4>      -> mutable pointer to constant 4 bytes
+// *<4>!      -> constant pointer to mutable 4 bytes
+// *!*<4>     -> mutable pointer to constant pointer to constant 4 bytes
+// **!<4>     -> constant pointer to mutable pointer to constant 4 bytes
+// **!<>      -> constant pointer to mutable pointer to void (unknown)
+
+
 #define VOID <>#                          // types as defines (simplest but with no type checking)
                                           // should create functions with different names depending on types
 #define BYTE <1>#                         // should create functions for operations with different names depending on types
@@ -78,7 +89,7 @@ func main : <4> {
     int? b;
   }? twoInts;
 
-  float? f = (float) 2; // 2 -> IEEE; f -> @xmm0[0:3]
+  float? f = (float) 2;                   // 2 -> IEEE; f -> @xmm0[0:3]
   <4>? f = 1.2f;                          // 1.2f -> stack
   f = fop_add(f, 2);                      // -> movss xmm0, stack; movss xmm1, 1.2f(1067030938); addss xmm0, xmm1, xmm0
 
