@@ -107,6 +107,8 @@ namespace Parser {
     return functionDefinition;
   }
   
+  //TODO: MOVE NAMESPACE FROM PREPROCESSOR TO PARSER
+
   void Parser::process() {
     while (hasPeek()) {
       Token token = consume().value();
