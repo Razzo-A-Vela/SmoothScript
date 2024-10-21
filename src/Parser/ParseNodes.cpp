@@ -42,9 +42,13 @@ namespace Parser {
   void Statement::print() {
     switch (type) {
       case StatementType::RETURN :
-        std::cout << "RETURN(";
-        u.expression->print();
-        std::cout << ')';
+        if (u.expression != NULL) {
+          std::cout << "RETURN(";
+          u.expression->print();
+          std::cout << ')';
+          
+        } else
+          std::cout << "RETURN";
         break;
     }
   }
