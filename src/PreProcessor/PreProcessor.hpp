@@ -15,7 +15,7 @@ namespace PreProcessor {
   using Tokenizer::TokenType;
 
   enum class PreProcessPass {
-    include, define, iff, namespaceWalker, namespaces
+    include, define, iff
   };
 
   class PreProcessor : public Processor<Token, Token> {
@@ -25,8 +25,8 @@ namespace PreProcessor {
 
     Map<std::string, std::vector<Token>*> defines;
 
-    std::string currentNamespacePrefix = "";
-    std::vector<std::string> namespaceIdentifiers;
+    // std::string currentNamespacePrefix = "";
+    // std::vector<std::string> namespaceIdentifiers;
 
   public:
     const int RECURSION_LIMIT = 25;
@@ -45,14 +45,14 @@ namespace PreProcessor {
     void definePass(Token token);
     bool defineFind(Token token, std::function<void(Token)> addFunction, std::string notInside = "");
 
-    void namespacePass(Token token);
-    void addToNamespacePrefix(std::string prefix);
-    void removeLastNamespacePrefix();
-    bool namespaceFind(Token token);
-    bool hasNamespacePrefix(int depth);
-    std::string getNamespacePrefix(int depth);
-    std::string namespaceReplace(Token token, std::string errString);
+    // void namespacePass(Token token);
+    // void addToNamespacePrefix(std::string prefix);
+    // void removeLastNamespacePrefix();
+    // bool namespaceFind(Token token);
+    // bool hasNamespacePrefix(int depth);
+    // std::string getNamespacePrefix(int depth);
+    // std::string namespaceReplace(Token token, std::string errString);
     
-    void namespaceWalkerPass(Token token);
+    // void namespaceWalkerPass(Token token);
   };
 }
