@@ -73,32 +73,34 @@ namespace Parser {
     if (peekEqual({ TokenType::open_paren }, Token::typeEqual)) {
       consume();
 
-      while (true) {
-        if (!hasPeek())
-          Utils::error("Syntax Error", "Expected ')' after '('", token.line);
-        Token currToken = consume().value();
+      if (peekNotEqual({ TokenType::closed_paren }, Token::typeEqual)) { 
+        while (true) {
+          if (!hasPeek())
+            Utils::error("Syntax Error", "Expected ')' after '('", token.line);
+          Token currToken = consume().value();
 
 
-        DataType* paramType = processDataType(currToken);
-        if (peekNotEqual({ TokenType::question }, Token::typeEqual))
-          Utils::error("Syntax Error", "Expected '?' after parameter type", token.line);
-        consume();
+          DataType* paramType = processDataType(currToken);
+          if (peekNotEqual({ TokenType::question }, Token::typeEqual))
+            Utils::error("Syntax Error", "Expected '?' after parameter type", token.line);
+          consume();
 
 
-        if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
-          Utils::error("Syntax Error", "Invalid parameter identifier", token.line);
-        std::string paramName = std::string(consume().value().u.string);
+          if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
+            Utils::error("Syntax Error", "Invalid parameter identifier", token.line);
+          std::string paramName = std::string(consume().value().u.string);
 
 
-        function->params.add(paramName, paramType);
-        if (peekEqual({ TokenType::closed_paren }, Token::typeEqual))
-          break;
+          function->params.add(paramName, paramType);
+          if (peekEqual({ TokenType::closed_paren }, Token::typeEqual))
+            break;
 
-
-        if (peekNotEqual({ TokenType::comma }, Token::typeEqual))
-          Utils::error("Syntax Error", "Expected ',' separating parameters", token.line);
-        consume();
+          if (peekNotEqual({ TokenType::comma }, Token::typeEqual))
+            Utils::error("Syntax Error", "Expected ',' separating parameters", token.line);
+          consume();
+        }
       }
+
       consume();
     }
 

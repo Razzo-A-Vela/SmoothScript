@@ -54,10 +54,10 @@ namespace Parser {
   }
 
   void Function::print() {
-    if (isDeclaration)
-      std::cout << "FUNC_DEC(";
-    else
+    if (hasDefinition)
       std::cout << "FUNC_DEF(";
+    else
+      std::cout << "FUNC_DEC(";
     
     std::cout << id << ", ";
     returnType->print();
