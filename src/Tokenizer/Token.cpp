@@ -15,10 +15,6 @@ namespace Tokenizer {
       case TokenType::colon :
         std::cout << "COLON";
         break;
-
-      case TokenType::double_colon :
-        std::cout << "DOUBLE_COLON";
-        break;
       
       case TokenType::semi_colon :
         std::cout << "SEMI_COLON";
@@ -26,10 +22,6 @@ namespace Tokenizer {
         
       case TokenType::question :
         std::cout << "QUESTION";
-        break;
-        
-      case TokenType::double_question :
-        std::cout << "DOUBLE_QUESTION";
         break;
         
       case TokenType::exclamation :

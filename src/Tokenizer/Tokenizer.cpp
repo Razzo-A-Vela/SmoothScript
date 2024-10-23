@@ -41,11 +41,7 @@ namespace Tokenizer {
       token.u.character = preToken.u.character;
       switch (preToken.u.character) {
         case ':' :
-          if (peekEqual({ PreTokenType::symbol, { .character = ':' } }, PreToken::typeCharEqual)) {
-            consume();
-            token.type = TokenType::double_colon;
-          } else
-            token.type = TokenType::colon;
+          token.type = TokenType::colon;
           break;
         
         case ';' :
@@ -53,11 +49,7 @@ namespace Tokenizer {
           break;
 
         case '?' :
-          if (peekEqual({ PreTokenType::symbol, { .character = '?' } }, PreToken::typeCharEqual)) {
-            consume();
-            token.type = TokenType::double_question;
-          } else
-            token.type = TokenType::question;
+          token.type = TokenType::question;
           break;
         
         case '!' :
