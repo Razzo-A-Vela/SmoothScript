@@ -113,7 +113,7 @@ namespace Parser {
 
     if (peekEqual({ TokenType::semi_colon }, Token::typeEqual)) {
       consume();
-      function->isDeclaration = true;
+      function->hasDefinition = false;
       return function;
     }
     

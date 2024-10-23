@@ -56,7 +56,7 @@ namespace Parser {
     DataType* returnType;
     Map<std::string, DataType*> params;
     std::vector<Statement*> statements;
-    bool isDeclaration = false;
+    bool hasDefinition = true;
 
     void print();
   };
