@@ -30,5 +30,6 @@ namespace Tokenizer {
     static const std::function<bool(Token, Token)> typeIntEqual;
     static const std::function<bool(Token, Token)> typeCharEqual;
     static const std::function<bool(Token, Token)> typeStringEqual;
+    static const std::function<bool(Token)> isSymbol;
   };
 }
