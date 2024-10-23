@@ -1,6 +1,111 @@
 #include "Parser.hpp"
 
 namespace Parser {
+  Operator Parser::processFunctionOperator(int errLine) {
+    Operator ret;
+
+    if (peekNotEqual({ TokenType::open_paren }, Token::typeEqual))
+      Utils::error("Parser Error", "Expected '(' after $op", errLine);
+    consume();
+    
+    if (!(hasPeek() && Token::isSymbol(peekValue())))
+      Utils::error("Parser Error", "Expected Symbol after '(' in $op", errLine);
+    ret.symbol1 = consume().value();
+
+    if (hasPeek() && Token::isSymbol(peekValue()) && peekNotEqual({ TokenType::comma }, Token::typeEqual))
+      ret.symbol2 = new Token(consume().value());
+
+    if (peekNotEqual({ TokenType::comma }, Token::typeEqual))
+      Utils::error("Parser Error", "Expected ',' after symbol in $op", errLine);
+    consume();
+
+    if (peekNotEqual({ TokenType::literal }, Token::typeEqual))
+      Utils::error("Parser Error", "Expected literal after ',' in $op", errLine);
+    Tokenizer::Literal literal = consume().value().u.literal;
+
+    if (literal.type != Tokenizer::LiteralType::integer)
+      Utils::error("Parser Error", "Precedence literal must be an integer in $op", errLine);
+    ret.precedence = literal.u.integer;
+
+    if (peekEqual({ TokenType::comma }, Token::typeEqual)) {
+      consume();
+
+      if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
+        Utils::error("Parser Error", "Invalid $op type", errLine);
+      std::string opType = std::string(consume().value().u.string);
+      
+      if (opType == "BINARY")
+        ret.type = OperatorType::BINARY;
+      else if (opType == "BEFORE")
+        ret.type = OperatorType::BEFORE;
+      else if (opType == "AFTER")
+        ret.type = OperatorType::AFTER;
+      else
+        Utils::error("Parser Error", "Invalid $op type (only: 'BINARY', 'BEFORE', 'AFTER')", errLine);
+    }
+
+    if (peekNotEqual({ TokenType::closed_paren }, Token::typeEqual))
+      Utils::error("Parser Error", "Expected ')' at the end of $op", errLine);
+    consume();
+
+    return ret;
+  }
+
+  bool Parser::isFunctionParameter(std::string parameterType) {
+    return parameterType == "extern" ||  parameterType == "entry" || parameterType == "inline" || parameterType == "noReturn" || parameterType == "op" || parameterType == "cast"; 
+  }
+
+  FunctionParameters Parser::processOneFunctionParameter(FunctionParameters functionParameters, std::string parameterType, int errLine) {
+    if ((parameterType == "inline" || parameterType == "entry" || parameterType == "extern") && functionParameters.type != FunctionType::DEFAULT)
+      Utils::error("Parser Error", "Cannot put more than one function type parameter", errLine);
+
+    if (parameterType == "inline")
+      functionParameters.type = FunctionType::INLINE;
+    else if (parameterType == "entry")
+      functionParameters.type = FunctionType::ENTRY;
+    else if (parameterType == "extern")
+      functionParameters.type = FunctionType::EXTERN;
+
+    else if (parameterType == "cast")
+      functionParameters.cast = true;
+    else if (parameterType == "noReturn")
+      functionParameters.noReturn = true;
+    else if (parameterType == "op") {
+      functionParameters.op = true;
+      functionParameters.oper = processFunctionOperator(errLine);
+    }
+
+    return functionParameters;
+  }
+  
+  void Parser::processGlobalParameters(Token token) {
+    std::string parameterType = std::string(token.u.string);
+
+    if (isFunctionParameter(parameterType)) {
+      FunctionParameters functionParameters = processOneFunctionParameter({}, parameterType, token.line);
+      
+      while (peekNotEqual({ TokenType::func }, Token::typeEqual)) {
+        if (!hasPeek())
+          Utils::error("Expected 'func' after function parser parameter", token.line);
+        Token currToken = consume().value();
+        
+        if (!Token::typeEqual(currToken, { TokenType::parserParameter }) || !isFunctionParameter(std::string(currToken.u.string)))
+          Utils::error("Parser Error", "Invalid function parser parameter", currToken.line);
+        std::string parameterType = std::string(currToken.u.string);
+
+        functionParameters = processOneFunctionParameter(functionParameters, parameterType, currToken.line);
+      }
+
+      GlobalStatement globalStatement;
+      globalStatement.type = GlobalStatementType::FUNCTION;
+      globalStatement.u.funcDef = processFunc(consume().value());
+      globalStatement.u.funcDef->funcParams = functionParameters;
+      addToOutput(globalStatement);
+      
+    } else
+      Utils::error("Parser Error", "Invalid parserParameter", token.line);
+  }
+  
   Expression* Parser::processExpression(Token token) {
     Expression* expression = new Expression();
 
@@ -143,7 +248,11 @@ namespace Parser {
       Token token = consume().value();
       GlobalStatement globalStatement;
 
-      if (Token::typeEqual(token, { TokenType::func })) {
+      if (Token::typeEqual(token, { TokenType::parserParameter })) {
+        processGlobalParameters(token);
+        continue;
+
+      } else if (Token::typeEqual(token, { TokenType::func })) {
         globalStatement.type = GlobalStatementType::FUNCTION;
         globalStatement.u.funcDef = processFunc(token);
       } else

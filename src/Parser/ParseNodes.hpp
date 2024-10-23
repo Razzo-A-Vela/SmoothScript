@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 
+#include <Tokenizer/Token.hpp>
 #include <Tokenizer/Literal.hpp>
 #include <util/Map.hpp>
 
@@ -51,11 +52,40 @@ namespace Parser {
   };
 
 
+  enum class OperatorType {
+    BINARY, BEFORE, AFTER
+  };
+
+  struct Operator {
+    OperatorType type = OperatorType::BINARY;
+    int precedence = 0;
+    Tokenizer::Token symbol1;
+    Tokenizer::Token* symbol2 = NULL;
+
+    void print();
+  };
+
+
+  enum class FunctionType {
+    DEFAULT, INLINE, ENTRY, EXTERN
+  };
+
+  struct FunctionParameters {
+    FunctionType type = FunctionType::DEFAULT;
+    bool noReturn = false;
+    bool cast = false;
+    bool op = false;
+    Operator oper;
+
+    void print();
+  };
+
   struct Function {
     std::string id;
     DataType* returnType;
     Map<std::string, DataType*> params;
     std::vector<Statement*> statements;
+    FunctionParameters funcParams;
     bool hasDefinition = true;
 
     void print();

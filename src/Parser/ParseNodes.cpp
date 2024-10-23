@@ -53,11 +53,63 @@ namespace Parser {
     }
   }
 
+  void Operator::print() {
+    switch (type) {
+      case OperatorType::BINARY :
+        std::cout << "BINARY";
+        break;
+      
+      case OperatorType::BEFORE :
+        std::cout << "BEFORE";
+        break;
+      
+      case OperatorType::AFTER :
+        std::cout << "AFTER";
+        break;
+    }
+
+    std::cout << ": (PRECEDENCE: " << precedence << ", SYMBOL: " << symbol1.u.character;
+    if (symbol2 != NULL)
+      std::cout << symbol2->u.character;
+    std::cout << ')';
+  }
+
+  void FunctionParameters::print() {
+    switch (type) {
+      case FunctionType::DEFAULT :
+        std::cout << "DEFAULT";
+        break;
+      
+      case FunctionType::INLINE :
+        std::cout << "INLINE";
+        break;
+      
+      case FunctionType::ENTRY :
+        std::cout << "ENTRY";
+        break;
+      
+      case FunctionType::EXTERN :
+        std::cout << "EXTERN";
+        break;
+    }
+
+    std::cout << ": (NO_RETURN: " << noReturn << ", CAST: " << cast << ", OP: " << op;
+    if (op) {
+      std::cout << " {";
+      oper.print();
+      std::cout << '}';
+    }
+    std::cout << ')';
+  }
+
   void Function::print() {
+    std::cout << '(';
+    funcParams.print();
+
     if (hasDefinition)
-      std::cout << "FUNC_DEF(";
+      std::cout << ")FUNC_DEF(";
     else
-      std::cout << "FUNC_DEC(";
+      std::cout << ")FUNC_DEC(";
     
     std::cout << id << ", ";
     returnType->print();

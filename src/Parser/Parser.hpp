@@ -25,5 +25,9 @@ namespace Parser {
     DataType* processDataType(Token token);
     Statement* processStatement(Token token);
     Expression* processExpression(Token token);
+    void processGlobalParameters(Token token);
+    FunctionParameters processOneFunctionParameter(FunctionParameters functionParameters, std::string parameterType, int errLine);
+    bool isFunctionParameter(std::string parameterType);
+    Operator processFunctionOperator(int errLine);
   };
 }
