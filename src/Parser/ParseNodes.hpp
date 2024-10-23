@@ -51,23 +51,25 @@ namespace Parser {
   };
 
 
-  struct FunctionDefinition {
+  struct Function {
     std::string id;
     DataType* returnType;
+    Map<std::string, DataType*> params;
     std::vector<Statement*> statements;
+    bool isDeclaration;
 
     void print();
   };
 
 
   enum class GlobalStatementType {
-    FUNC_DEF
+    FUNCTION
   };
 
   struct GlobalStatement {
     GlobalStatementType type;
     union {
-      FunctionDefinition* funcDef;
+      Function* funcDef;
     } u;
 
     void print();

@@ -53,11 +53,22 @@ namespace Parser {
     }
   }
 
-  void FunctionDefinition::print() {
-    std::cout << "FUNC_DEF(" << id << ", ";
-    returnType->print();
-    std::cout << "){\n";
+  void Function::print() {
+    if (isDeclaration)
+      std::cout << "FUNC_DEC(";
+    else
+      std::cout << "FUNC_DEF(";
     
+    std::cout << id << ", ";
+    returnType->print();
+    std::cout << ")(\n";
+
+    for (DataType* param : params.getValues()) {
+      param->print();
+      std::cout << '\n';
+    }
+    std::cout << "){\n";
+
     for (Statement* statement : statements) {
       statement->print();
       std::cout << '\n';
@@ -67,7 +78,7 @@ namespace Parser {
   
   void GlobalStatement::print() {
     switch (type) {
-      case GlobalStatementType::FUNC_DEF :
+      case GlobalStatementType::FUNCTION :
         u.funcDef->print();
         break;
     }

@@ -60,17 +60,46 @@ namespace Parser {
     return dataType;
   }
 
-  FunctionDefinition* Parser::processFunc(Token token) {
+  Function* Parser::processFunc(Token token) {
     if (!Token::typeEqual(token, { TokenType::func }))
       Utils::error("Parser Error", "Invalid function declaration", token.line);
+    Function* function = new Function();
     
     if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
       Utils::error("Parser Error", "Invalid function identifier", token.line);
-    std::string identifier = std::string(consume().value().u.string);
+    function->id = std::string(consume().value().u.string);
+
 
     if (peekEqual({ TokenType::open_paren }, Token::typeEqual)) {
-      //TODO: PARAMS
-      Utils::error("Internal Error", "Params are not allowed for now", token.line);
+      consume();
+
+      while (true) {
+        if (!hasPeek())
+          Utils::error("Syntax Error", "Expected ')' after '('", token.line);
+        Token currToken = consume().value();
+
+
+        DataType* paramType = processDataType(currToken);
+        if (peekNotEqual({ TokenType::question }, Token::typeEqual))
+          Utils::error("Syntax Error", "Expected '?' after parameter type", token.line);
+        consume();
+
+
+        if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
+          Utils::error("Syntax Error", "Invalid parameter identifier", token.line);
+        std::string paramName = std::string(consume().value().u.string);
+
+
+        function->params.add(paramName, paramType);
+        if (peekEqual({ TokenType::closed_paren }, Token::typeEqual))
+          break;
+
+
+        if (peekNotEqual({ TokenType::comma }, Token::typeEqual))
+          Utils::error("Syntax Error", "Expected ',' separating parameters", token.line);
+        consume();
+      }
+      consume();
     }
 
     if (peekNotEqual({ TokenType::colon }, Token::typeEqual))
@@ -79,32 +108,30 @@ namespace Parser {
 
     if (!hasPeek())
       Utils::error("Parser Error", "Expected DataType after ':' in function declaration", token.line);
-    DataType* returnType = processDataType(consume().value());
+    function->returnType = processDataType(consume().value());
+
 
     if (peekEqual({ TokenType::semi_colon }, Token::typeEqual)) {
-      //TODO: FUNCTION DECLARATION
-      Utils::error("Internal Error", "Function declarations are not allowed for now", token.line);
+      consume();
+      function->isDeclaration = true;
+      return function;
     }
-
+    
     if (peekNotEqual({ TokenType::open_brace }, Token::typeEqual))
       Utils::error("Syntax Error", "Expected '{' in function definition");
     consume();
 
-    std::vector<Statement*> statements;
+
     while (peekNotEqual({ TokenType::closed_brace }, Token::typeEqual)) {
       if (!hasPeek())
         Utils::error("Syntax Error", "Expected '}' in function definition", token.line);
       
       Token currToken = consume().value();
-      statements.push_back(processStatement(currToken));
+      function->statements.push_back(processStatement(currToken));
     }
     consume();
 
-    FunctionDefinition* functionDefinition = new FunctionDefinition();
-    functionDefinition->id = identifier;
-    functionDefinition->returnType = returnType;
-    functionDefinition->statements = statements;
-    return functionDefinition;
+    return function;
   }
   
   //TODO: MOVE NAMESPACE FROM PREPROCESSOR TO PARSER
@@ -115,7 +142,7 @@ namespace Parser {
       GlobalStatement globalStatement;
 
       if (Token::typeEqual(token, { TokenType::func })) {
-        globalStatement.type = GlobalStatementType::FUNC_DEF;
+        globalStatement.type = GlobalStatementType::FUNCTION;
         globalStatement.u.funcDef = processFunc(token);
       } else
         Utils::error("Parser Error", "Invalid token in global scope", token.line);

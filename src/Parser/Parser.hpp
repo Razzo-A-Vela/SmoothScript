@@ -21,7 +21,7 @@ namespace Parser {
     
   protected:
     virtual Token get(int index) { return tokens.at(index); }
-    FunctionDefinition* processFunc(Token token);
+    Function* processFunc(Token token);
     DataType* processDataType(Token token);
     Statement* processStatement(Token token);
     Expression* processExpression(Token token);
