@@ -37,6 +37,10 @@ public:
   std::vector<Key> getKeys() {
     return keys;
   }
+
+  std::vector<Value> getValues() {
+    return values;
+  }
   
   bool hasKey(Key key) {
     return Utils::isInVector(keys, key);
