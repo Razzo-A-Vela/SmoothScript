@@ -73,6 +73,7 @@ namespace Parser {
 
   struct FunctionParameters {
     FunctionType type = FunctionType::DEFAULT;
+    std::string externIdentifier;
     bool noReturn = false;
     bool cast = false;
     bool op = false;

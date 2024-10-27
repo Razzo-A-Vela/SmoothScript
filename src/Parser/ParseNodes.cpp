@@ -82,7 +82,7 @@ namespace Parser {
         break;
       
       case FunctionType::EXTERN :
-        std::cout << "EXTERN";
+        std::cout << "EXTERN(" << externIdentifier << ')';
         break;
     }
 

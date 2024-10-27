@@ -29,5 +29,6 @@ namespace Parser {
     FunctionParameters processOneFunctionParameter(FunctionParameters functionParameters, std::string parameterType, int errLine);
     bool isFunctionParameter(std::string parameterType);
     Operator processFunctionOperator(int errLine);
+    std::string processFunctionExtern(int errLine);
   };
 }

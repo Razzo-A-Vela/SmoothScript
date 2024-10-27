@@ -1,6 +1,24 @@
 #include "Parser.hpp"
 
 namespace Parser {
+  std::string Parser::processFunctionExtern(int errLine) {
+    std::string ret;
+
+    if (peekNotEqual({ TokenType::open_paren }, Token::typeEqual))
+      Utils::error("Parser Error", "Expected '(' after $extern", errLine);
+    consume();
+
+    if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
+      Utils::error("Parser Error", "Expected identifier after '(' in $extern");
+    ret = std::string(consume().value().u.string);
+
+    if (peekNotEqual({ TokenType::closed_paren }, Token::typeEqual))
+      Utils::error("Parser Error", "Expected ')' at the end of $extern", errLine);
+    consume();
+
+    return ret;
+  }
+
   Operator Parser::processFunctionOperator(int errLine) {
     Operator ret;
 
@@ -9,7 +27,7 @@ namespace Parser {
     consume();
     
     if (!(hasPeek() && Token::isSymbol(peekValue())))
-      Utils::error("Parser Error", "Expected Symbol after '(' in $op", errLine);
+      Utils::error("Parser Error", "Expected symbol after '(' in $op", errLine);
     ret.symbol1 = consume().value();
 
     if (hasPeek() && Token::isSymbol(peekValue()) && peekNotEqual({ TokenType::comma }, Token::typeEqual))
@@ -63,8 +81,10 @@ namespace Parser {
       functionParameters.type = FunctionType::INLINE;
     else if (parameterType == "entry")
       functionParameters.type = FunctionType::ENTRY;
-    else if (parameterType == "extern")
+    else if (parameterType == "extern") {
       functionParameters.type = FunctionType::EXTERN;
+      functionParameters.externIdentifier = processFunctionExtern(errLine);
+    }
 
     else if (parameterType == "cast")
       functionParameters.cast = true;
