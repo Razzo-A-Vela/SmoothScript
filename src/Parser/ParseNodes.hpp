@@ -39,14 +39,29 @@ namespace Parser {
   };
   
 
+  struct Variable {
+    std::string name;
+    DataType* type;
+
+    void print();
+  };
+
+  struct VarAssign {
+    std::string varName;
+    Expression* expression;
+  };
+
+
   enum class StatementType {
-    RETURN
+    RETURN, VAR_DEC, VAR_ASSIGN
   };
 
   struct Statement {
     StatementType type;
     union {
       Expression* expression;
+      Variable* variable;
+      VarAssign* varAssign;
     } u;
 
     void print();

@@ -22,7 +22,7 @@ namespace Parser {
   protected:
     virtual Token get(int index) { return tokens.at(index); }
     Function* processFunc(Token token);
-    DataType* processDataType(Token token);
+    DataType* processDataType(Token token, bool throwError = true);
     Statement* processStatement(Token token);
     Expression* processExpression(Token token);
     void processGlobalParameters(Token token);

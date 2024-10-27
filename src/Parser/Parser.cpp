@@ -161,13 +161,53 @@ namespace Parser {
       }
       consume();
       
-    } else
-      Utils::error("Parser Error", "Invalid statement", token.line);
-    
+    } else if (peekEqual({ TokenType::equals }, Token::typeEqual)) {
+      if (!Token::typeEqual(token, { TokenType::identifier }))
+        Utils::error("Parser Error", "Expected identifier for variable assign", token.line);
+      consume();
+
+      statement->type = StatementType::VAR_ASSIGN;
+      VarAssign* varAssign = new VarAssign();
+      varAssign->varName = std::string(token.u.string);
+
+      if (!hasPeek())
+        Utils::error("Parser Error", "Expected expression after '=' in variable assign", token.line);
+      varAssign->expression = processExpression(consume().value());
+      statement->u.varAssign = varAssign;
+
+      if (peekNotEqual({ TokenType::semi_colon }, Token::typeEqual))
+        Utils::error("Syntax Error", "Expected ';' after expression in variable assign", token.line);
+      consume();
+
+    } else {
+      DataType* dataType = processDataType(token, false);
+
+      if (dataType != NULL) {
+        statement->type = StatementType::VAR_DEC;
+        Variable* var = new Variable();
+
+        var->type = dataType;
+        if (peekNotEqual({ TokenType::question }, Token::typeEqual))
+          Utils::error("Syntax Error", "Expected '?' for variable declaration", token.line);
+        consume();
+
+        bool hasColon = peekEqual({ TokenType::semi_colon }, Token::typeEqual, 1);
+        if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
+          Utils::error("Syntax Error", "Invalid variable identifier", token.line);
+        var->name = std::string(hasColon ? consume().value().u.string : peekValue().u.string);
+
+        if (hasColon)
+          consume();
+
+        statement->u.variable = var;
+      } else
+       Utils::error("Parser Error", "Invalid statement", token.line);
+    }
+
     return statement;
   }
   
-  DataType* Parser::processDataType(Token token) {
+  DataType* Parser::processDataType(Token token, bool throwError) {
     DataType* dataType = new DataType();
     dataType->isMutable = false;
 
@@ -180,8 +220,10 @@ namespace Parser {
         dataType->u.byteType = token.u.integer;
       }
 
-    } else
+    } else if (throwError)
       Utils::error("Parser Error", "Invalid dataType", token.line);
+    else
+      return NULL;
 
     return dataType;
   }

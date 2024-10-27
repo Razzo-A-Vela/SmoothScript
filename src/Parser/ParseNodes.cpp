@@ -32,6 +32,12 @@ namespace Parser {
     }
   }
 
+  void Variable::print() {
+    std::cout << "VAR(" << name << ", ";
+    type->print();
+    std::cout << ')';
+  }
+
   void Statement::print() {
     switch (type) {
       case StatementType::RETURN :
@@ -42,6 +48,18 @@ namespace Parser {
           
         } else
           std::cout << "RETURN";
+        break;
+      
+      case StatementType::VAR_DEC :
+        std::cout << "VAR_DEC(";
+        u.variable->print();
+        std::cout << ')';
+        break;
+
+      case StatementType::VAR_ASSIGN :
+        std::cout << "VAR_ASSIGN(" << u.varAssign->varName << ", ";
+        u.varAssign->expression->print();
+        std::cout << ')';
         break;
     }
   }
