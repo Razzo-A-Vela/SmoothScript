@@ -1,24 +1,45 @@
 
+$extern(putchar)
+func printChar(<1>? c) : <>;
 
+$entry
 func main : <4> {
+  <4>? a;
+  <4>? b = 21;
+  a = 2;
+
   return 0;
 }
 
 /*
+// Some of the code in this comments is not how I want it, but I keep it to remember what I have to do
+// Basically don't follow this comments as if they describe how the language will be
+
 $type void <>;
 $type int <4>;
 
-$extern func malloc(int) : *void;         // $extern function from C standard library
-$extern func free(*void) : void;
-$extern func getTime : int;               // This function does not exist, but let's imagine that it returns the time in milliseconds
-$extern $noReturn func exit(int) : void;  // $noReturn tells the parser that this function will end the program before returning
-$noReturn func exit : void { exit(0); }
-
 $namespace std {                          // namespaces are now Parsed and not PreProcessed
-  $op(+, 10)                              // $op is now similar to inline, but it has some parameters(symbol, precedence) (TODO)
-  func op_add(!int? a, !int? b) : !int {
-    %add a, b;
-    return a;
+  $extern(malloc)
+  func malloc(int? size) : *void;         // $extern function from C standard library
+
+  $extern(free)
+  func free(*void? ptr) : void;
+
+  $extern(getTime)
+  func getTime : int;                     // This function does not exist, but let's imagine that it returns the time in milliseconds
+
+  $extern(exit)
+  $noReturn func exit(int? code) : void;  // $noReturn tells the parser that this function will end the program before returning
+  $noReturn func exit : void { exit(0); }
+
+  $op(+, 10) $inline                      // $op is now similar to inline, but it has some parameters(symbol, precedence) (TODO)
+  func op_add(int?! a, int?! b) : !int {  // ! after ? in param means don't push to stack as local variable
+    %push @rbx;
+    %mov @eax, a;
+    %mov @ebx, b;
+    %add @eax, @ebx;
+    %pop @rbx;
+    return @eax;
   }
 
   func wait(int? millis) : void {
@@ -87,13 +108,13 @@ func main : int {                         // "main" is always the entry point of
 
 // MUTABLE AND CONSTANT:
 // <4>        -> constant 4 bytes (OPTIMIZATION: preCalculate?)
-// <4>!       -> mutable 4 bytes
+// !<4>       -> mutable 4 bytes
 // *<4>       -> constant pointer to constant 4 bytes
-// *!<4>      -> mutable pointer to constant 4 bytes
-// *<4>!      -> constant pointer to mutable 4 bytes
-// *!*<4>     -> mutable pointer to constant pointer to constant 4 bytes
-// **!<4>     -> constant pointer to mutable pointer to constant 4 bytes
-// **!<>      -> constant pointer to mutable pointer to void (unknown)
+// !*<4>      -> mutable pointer to constant 4 bytes
+// *!<4>      -> constant pointer to mutable 4 bytes
+// !**<4>     -> mutable pointer to constant pointer to constant 4 bytes
+// *!*<4>     -> constant pointer to mutable pointer to constant 4 bytes
+// *!*<>      -> constant pointer to mutable pointer to void (unknown)
 
 
 #define VOID <>#                          // types as defines (simplest but with no type checking)
@@ -119,12 +140,8 @@ $type long <8>;                           // <4> <---- <8> <---> long; (should g
 $type float <f>;                          // Float and double types are built-in (because of register(xmm0, xmm1, ...) and operation(movss, addss, ...) differences)
 $type double <d>;                         // <f> can be cast to <4>; <d> can be cast to <8>;
 
-$extern func malloc(int) : *!void;
-
-$type EnumTest <4>;
-#namespace EnumTest
-  
-#
+$extern(malloc)
+func malloc(int? size) : *!void;
 
 $op(+, 10)
 func op_add(!int? a, !int? b) : int {     // Exclamation(!) means mutable (mutable can be cast to constant but not the opposite)
@@ -150,7 +167,7 @@ func fop_add(<f>? f1, <f>? f2) : <f> {
   %addss @xmm0, @xmm1, @xmm0;             // %Assembly instruction with @register
 }
 
-int!? global = 2;                         // Mutable global variable
+!int? global = 2;                         // Mutable global variable
 int? globall = 2;                         // Constant global variable
 
 #define toInt(x) ((int) x)#               //TODO: Add defines with parameters
