@@ -149,6 +149,7 @@ namespace Parser {
   
   DataType* Parser::processDataType(Token token) {
     DataType* dataType = new DataType();
+    dataType->isMutable = false;
 
     if (Token::typeEqual(token, { TokenType::byte_type })) {
       if (token.u.integer == 0) {
