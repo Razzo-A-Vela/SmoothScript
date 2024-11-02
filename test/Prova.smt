@@ -32,7 +32,7 @@ $namespace std {                          // namespaces are now Parsed and not P
   $noReturn func exit(int? code) : void;  // $noReturn tells the parser that this function will end the program before returning
   $noReturn func exit : void { exit(0); }
 
-  $op(+, 10) $inline                      // $op is now similar to inline, but it has some parameters(symbol, precedence) (TODO)
+  $op(+, 10) $inline                      // $op is now similar to inline, but it has some parameters(symbol, precedence, op_type = BINARY) (op_type can be: "BINARY", "BEFORE", "AFTER")
   func op_add(int?! a, int?! b) : !int {  // ! after ? in param means don't push to stack as local variable
     %push @rbx;
     %mov @eax, a;
