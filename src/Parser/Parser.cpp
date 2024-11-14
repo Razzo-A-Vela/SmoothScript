@@ -8,9 +8,9 @@ namespace Parser {
       Utils::error("Parser Error", "Expected '(' after $extern", errLine);
     consume();
 
-    if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
-      Utils::error("Parser Error", "Expected identifier after '(' in $extern");
-    ret = std::string(consume().value().u.string);
+    if (peekNotEqual({ TokenType::literal }, Token::typeEqual) || peekValue().u.literal.type != Tokenizer::LiteralType::string)
+      Utils::error("Parser Error", "Expected string literal after '(' in $extern");
+    ret = std::string(consume().value().u.literal.u.string);
 
     if (peekNotEqual({ TokenType::closed_paren }, Token::typeEqual))
       Utils::error("Parser Error", "Expected ')' at the end of $extern", errLine);

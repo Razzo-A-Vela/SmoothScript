@@ -1,5 +1,5 @@
 
-$extern(putchar)
+$extern("putchar")
 func printChar(<1>? c) : <>;
 
 $entry
@@ -15,20 +15,29 @@ func main : <4> {
 // Some of the code in this comments is not how I want it, but I keep it to remember what I have to do
 // Basically don't follow this comments as if they describe how the language will be
 
+//TODO: VSCode extension?
+//TODO: Parser namespaces(make a function called "getNamespacedName")
+// Make so "::" does a check and make so functions and other GlobalStatemets have the namespace saved inside of them
+// Or maybe save the GlobalStatemets pointers as a Map("namespaceName", Map("statement", GlobalStatement))
+$namespace std {
+  $extern("putchar")
+  func printChar(<1>? c) : <>;
+}
+
 $type void <>;
 $type int <4>;
 
 $namespace std {                          // namespaces are now Parsed and not PreProcessed
-  $extern(malloc)
+  $extern("malloc")
   func malloc(int? size) : *void;         // $extern function from C standard library
 
-  $extern(free)
+  $extern("free")
   func free(*void? ptr) : void;
 
-  $extern(getTime)
+  $extern("getTime")
   func getTime : int;                     // This function does not exist, but let's imagine that it returns the time in milliseconds
 
-  $extern(exit)
+  $extern("exit")
   $noReturn func exit(int? code) : void;  // $noReturn tells the parser that this function will end the program before returning
   $noReturn func exit : void { exit(0); }
 
@@ -140,7 +149,7 @@ $type long <8>;                           // <4> <---- <8> <---> long; (should g
 $type float <f>;                          // Float and double types are built-in (because of register(xmm0, xmm1, ...) and operation(movss, addss, ...) differences)
 $type double <d>;                         // <f> can be cast to <4>; <d> can be cast to <8>;
 
-$extern(malloc)
+$extern("malloc")
 func malloc(int? size) : *!void;
 
 $op(+, 10)
