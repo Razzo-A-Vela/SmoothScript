@@ -113,5 +113,6 @@ namespace Tokenizer {
   const std::function<bool(Token, Token)> Token::typeIntEqual = [](Token token, Token toEqual) { return token.type == toEqual.type && token.u.integer == toEqual.u.integer; };
   const std::function<bool(Token, Token)> Token::typeCharEqual = [](Token token, Token toEqual) { return token.type == toEqual.type && token.u.character == toEqual.u.character; };
   const std::function<bool(Token, Token)> Token::typeStringEqual = [](Token token, Token toEqual) { return token.type == toEqual.type && std::string(token.u.string) == std::string(toEqual.u.string); };
-  const std::function<bool(Token)> Token::isSymbol = [](Token token) { return ((int) token.type >= (int) TokenType::colon && (int) token.type <= (int) TokenType::closed_brace) || token.type == TokenType::symbol; };
+  const std::function<bool(Token)> Token::isSymbol = [](Token token) { return ((int) token.type >= (int) TokenType::equals && (int) token.type <= (int) TokenType::closed_brace) || Token::typeEqual(token, { TokenType::symbol }); };
+  const std::function<bool(Token)> Token::isValidOperatorToken = [](Token token) { return Token::isSymbol(token) && !((int) token.type >= (int) TokenType::colon && (int) token.type <= (int) TokenType::closed_brace); };
 }

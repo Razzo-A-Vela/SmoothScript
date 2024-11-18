@@ -60,6 +60,14 @@ namespace Tokenizer {
           token.type = TokenType::equals;
           break;
         
+        case '$' :
+          token.type = TokenType::dollar;
+          break;
+        
+        case '#' :
+          token.type = TokenType::hashtag;
+          break;
+        
         case '-' :
           token.type = TokenType::minus;
           break;
