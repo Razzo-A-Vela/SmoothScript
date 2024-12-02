@@ -15,6 +15,18 @@ namespace Tokenizer {
       case TokenType::colon :
         std::cout << "COLON";
         break;
+
+      case TokenType::dollar :
+        std::cout << "DOLLAR";
+        break;
+
+      case TokenType::hashtag :
+        std::cout << "HASHTAG";
+        break;
+
+      case TokenType::at :
+        std::cout << "AT(@)";
+        break;
       
       case TokenType::semi_colon :
         std::cout << "SEMI_COLON";
