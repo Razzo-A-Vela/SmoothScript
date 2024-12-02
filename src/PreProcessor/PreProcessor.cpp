@@ -245,7 +245,8 @@ namespace PreProcessor {
   }
 
   void PreProcessor::process() {
-    while (true) {
+    currentPass = (PreProcessPass) 0;
+    while (currentPass != PreProcessPass::break_pass) {
       while (hasPeek()) {
         Token token = consume().value();
 
@@ -262,11 +263,9 @@ namespace PreProcessor {
           addToOutput(token);
       }
       
-      if (currentPass == PreProcessPass::iff)
-        break;
-      
-      cycleOutput();
       currentPass = (PreProcessPass) ((int) currentPass + 1);
+      if (currentPass != PreProcessPass::break_pass)
+        cycleOutput();
     }
 
     for (Token token : getOutput()) {
