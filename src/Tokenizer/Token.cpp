@@ -102,6 +102,10 @@ namespace Tokenizer {
         std::cout << "PARSER_PARAMETER(" << std::string(u.string) << ')';
         break;
 
+      case TokenType::asmRegister :
+        std::cout << "ASM_REGISTER(" << std::string(u.string) << ')';
+        break;
+
       
       case TokenType::endPreProcessor :
         std::cout << "END_PRE_PROCESSOR";

@@ -138,6 +138,15 @@ namespace Tokenizer {
         addToOutput(token);
         continue;
 
+      } else if (PreToken::typeCharEqual(preToken, { PreTokenType::symbol, { .character = '@' } })) {
+        if (peekNotEqual({ PreTokenType::identifier }, PreToken::typeEqual))
+          Utils::error("Syntax Error", "Expected ASM Register Identifier", token.line);
+        
+        token.type = TokenType::asmRegister;
+        token.u.string = consume().value().u.string;
+        addToOutput(token);
+        continue;
+
       } else if (PreToken::typeEqual(preToken, { PreTokenType::symbol }) ) {
         processSymbol(preToken);
         continue;
