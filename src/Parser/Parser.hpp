@@ -18,6 +18,7 @@ namespace Parser {
   class Parser : public Processor<Token, GlobalStatement> {
   private:
     std::vector<Token> tokens;
+    std::vector<Function*> functions;
     
   public:
     Parser(std::vector<Token> tokens) : tokens(tokens), Processor(tokens.size()) {}

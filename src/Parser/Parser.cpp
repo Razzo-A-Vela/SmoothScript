@@ -8,13 +8,14 @@ namespace Parser {
   }
 
   Expression* Parser::processExpression() {
-    if (peekNotEqual({ TokenType::literal }, Token::typeEqual))
-      return NULL;
-    
-    Expression* ret = new Expression();
-    ret->type = ExpressionType::LITERAL;
-    ret->u.literal = consume().value().u.literal;
-    return ret;
+    if (peekEqual({ TokenType::literal }, Token::typeEqual)) {
+      Expression* ret = new Expression();
+      ret->type = ExpressionType::LITERAL;
+      ret->u.literal = consume().value().u.literal;
+      return ret;
+    }
+
+    return NULL;
   }
 
   Statement* Parser::processStatement() {
@@ -81,11 +82,12 @@ namespace Parser {
   }
 
   Function* Parser::processFunc() {
+    FunctionDeclaration* funcDecl = new FunctionDeclaration();
     int errLine = getErrLine();
 
     if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
       Utils::error("Parser Error", "Expected identifier after func", errLine);
-    std::string funcName = std::string(consume().value().u.string);
+    funcDecl->name = std::string(consume().value().u.string);
 
     //TODO: Parameters
     if (peekNotEqual({ TokenType::open_paren }, Token::typeEqual) || peekNotEqual({ TokenType::closed_paren }, Token::typeEqual, 1))
@@ -100,25 +102,42 @@ namespace Parser {
     DataType* returnType = processDataType();
     if (returnType == NULL)
       Utils::error("Parser Error", "Invalid return type", errLine);
-    
-    Function* func = new Function();
-    func->funcDecl.name = funcName;
-    func->funcDecl.returnType = returnType;
-    func->hasDefinition = false;
+    funcDecl->returnType = returnType;
 
+    Function* ret = new Function();
+    ret->hasDefinition = false;
     if (peekEqual({ TokenType::semi_colon }, Token::typeEqual)) {
       consume();
-      func->scopeStatement = NULL;
+      ret->scopeStatement = NULL;
 
     } else {
-      func->hasDefinition = true;
+      ret->hasDefinition = true;
       Statement* statement = processStatement();
       if (statement->type != StatementType::SCOPE)
         Utils::error("Parser Error", "Expected scope or ';' after function declaration", errLine);
-      func->scopeStatement = statement;
+      ret->scopeStatement = statement;
     }
 
-    return func;
+
+    ret->funcDecl = funcDecl;
+    for (int i = 0; i < functions.size(); i++) {
+      Function* savedFunc = functions.at(i);
+      if (*savedFunc->funcDecl != *ret->funcDecl)
+        continue;
+      
+      if (!ret->hasDefinition)
+        return NULL;
+      
+      if (savedFunc->hasDefinition)
+        Utils::error("Parser Error", "Function already defined", errLine);
+      
+      delete functions.at(i);
+      functions.at(i) = ret;
+      return ret;
+    }
+
+    functions.push_back(ret);
+    return ret->hasDefinition ? ret : NULL;
   }
 
   void Parser::process() {
@@ -127,11 +146,13 @@ namespace Parser {
 
       if (Token::typeEqual(token, { TokenType::func })) {
         Function* func = processFunc();
-
-        GlobalStatement globalStatement;
-        globalStatement.type = GlobalStatementType::FUNC;
-        globalStatement.u.func = func;
-        addToOutput(globalStatement);
+        
+        if (func != NULL) {
+          GlobalStatement globalStatement;
+          globalStatement.type = GlobalStatementType::FUNC;
+          globalStatement.u.func = func;
+          addToOutput(globalStatement);
+        }
       } else
         Utils::error("Parser Error", "Invalid GlobalStatement", token.line);
     }

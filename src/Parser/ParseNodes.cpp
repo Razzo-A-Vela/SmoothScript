@@ -13,6 +13,27 @@ namespace Parser {
     }
   }
 
+  bool DataType::operator==(DataType& other)  {
+    if (type != other.type)
+      return false;
+
+    if (type == DataTypeT::BYTE_TYPE)
+      return u.integer == other.u.integer;
+    return true;
+  }
+
+
+  void FunctionDeclaration::print(std::ostream& out) {
+    //TODO: Parameters
+    out << name << "()" << " : ";
+    returnType->print(out);
+  }
+
+  bool FunctionDeclaration::operator==(FunctionDeclaration& other) {
+    return name == other.name && returnType == other.returnType;
+  }
+
+
   void Scope::print(std::ostream& out) {
     out << "{\n";
     for (Statement* statement : statements) {
@@ -51,10 +72,8 @@ namespace Parser {
   }
 
   void Function::print(std::ostream& out) {
-    out << "FUNC_";
-    out << (hasDefinition ? "DEF" : "DECL");
-    out << '(' << funcDecl.name << ", ";
-    funcDecl.returnType->print(out);
+    out << "FUNC_" << (hasDefinition ? "DEF" : "DECL") << '(';
+    funcDecl->print(out);
     out << ')';
 
     if (hasDefinition) {

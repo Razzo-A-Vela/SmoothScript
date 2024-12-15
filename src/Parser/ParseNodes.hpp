@@ -19,6 +19,16 @@ namespace Parser {
     } u;
   
     void print(std::ostream& out);
+    bool operator==(DataType& other);
+  };
+
+
+  struct FunctionDeclaration {
+    std::string name;
+    DataType* returnType;
+
+    void print(std::ostream& out);
+    bool operator==(FunctionDeclaration& other);
   };
 
 
@@ -59,14 +69,9 @@ namespace Parser {
   };
   
 
-  struct FunctionDeclaration {
-    std::string name;
-    DataType* returnType;
-  };
-
   struct Function {
     bool hasDefinition;
-    FunctionDeclaration funcDecl;
+    FunctionDeclaration* funcDecl;
     Statement* scopeStatement;
 
     void print(std::ostream& out);
