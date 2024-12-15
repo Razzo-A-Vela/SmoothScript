@@ -1,327 +1,130 @@
 #include "Parser.hpp"
 
 namespace Parser {
-  std::string Parser::processFunctionExtern(int errLine) {
-    std::string ret;
+  //TODO: MOVE NAMESPACE FROM PREPROCESSOR TO PARSER
 
-    if (peekNotEqual({ TokenType::open_paren }, Token::typeEqual))
-      Utils::error("Parser Error", "Expected '(' after $extern", errLine);
-    consume();
-
-    if (peekNotEqual({ TokenType::literal }, Token::typeEqual) || peekValue().u.literal.type != Tokenizer::LiteralType::string)
-      Utils::error("Parser Error", "Expected string literal after '(' in $extern");
-    ret = std::string(consume().value().u.literal.u.string);
-
-    if (peekNotEqual({ TokenType::closed_paren }, Token::typeEqual))
-      Utils::error("Parser Error", "Expected ')' at the end of $extern", errLine);
-    consume();
-
-    return ret;
+  int Parser::getErrLine() {
+    return hasPeek() ? peekValue().line : peekValue(-1).line;
   }
 
-  Operator Parser::processFunctionOperator(int errLine) {
-    Operator ret;
-
-    if (peekNotEqual({ TokenType::open_paren }, Token::typeEqual))
-      Utils::error("Parser Error", "Expected '(' after $op", errLine);
-    consume();
-    
-    if (!(hasPeek() && Token::isSymbol(peekValue())))
-      Utils::error("Parser Error", "Expected symbol after '(' in $op", errLine);
-    ret.symbol1 = consume().value();
-
-    if (hasPeek() && Token::isSymbol(peekValue()) && peekNotEqual({ TokenType::comma }, Token::typeEqual))
-      ret.symbol2 = new Token(consume().value());
-
-    if (peekNotEqual({ TokenType::comma }, Token::typeEqual))
-      Utils::error("Parser Error", "Expected ',' after symbol in $op", errLine);
-    consume();
-
+  Expression* Parser::processExpression() {
     if (peekNotEqual({ TokenType::literal }, Token::typeEqual))
-      Utils::error("Parser Error", "Expected literal after ',' in $op", errLine);
-    Tokenizer::Literal literal = consume().value().u.literal;
-
-    if (literal.type != Tokenizer::LiteralType::integer)
-      Utils::error("Parser Error", "Precedence literal must be an integer in $op", errLine);
-    ret.precedence = literal.u.integer;
-
-    if (peekEqual({ TokenType::comma }, Token::typeEqual)) {
-      consume();
-
-      if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
-        Utils::error("Parser Error", "Invalid $op type", errLine);
-      std::string opType = std::string(consume().value().u.string);
-      
-      if (opType == "BINARY")
-        ret.type = OperatorType::BINARY;
-      else if (opType == "BEFORE")
-        ret.type = OperatorType::BEFORE;
-      else if (opType == "AFTER")
-        ret.type = OperatorType::AFTER;
-      else
-        Utils::error("Parser Error", "Invalid $op type (only: 'BINARY', 'BEFORE', 'AFTER')", errLine);
-    }
-
-    if (peekNotEqual({ TokenType::closed_paren }, Token::typeEqual))
-      Utils::error("Parser Error", "Expected ')' at the end of $op", errLine);
-    consume();
-
+      return NULL;
+    
+    Expression* ret = new Expression();
+    ret->type = ExpressionType::LITERAL;
+    ret->u.literal = consume().value().u.literal;
     return ret;
   }
 
-  bool Parser::isFunctionParameter(std::string parameterType) {
-    return parameterType == "extern" ||  parameterType == "entry" || parameterType == "inline" || parameterType == "noReturn" || parameterType == "op" || parameterType == "cast"; 
-  }
+  Statement* Parser::processStatement() {
+    int errLine = getErrLine();
 
-  FunctionParameters Parser::processOneFunctionParameter(FunctionParameters functionParameters, std::string parameterType, int errLine) {
-    if ((parameterType == "inline" || parameterType == "entry" || parameterType == "extern") && functionParameters.type != FunctionType::DEFAULT)
-      Utils::error("Parser Error", "Cannot put more than one function type parameter", errLine);
-
-    if (parameterType == "inline")
-      functionParameters.type = FunctionType::INLINE;
-    else if (parameterType == "entry")
-      functionParameters.type = FunctionType::ENTRY;
-    else if (parameterType == "extern") {
-      functionParameters.type = FunctionType::EXTERN;
-      functionParameters.externIdentifier = processFunctionExtern(errLine);
-    }
-
-    else if (parameterType == "cast")
-      functionParameters.cast = true;
-    else if (parameterType == "noReturn")
-      functionParameters.noReturn = true;
-    else if (parameterType == "op") {
-      functionParameters.op = true;
-      functionParameters.oper = processFunctionOperator(errLine);
-    }
-
-    return functionParameters;
-  }
-  
-  void Parser::processGlobalParameters(Token token) {
-    std::string parameterType = std::string(token.u.string);
-
-    if (isFunctionParameter(parameterType)) {
-      FunctionParameters functionParameters = processOneFunctionParameter({}, parameterType, token.line);
+    if (peekEqual({ TokenType::open_brace }, Token::typeEqual)) {
+      Statement* ret = new Statement();
       
-      while (peekNotEqual({ TokenType::func }, Token::typeEqual)) {
+      consume();
+      ret->type = StatementType::SCOPE;
+      Scope* scope = new Scope();
+
+      while (peekNotEqual({ TokenType::closed_brace }, Token::typeEqual)) {
         if (!hasPeek())
-          Utils::error("Expected 'func' after function parser parameter", token.line);
-        Token currToken = consume().value();
+          Utils::error("Parser Error", "Expected '}' to close scope", errLine);
         
-        if (!Token::typeEqual(currToken, { TokenType::parserParameter }) || !isFunctionParameter(std::string(currToken.u.string)))
-          Utils::error("Parser Error", "Invalid function parser parameter", currToken.line);
-        std::string parameterType = std::string(currToken.u.string);
-
-        functionParameters = processOneFunctionParameter(functionParameters, parameterType, currToken.line);
-      }
-
-      GlobalStatement globalStatement;
-      globalStatement.type = GlobalStatementType::FUNCTION;
-      globalStatement.u.funcDef = processFunc(consume().value());
-      globalStatement.u.funcDef->funcParams = functionParameters;
-      addToOutput(globalStatement);
-      
-    } else
-      Utils::error("Parser Error", "Invalid parserParameter", token.line);
-  }
-  
-  Expression* Parser::processExpression(Token token) {
-    Expression* expression = new Expression();
-
-    if (Token::typeEqual(token, { TokenType::literal })) {
-      Tokenizer::Literal* literal = new Tokenizer::Literal();
-      literal->type = token.u.literal.type;
-      literal->u = token.u.literal.u;
-
-      expression->type = ExpressionType::LITERAL;
-      expression->u.literal = literal;
-
-    } else
-      Utils::error("Parser Error", "Invalid expression", token.line);
-
-    return expression;
-  }
-
-  Statement* Parser::processStatement(Token token) {
-    Statement* statement = new Statement();
-    
-    if (Token::typeEqual(token, { TokenType::ret })) {
-      statement->type = StatementType::RETURN;
-      if (!hasPeek())
-        Utils::error("Parser Error", "Expected expression or ';' after return", token.line);
-
-      if (peekEqual({ TokenType::semi_colon }, Token::typeEqual))
-        statement->u.expression = NULL;
-      else {
-        statement->u.expression = processExpression(consume().value());
-
-        if (peekNotEqual({ TokenType::semi_colon }, Token::typeEqual))
-          Utils::error("Parser Error", "Expected ';' after return", token.line);
+        scope->statements.push_back(processStatement());
       }
       consume();
-      
-    } else if (peekEqual({ TokenType::equals }, Token::typeEqual)) {
-      if (!Token::typeEqual(token, { TokenType::identifier }))
-        Utils::error("Parser Error", "Expected identifier for variable assign", token.line);
+      ret->u.scope = scope;
+      return ret;
+
+    } else if (peekEqual({ TokenType::ret }, Token::typeEqual)) {
+      Statement* ret = new Statement();
+
       consume();
-
-      statement->type = StatementType::VAR_ASSIGN;
-      VarAssign* varAssign = new VarAssign();
-      varAssign->varName = std::string(token.u.string);
-
-      if (!hasPeek())
-        Utils::error("Parser Error", "Expected expression after '=' in variable assign", token.line);
-      varAssign->expression = processExpression(consume().value());
-      statement->u.varAssign = varAssign;
-
+      ret->type = StatementType::RETURN;
+      Expression* expression = processExpression();
+      
       if (peekNotEqual({ TokenType::semi_colon }, Token::typeEqual))
-        Utils::error("Syntax Error", "Expected ';' after expression in variable assign", token.line);
+        Utils::error("Parser Error", "Expected ';' after return statement", errLine);
       consume();
 
-    } else {
-      DataType* dataType = processDataType(token, false);
-
-      if (dataType != NULL) {
-        statement->type = StatementType::VAR_DEC;
-        Variable* var = new Variable();
-
-        var->type = dataType;
-        if (peekNotEqual({ TokenType::question }, Token::typeEqual))
-          Utils::error("Syntax Error", "Expected '?' for variable declaration", token.line);
-        consume();
-
-        bool hasColon = peekEqual({ TokenType::semi_colon }, Token::typeEqual, 1);
-        if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
-          Utils::error("Syntax Error", "Invalid variable identifier", token.line);
-        var->name = std::string(hasColon ? consume().value().u.string : peekValue().u.string);
-
-        if (hasColon)
-          consume();
-
-        statement->u.variable = var;
-      } else
-       Utils::error("Parser Error", "Invalid statement", token.line);
+      ret->u.expression = expression;
+      return ret;
     }
 
-    return statement;
+    Utils::error("Parser Error", "Invalid Statement", errLine);
   }
-  
-  DataType* Parser::processDataType(Token token, bool throwError) {
-    DataType* dataType = new DataType();
-    dataType->isMutable = false;
 
-    if (Token::typeEqual(token, { TokenType::byte_type })) {
-      if (token.u.integer == 0) {
-        dataType->type = DataTypeT::VOID;
-
-      } else {
-        dataType->type = DataTypeT::BYTE_TYPE;
-        dataType->u.byteType = token.u.integer;
-      }
-
-    } else if (throwError)
-      Utils::error("Parser Error", "Invalid dataType", token.line);
-    else
+  DataType* Parser::processDataType() {
+    if (peekNotEqual({ TokenType::byte_type }, Token::typeEqual))
       return NULL;
-
-    return dataType;
+    Token byte_type = consume().value();
+    
+    DataType* ret = new DataType();
+    if (byte_type.u.integer == 0)
+      ret->type = DataTypeT::VOID;
+    
+    else {
+      ret->type = DataTypeT::BYTE_TYPE;
+      ret->u.integer = byte_type.u.integer;
+    }
+    return ret;
   }
 
-  Function* Parser::processFunc(Token token) {
-    if (!Token::typeEqual(token, { TokenType::func }))
-      Utils::error("Parser Error", "Invalid function declaration", token.line);
-    Function* function = new Function();
-    
+  Function* Parser::processFunc() {
+    int errLine = getErrLine();
+
     if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
-      Utils::error("Parser Error", "Invalid function identifier", token.line);
-    function->id = std::string(consume().value().u.string);
+      Utils::error("Parser Error", "Expected identifier after func", errLine);
+    std::string funcName = std::string(consume().value().u.string);
 
-
-    if (peekEqual({ TokenType::open_paren }, Token::typeEqual)) {
-      consume();
-
-      if (peekNotEqual({ TokenType::closed_paren }, Token::typeEqual)) { 
-        while (true) {
-          if (!hasPeek())
-            Utils::error("Syntax Error", "Expected ')' after '('", token.line);
-          Token currToken = consume().value();
-
-
-          DataType* paramType = processDataType(currToken);
-          if (peekNotEqual({ TokenType::question }, Token::typeEqual))
-            Utils::error("Syntax Error", "Expected '?' after parameter type", token.line);
-          consume();
-
-
-          if (peekNotEqual({ TokenType::identifier }, Token::typeEqual))
-            Utils::error("Syntax Error", "Invalid parameter identifier", token.line);
-          std::string paramName = std::string(consume().value().u.string);
-
-
-          function->params.add(paramName, paramType);
-          if (peekEqual({ TokenType::closed_paren }, Token::typeEqual))
-            break;
-
-          if (peekNotEqual({ TokenType::comma }, Token::typeEqual))
-            Utils::error("Syntax Error", "Expected ',' separating parameters", token.line);
-          consume();
-        }
-      }
-
-      consume();
-    }
+    //TODO: Parameters
+    if (peekNotEqual({ TokenType::open_paren }, Token::typeEqual) || peekNotEqual({ TokenType::closed_paren }, Token::typeEqual, 1))
+      Utils::error("Internal Error", "Expected '()' after func name", errLine);
+    consume();
+    consume();
 
     if (peekNotEqual({ TokenType::colon }, Token::typeEqual))
-      Utils::error("Syntax Error", "Expected ':' in function declaration");
+      Utils::error("Parser Error", "Expected ':' after func parameters", errLine);
     consume();
 
-    if (!hasPeek())
-      Utils::error("Parser Error", "Expected DataType after ':' in function declaration", token.line);
-    function->returnType = processDataType(consume().value());
-
+    DataType* returnType = processDataType();
+    if (returnType == NULL)
+      Utils::error("Parser Error", "Invalid return type", errLine);
+    
+    Function* func = new Function();
+    func->funcDecl.name = funcName;
+    func->funcDecl.returnType = returnType;
+    func->hasDefinition = false;
 
     if (peekEqual({ TokenType::semi_colon }, Token::typeEqual)) {
       consume();
-      function->hasDefinition = false;
-      return function;
+      func->scope = NULL;
+
+    } else {
+      func->hasDefinition = true;
+      Statement* statement = processStatement();
+      if (statement->type != StatementType::SCOPE)
+        Utils::error("Parser Error", "Expected scope or ';' after function declaration", errLine);
+      func->scope = statement->u.scope;
     }
-    
-    if (peekNotEqual({ TokenType::open_brace }, Token::typeEqual))
-      Utils::error("Syntax Error", "Expected '{' in function definition");
-    consume();
 
-
-    while (peekNotEqual({ TokenType::closed_brace }, Token::typeEqual)) {
-      if (!hasPeek())
-        Utils::error("Syntax Error", "Expected '}' in function definition", token.line);
-      
-      Token currToken = consume().value();
-      function->statements.push_back(processStatement(currToken));
-    }
-    consume();
-
-    return function;
+    return func;
   }
-  
-  //TODO: MOVE NAMESPACE FROM PREPROCESSOR TO PARSER
 
   void Parser::process() {
     while (hasPeek()) {
       Token token = consume().value();
-      GlobalStatement globalStatement;
 
-      if (Token::typeEqual(token, { TokenType::parserParameter })) {
-        processGlobalParameters(token);
-        continue;
+      if (Token::typeEqual(token, { TokenType::func })) {
+        Function* func = processFunc();
 
-      } else if (Token::typeEqual(token, { TokenType::func })) {
-        globalStatement.type = GlobalStatementType::FUNCTION;
-        globalStatement.u.funcDef = processFunc(token);
+        GlobalStatement globalStatement;
+        globalStatement.type = GlobalStatementType::FUNC;
+        globalStatement.u.func = func;
+        addToOutput(globalStatement);
       } else
-        Utils::error("Parser Error", "Invalid token in global scope", token.line);
-
-      addToOutput(globalStatement);
+        Utils::error("Parser Error", "Invalid GlobalStatement", token.line);
     }
   }
 

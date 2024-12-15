@@ -1,149 +1,144 @@
 #include "ParseNodes.hpp"
 
 namespace Parser {
-  void DataType::print() {
-    if (isMutable)
-      std::cout << "MUTABLE_";
+  // void Expression::print() {
+  //   switch (type) {
+  //     case ExpressionType::LITERAL:
+  //       std::cout << "LITERAL(";
+  //       u.literal->print();
+  //       std::cout << ')';
+  //       break;
+  //   }
+  // }
 
+  // void DefaultScope::print() {
+  //   std::cout << "{\n";
+  //   for (int i = 0; i < statements.size(); i++) {
+  //     statements.at(i)->print();
+  //     std::cout << '\n';
+  //   }
+  //   std::cout << '}';
+  // }
+
+  // void Scope::print() {
+  //   switch (type) {
+  //     case ScopeType::DEFAULT :
+  //       u.defaultScope->print();
+  //       break;
+  //   }
+  // }
+
+  // void Statement::print() {
+  //   switch (type) {
+  //     case StatementType::SCOPE :
+  //       std::cout << "SCOPE(";
+  //       u.scope->print();
+  //       std::cout << ')';
+  //       break;
+      
+  //     case StatementType::RETURN :
+  //       std::cout << "RETURN(";
+  //       u.expression->print();
+  //       std::cout << ')';
+  //       break;
+  //   }
+  // }
+
+  // void DataType::print() {
+  //   switch (type) {
+  //     case DataTypeT::BYTE_TYPE :
+  //       std::cout << "BYTE_TYPE(" << u.byteType << ')';
+  //       break;
+  //   }
+  // }
+
+  // void NamedDataType::print() {
+  //   std::cout << "NAMED_DATATYPE(" << name << ", ";
+  //   dataType.print();
+  //   std::cout << ")";
+  // }
+
+  // void Function::print() {
+  //   std::cout << "FUNC_";
+  //   if (hasDefinition)
+  //     std::cout << "DEF(";
+  //   else
+  //     std::cout << "DECL(";
+
+  //   std::cout << funcDec.name << ')';
+  // }
+
+  // void GlobalStatement::print() {
+  //   switch (type) {
+  //     case GlobalStatementType::FUNCTION_DECL :
+  //     case GlobalStatementType::FUNCTION_DEF :
+  //       u.func->print();
+  //       break;
+  //   }
+  // }
+
+  void DataType::print() {
     switch (type) {
-      case DataTypeT::BYTE_TYPE :
-        std::cout << "BYTE_TYPE(" << u.byteType << ')';
-        break;
-      
-      case DataTypeT::POINTER :
-        std::cout << "POINTER(";
-        u.dataType->print();
-        std::cout << ')';
-        break;
-      
       case DataTypeT::VOID :
         std::cout << "VOID";
         break;
-    }
-  }
-
-  void Expression::print() {
-    switch (type) {
-      case ExpressionType::LITERAL :
-        std::cout << "LITERAL(";
-        u.literal->print();
-        std::cout << ')';
+      
+      case DataTypeT::BYTE_TYPE :
+        std::cout << "BYTE_TYPE(" << u.integer << ')';
         break;
     }
   }
 
-  void Variable::print() {
-    std::cout << "VAR(" << name << ", ";
-    type->print();
-    std::cout << ')';
-  }
-
-  void Statement::print() {
-    switch (type) {
-      case StatementType::RETURN :
-        if (u.expression != NULL) {
-          std::cout << "RETURN(";
-          u.expression->print();
-          std::cout << ')';
-          
-        } else
-          std::cout << "RETURN";
-        break;
-      
-      case StatementType::VAR_DEC :
-        std::cout << "VAR_DEC(";
-        u.variable->print();
-        std::cout << ')';
-        break;
-
-      case StatementType::VAR_ASSIGN :
-        std::cout << "VAR_ASSIGN(" << u.varAssign->varName << ", ";
-        u.varAssign->expression->print();
-        std::cout << ')';
-        break;
-    }
-  }
-
-  void Operator::print() {
-    switch (type) {
-      case OperatorType::BINARY :
-        std::cout << "BINARY";
-        break;
-      
-      case OperatorType::BEFORE :
-        std::cout << "BEFORE";
-        break;
-      
-      case OperatorType::AFTER :
-        std::cout << "AFTER";
-        break;
-    }
-
-    std::cout << ": (PRECEDENCE: " << precedence << ", SYMBOL: " << symbol1.u.character;
-    if (symbol2 != NULL)
-      std::cout << symbol2->u.character;
-    std::cout << ')';
-  }
-
-  void FunctionParameters::print() {
-    switch (type) {
-      case FunctionType::DEFAULT :
-        std::cout << "DEFAULT";
-        break;
-      
-      case FunctionType::INLINE :
-        std::cout << "INLINE";
-        break;
-      
-      case FunctionType::ENTRY :
-        std::cout << "ENTRY";
-        break;
-      
-      case FunctionType::EXTERN :
-        std::cout << "EXTERN(" << externIdentifier << ')';
-        break;
-    }
-
-    std::cout << ": (NO_RETURN: " << noReturn << ", CAST: " << cast << ", OP: " << op;
-    if (op) {
-      std::cout << " {";
-      oper.print();
-      std::cout << '}';
-    }
-    std::cout << ')';
-  }
-
-  void Function::print() {
-    std::cout << '(';
-    funcParams.print();
-
-    if (hasDefinition)
-      std::cout << ")FUNC_DEF(";
-    else
-      std::cout << ")FUNC_DEC(";
-    
-    std::cout << id << ", ";
-    returnType->print();
-    std::cout << ")(\n";
-
-    for (DataType* param : params.getValues()) {
-      param->print();
-      std::cout << '\n';
-    }
-    std::cout << "){\n";
-
+  void Scope::print() {
+    std::cout << "{\n";
     for (Statement* statement : statements) {
       statement->print();
       std::cout << '\n';
     }
     std::cout << '}';
   }
-  
+
+  void Expression::print() {
+    switch (type) {
+      case ExpressionType::LITERAL :
+        std::cout << "LITERAL(";
+        u.literal.print();
+        std::cout << ')';
+        break;
+    }
+  }
+
+  void Statement::print() {
+    switch (type) {
+      case StatementType::SCOPE :
+        u.scope->print();
+        break;
+      
+      case StatementType::RETURN :
+        std::cout << "RETURN(";
+        u.expression->print();
+        std::cout << ')';
+        break;
+    }
+  }
+
+  void Function::print() {
+    std::cout << "FUNC_";
+    std::cout << (hasDefinition ? "DEF" : "DECL");
+    std::cout << '(' << funcDecl.name << ", ";
+    funcDecl.returnType->print();
+    std::cout << ')';
+
+    if (hasDefinition) {
+      std::cout << ' ';
+      scope->print();
+    }
+  }
+
   void GlobalStatement::print() {
     switch (type) {
-      case GlobalStatementType::FUNCTION :
-        u.funcDef->print();
-        break;
+      case GlobalStatementType::FUNC :
+        u.func->print();
     }
   }
 }

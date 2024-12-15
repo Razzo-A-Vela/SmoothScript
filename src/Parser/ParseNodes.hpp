@@ -6,25 +6,21 @@
 #include <Tokenizer/Literal.hpp>
 #include <util/Map.hpp>
 
-#define POINTER_SIZE 8
-
 namespace Parser {
   enum class DataTypeT {
-    BYTE_TYPE, POINTER, VOID
+    VOID, BYTE_TYPE
   };
-  
+
   struct DataType {
     DataTypeT type;
-    bool isMutable;
     union {
-      unsigned int byteType;
-      DataType* dataType;
+      unsigned int integer;
     } u;
-
+  
     void print();
   };
 
-  
+
   enum class ExpressionType {
     LITERAL
   };
@@ -32,91 +28,58 @@ namespace Parser {
   struct Expression {
     ExpressionType type;
     union {
-      Tokenizer::Literal* literal;
+      Tokenizer::Literal literal;
+    } u;
+
+    void print();
+  };
+
+
+  struct Statement;
+
+  struct Scope {
+    std::vector<Statement*> statements;
+
+    void print();
+  };
+
+  enum class StatementType {
+    SCOPE, RETURN
+  };
+
+  struct Statement {
+    StatementType type;
+    union {
+      Scope* scope;
+      Expression* expression;
     } u;
 
     void print();
   };
   
 
-  struct Variable {
+  struct FunctionDeclaration {
     std::string name;
-    DataType* type;
-
-    void print();
-  };
-
-  struct VarAssign {
-    std::string varName;
-    Expression* expression;
-  };
-
-
-  enum class StatementType {
-    RETURN, VAR_DEC, VAR_ASSIGN
-  };
-
-  struct Statement {
-    StatementType type;
-    union {
-      Expression* expression;
-      Variable* variable;
-      VarAssign* varAssign;
-    } u;
-
-    void print();
-  };
-
-
-  enum class OperatorType {
-    BINARY, BEFORE, AFTER
-  };
-
-  struct Operator {
-    OperatorType type = OperatorType::BINARY;
-    int precedence = 0;
-    Tokenizer::Token symbol1;
-    Tokenizer::Token* symbol2 = NULL;
-
-    void print();
-  };
-
-
-  enum class FunctionType {
-    DEFAULT, INLINE, ENTRY, EXTERN
-  };
-
-  struct FunctionParameters {
-    FunctionType type = FunctionType::DEFAULT;
-    std::string externIdentifier;
-    bool noReturn = false;
-    bool cast = false;
-    bool op = false;
-    Operator oper;
-
-    void print();
+    DataType* returnType;
   };
 
   struct Function {
-    std::string id;
-    DataType* returnType;
-    Map<std::string, DataType*> params;
-    std::vector<Statement*> statements;
-    FunctionParameters funcParams;
-    bool hasDefinition = true;
+    bool hasDefinition;
+    FunctionDeclaration funcDecl;
+    Scope* scope;
 
     void print();
   };
-
+  
 
   enum class GlobalStatementType {
-    FUNCTION
+    FUNC
   };
 
   struct GlobalStatement {
     GlobalStatementType type;
     union {
-      Function* funcDef;
+      Function* func;
     } u;
 
     void print();
