@@ -55,7 +55,7 @@ namespace Parser {
 
     if (hasDefinition) {
       out << ' ';
-      scope->print(out);
+      scopeStatement->print(out);
     }
   }
 

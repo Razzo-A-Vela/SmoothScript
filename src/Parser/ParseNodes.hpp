@@ -67,7 +67,7 @@ namespace Parser {
   struct Function {
     bool hasDefinition;
     FunctionDeclaration funcDecl;
-    Scope* scope;
+    Statement* scopeStatement;
 
     void print(std::ostream& out);
   };

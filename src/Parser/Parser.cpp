@@ -99,14 +99,14 @@ namespace Parser {
 
     if (peekEqual({ TokenType::semi_colon }, Token::typeEqual)) {
       consume();
-      func->scope = NULL;
+      func->scopeStatement = NULL;
 
     } else {
       func->hasDefinition = true;
       Statement* statement = processStatement();
       if (statement->type != StatementType::SCOPE)
         Utils::error("Parser Error", "Expected scope or ';' after function declaration", errLine);
-      func->scope = statement->u.scope;
+      func->scopeStatement = statement;
     }
 
     return func;
