@@ -55,6 +55,14 @@ namespace Tokenizer {
       case TokenType::star :
         out << "STAR";
         break;
+      
+      case TokenType::open_angolare :
+        out << "OPEN_ANGOLARE";
+        break;
+      
+      case TokenType::closed_angolare :
+        out << "CLOSED_ANGOLARE";
+        break;
 
       
       case TokenType::open_paren :

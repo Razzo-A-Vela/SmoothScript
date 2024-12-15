@@ -6,7 +6,7 @@
 namespace Tokenizer {
   enum class TokenType {
     func, ret,
-    equals, exclamation, minus, star, // all symbols -> character;
+    equals, exclamation, minus, star, open_angolare, closed_angolare, // all symbols -> character;
     colon, dollar, hashtag, at, semi_colon, question, comma, open_paren, closed_paren, open_bracket, closed_bracket, open_brace, closed_brace, // Non operator symbols
 
     identifier, byte_type, literal, symbol, preProcessor, parserParameter, asmRegister, // identifier -> string; byte_type -> integer (if 0 then VOID BYTE TYPE); literal -> literal; symbol -> character; preProcessor -> string; parserParameter -> string; asmRegister -> string;

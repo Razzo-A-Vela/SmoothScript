@@ -22,6 +22,8 @@ namespace Tokenizer {
         consume();
         token.type = TokenType::byte_type;
         token.u.integer = 0; // VOID BYTE TYPE
+        addToOutput(token);
+        return;
 
       } else if (peekEqual({ PreTokenType::numLiteral }, PreToken::typeEqual) &&
           peekEqual({ PreTokenType::symbol, { .character = '>' } }, PreToken::typeCharEqual, 1)) {
@@ -35,80 +37,89 @@ namespace Tokenizer {
         if (literal.u.integer == 0)
           Utils::error("Syntax Error", "Cannot make a byte type of size zero", token.line);
         token.u.integer = literal.u.integer;
+        addToOutput(token);
+        return;
       }
+    }
 
-    } else {
-      token.u.character = preToken.u.character;
-      switch (preToken.u.character) {
-        case ':' :
-          token.type = TokenType::colon;
-          break;
-        
-        case ';' :
-          token.type = TokenType::semi_colon;
-          break;
+    token.u.character = preToken.u.character;
+    switch (preToken.u.character) {
+      case ':' :
+        token.type = TokenType::colon;
+        break;
+      
+      case ';' :
+        token.type = TokenType::semi_colon;
+        break;
 
-        case '?' :
-          token.type = TokenType::question;
-          break;
-        
-        case '!' :
-          token.type = TokenType::exclamation;
-          break;
+      case '?' :
+        token.type = TokenType::question;
+        break;
+      
+      case '!' :
+        token.type = TokenType::exclamation;
+        break;
 
-        case '=' :
-          token.type = TokenType::equals;
-          break;
-        
-        case '$' :
-          token.type = TokenType::dollar;
-          break;
-        
-        case '#' :
-          token.type = TokenType::hashtag;
-          break;
-        
-        case '-' :
-          token.type = TokenType::minus;
-          break;
-        
-        case ',' :
-          token.type = TokenType::comma;
-          break;
-        
-        case '*' :
-          token.type = TokenType::star;
-          break;
-        
-        
-        case '(' :
-          token.type = TokenType::open_paren;
-          break;
-        
-        case ')' :
-          token.type = TokenType::closed_paren;
-          break;
-          
-        case '[' :
-          token.type = TokenType::open_bracket;
-          break;
-        
-        case ']' :
-          token.type = TokenType::closed_bracket;
-          break;
-          
-        case '{' :
-          token.type = TokenType::open_brace;
-          break;
-        
-        case '}' :
-          token.type = TokenType::closed_brace;
-          break;
+      case '=' :
+        token.type = TokenType::equals;
+        break;
+      
+      case '$' :
+        token.type = TokenType::dollar;
+        break;
+      
+      case '#' :
+        token.type = TokenType::hashtag;
+        break;
+      
+      case '-' :
+        token.type = TokenType::minus;
+        break;
+      
+      case ',' :
+        token.type = TokenType::comma;
+        break;
+      
+      case '*' :
+        token.type = TokenType::star;
+        break;
+      
+      case '<' :
+        token.type = TokenType::open_angolare;
+        break;
+      
+      case '>' :
+        token.type = TokenType::closed_angolare;
+        break;
 
-        default :
-          token.type = TokenType::symbol;
-          break;
-      }
+      
+      case '(' :
+        token.type = TokenType::open_paren;
+        break;
+      
+      case ')' :
+        token.type = TokenType::closed_paren;
+        break;
+        
+      case '[' :
+        token.type = TokenType::open_bracket;
+        break;
+      
+      case ']' :
+        token.type = TokenType::closed_bracket;
+        break;
+        
+      case '{' :
+        token.type = TokenType::open_brace;
+        break;
+      
+      case '}' :
+        token.type = TokenType::closed_brace;
+        break;
+
+      default :
+        token.type = TokenType::symbol;
+        break;
     }
 
     addToOutput(token);
