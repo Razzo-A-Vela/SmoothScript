@@ -42,13 +42,22 @@ namespace Parser {
 
       consume();
       ret->type = StatementType::RETURN;
-      Expression* expression = processExpression();
+      if (peekEqual({ TokenType::semi_colon }, Token::typeEqual)) {
+        ret->u.expression = NULL;
+        consume();
       
-      if (peekNotEqual({ TokenType::semi_colon }, Token::typeEqual))
-        Utils::error("Parser Error", "Expected ';' after return statement", errLine);
-      consume();
+      } else {
+        Expression* expression = processExpression();
+        if (expression == NULL)
+          Utils::error("Parser Error", "Invalid return expression", errLine);
+        
+        if (peekNotEqual({ TokenType::semi_colon }, Token::typeEqual))
+          Utils::error("Parser Error", "Expected ';' after return statement", errLine);
+        consume();
 
-      ret->u.expression = expression;
+        ret->u.expression = expression;
+      }
+      
       return ret;
     }
 

@@ -39,9 +39,13 @@ namespace Parser {
         break;
       
       case StatementType::RETURN :
-        out << "RETURN(";
-        u.expression->print(out);
-        out << ')';
+        out << "RETURN";
+        
+        if (u.expression != NULL) {
+          out << "(";
+          u.expression->print(out);
+          out << ')';
+        }
         break;
     }
   }
