@@ -1,68 +1,68 @@
 #include "ParseNodes.hpp"
 
 namespace Parser {
-  void DataType::print() {
+  void DataType::print(std::ostream& out) {
     switch (type) {
       case DataTypeT::VOID :
-        std::cout << "VOID";
+        out << "VOID";
         break;
       
       case DataTypeT::BYTE_TYPE :
-        std::cout << "BYTE_TYPE(" << u.integer << ')';
+        out << "BYTE_TYPE(" << u.integer << ')';
         break;
     }
   }
 
-  void Scope::print() {
-    std::cout << "{\n";
+  void Scope::print(std::ostream& out) {
+    out << "{\n";
     for (Statement* statement : statements) {
-      statement->print();
-      std::cout << '\n';
+      statement->print(out);
+      out << '\n';
     }
-    std::cout << '}';
+    out << '}';
   }
 
-  void Expression::print() {
+  void Expression::print(std::ostream& out) {
     switch (type) {
       case ExpressionType::LITERAL :
-        std::cout << "LITERAL(";
-        u.literal.print();
-        std::cout << ')';
+        out << "LITERAL(";
+        u.literal.print(out);
+        out << ')';
         break;
     }
   }
 
-  void Statement::print() {
+  void Statement::print(std::ostream& out) {
     switch (type) {
       case StatementType::SCOPE :
-        u.scope->print();
+        u.scope->print(out);
         break;
       
       case StatementType::RETURN :
-        std::cout << "RETURN(";
-        u.expression->print();
-        std::cout << ')';
+        out << "RETURN(";
+        u.expression->print(out);
+        out << ')';
         break;
     }
   }
 
-  void Function::print() {
-    std::cout << "FUNC_";
-    std::cout << (hasDefinition ? "DEF" : "DECL");
-    std::cout << '(' << funcDecl.name << ", ";
-    funcDecl.returnType->print();
-    std::cout << ')';
+  void Function::print(std::ostream& out) {
+    out << "FUNC_";
+    out << (hasDefinition ? "DEF" : "DECL");
+    out << '(' << funcDecl.name << ", ";
+    funcDecl.returnType->print(out);
+    out << ')';
 
     if (hasDefinition) {
-      std::cout << ' ';
-      scope->print();
+      out << ' ';
+      scope->print(out);
     }
   }
 
-  void GlobalStatement::print() {
+  void GlobalStatement::print(std::ostream& out) {
     switch (type) {
       case GlobalStatementType::FUNC :
-        u.func->print();
+        u.func->print(out);
     }
   }
 }

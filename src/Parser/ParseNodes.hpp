@@ -17,7 +17,7 @@ namespace Parser {
       unsigned int integer;
     } u;
   
-    void print();
+    void print(std::ostream& out);
   };
 
 
@@ -31,7 +31,7 @@ namespace Parser {
       Tokenizer::Literal literal;
     } u;
 
-    void print();
+    void print(std::ostream& out);
   };
 
 
@@ -40,7 +40,7 @@ namespace Parser {
   struct Scope {
     std::vector<Statement*> statements;
 
-    void print();
+    void print(std::ostream& out);
   };
 
   enum class StatementType {
@@ -54,7 +54,7 @@ namespace Parser {
       Expression* expression;
     } u;
 
-    void print();
+    void print(std::ostream& out);
   };
   
 
@@ -68,7 +68,7 @@ namespace Parser {
     FunctionDeclaration funcDecl;
     Scope* scope;
 
-    void print();
+    void print(std::ostream& out);
   };
   
 
@@ -82,6 +82,6 @@ namespace Parser {
       Function* func;
     } u;
 
-    void print();
+    void print(std::ostream& out);
   };
 }

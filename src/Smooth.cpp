@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include <util/StringUtils.hpp>
 #include <TOML/TOML.hpp>
@@ -45,23 +46,24 @@ int main(int argc, char* argv[]) {
   PreTokenizer::PreTokenizer preTokenizer(file);
   preTokenizer.process();
   std::cout << "\nPrinting PreTokens...\n";
-  preTokenizer.print();
+  preTokenizer.print(std::cout);
 
   std::cout << "\nTokenizing...\n";
   Tokenizer::Tokenizer tokenizer(preTokenizer.getOutput());
   tokenizer.process();
   std::cout << "\nPrinting Tokens...\n";
-  tokenizer.print();
+  tokenizer.print(std::cout);
 
   std::cout << "\nPreProcessing...\n";
   PreProcessor::PreProcessor preProcessor(tokenizer.getOutput());
   preProcessor.process();
   std::cout << "\nPrinting PreProcessed Tokens...\n";
-  preProcessor.print();  
+  preProcessor.print(std::cout);  
 
   std::cout << "\nParsing...\n";
   Parser::Parser parser(preProcessor.getOutput());
   parser.process();
   std::cout << "\nPrinting Parse Tree...\n";
-  parser.print();
+  parser.print(std::cout);
+  return 0;
 }

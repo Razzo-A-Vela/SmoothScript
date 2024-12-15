@@ -98,11 +98,11 @@ namespace PreTokenizer {
     }
   }
 
-  void PreTokenizer::print() {
+  void PreTokenizer::print(std::ostream& out) {
     std::vector<PreToken> output = getOutput();
     for (PreToken preToken : output) {
-      preToken.print();
-      std::cout << '\n';
+      preToken.print(out);
+      out << '\n';
     }
   }
 

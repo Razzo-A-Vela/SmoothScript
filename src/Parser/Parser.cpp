@@ -128,11 +128,11 @@ namespace Parser {
     }
   }
 
-  void Parser::print() {
+  void Parser::print(std::ostream& out) {
     std::vector<GlobalStatement> output = getOutput();
     for (GlobalStatement globalStatement : output) {
-      globalStatement.print();
-      std::cout << '\n';
+      globalStatement.print(out);
+      out << '\n';
     }
   }
 }

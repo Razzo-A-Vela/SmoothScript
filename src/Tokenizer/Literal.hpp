@@ -27,7 +27,7 @@ namespace Tokenizer {
       char* string;
     } u;
 
-    void print();
+    void print(std::ostream& out);
   };
 
   class LiteralParser : public Processor<char, Literal> {
@@ -39,7 +39,7 @@ namespace Tokenizer {
   public:
     LiteralParser(std::string toParse, int line, bool isNumLiteral) : toParse(toParse), line(line), isNumLiteral(isNumLiteral), Processor(toParse.size()) {}
     void process();
-    void print();
+    void print(std::ostream& out);
 
   protected:
     virtual char get(int index) { return toParse.at(index); }

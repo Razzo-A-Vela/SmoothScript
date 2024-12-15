@@ -16,7 +16,7 @@ public:
   Processor(int maxIndex) : maxIndex(maxIndex) {}
   
   virtual void process() { Utils::error("Cannot call process from processor"); }
-  virtual void print() { Utils::error("Cannot call print from processor"); }
+  virtual void print(std::ostream& out) { Utils::error("Cannot call print from processor"); }
   std::vector<O> getOutput() { return output; }
   O getSingleOutput() { return output.at(0); }
 

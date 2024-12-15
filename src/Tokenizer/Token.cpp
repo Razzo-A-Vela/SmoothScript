@@ -1,126 +1,126 @@
 #include "Token.hpp"
 
 namespace Tokenizer {
-  void Token::print() {
+  void Token::print(std::ostream& out) {
     switch (type) {
       case TokenType::func :
-        std::cout << "FUNC";
+        out << "FUNC";
         break;
 
       case TokenType::ret :
-        std::cout << "RETURN";
+        out << "RETURN";
         break;
 
 
       case TokenType::colon :
-        std::cout << "COLON";
+        out << "COLON";
         break;
 
       case TokenType::dollar :
-        std::cout << "DOLLAR";
+        out << "DOLLAR";
         break;
 
       case TokenType::hashtag :
-        std::cout << "HASHTAG";
+        out << "HASHTAG";
         break;
 
       case TokenType::at :
-        std::cout << "AT(@)";
+        out << "AT(@)";
         break;
       
       case TokenType::semi_colon :
-        std::cout << "SEMI_COLON";
+        out << "SEMI_COLON";
         break;
         
       case TokenType::question :
-        std::cout << "QUESTION";
+        out << "QUESTION";
         break;
         
       case TokenType::exclamation :
-        std::cout << "EXCLAMATION";
+        out << "EXCLAMATION";
         break;
       
       case TokenType::equals :
-        std::cout << "EQUALS";
+        out << "EQUALS";
         break;
       
       case TokenType::minus :
-        std::cout << "MINUS";
+        out << "MINUS";
         break;
       
       case TokenType::comma :
-        std::cout << "COMMA";
+        out << "COMMA";
         break;
       
       case TokenType::star :
-        std::cout << "STAR";
+        out << "STAR";
         break;
 
       
       case TokenType::open_paren :
-        std::cout << "OPEN_PAREN";
+        out << "OPEN_PAREN";
         break;
       
       case TokenType::closed_paren :
-        std::cout << "CLOSED_PAREN";
+        out << "CLOSED_PAREN";
         break;
       
       case TokenType::open_bracket :
-        std::cout << "OPEN_BRACKET";
+        out << "OPEN_BRACKET";
         break;
       
       case TokenType::closed_bracket :
-        std::cout << "CLOSED_BRACKET";
+        out << "CLOSED_BRACKET";
         break;
         
       case TokenType::open_brace :
-        std::cout << "OPEN_BRACE";
+        out << "OPEN_BRACE";
         break;
         
       case TokenType::closed_brace :
-        std::cout << "CLOSED_BRACE";
+        out << "CLOSED_BRACE";
         break;
 
         
 
       case TokenType::identifier :
-        std::cout << "IDENTIFIER(" << std::string(u.string) << ')';
+        out << "IDENTIFIER(" << std::string(u.string) << ')';
         break;
 
       case TokenType::byte_type :
-        std::cout << "BYTE_TYPE(";
+        out << "BYTE_TYPE(";
         if (u.integer == 0)
-          std::cout << "VOID";
+          out << "VOID";
         else
-          std::cout << u.integer;
-        std::cout << ')';
+          out << u.integer;
+        out << ')';
         break;
 
       case TokenType::literal :
-        std::cout << "LITERAL(";
-        u.literal.print();
-        std::cout << ')';
+        out << "LITERAL(";
+        u.literal.print(out);
+        out << ')';
         break;
 
       case TokenType::symbol :
-        std::cout << "SYMBOL(" << u.character << ')';
+        out << "SYMBOL(" << u.character << ')';
         break;
 
       case TokenType::preProcessor :
-        std::cout << "PRE_PROCESSOR(" << std::string(u.string) << ')';
+        out << "PRE_PROCESSOR(" << std::string(u.string) << ')';
         break;
 
       case TokenType::parserParameter :
-        std::cout << "PARSER_PARAMETER(" << std::string(u.string) << ')';
+        out << "PARSER_PARAMETER(" << std::string(u.string) << ')';
         break;
 
       case TokenType::asmRegister :
-        std::cout << "ASM_REGISTER(" << std::string(u.string) << ')';
+        out << "ASM_REGISTER(" << std::string(u.string) << ')';
         break;
 
       
       case TokenType::endPreProcessor :
-        std::cout << "END_PRE_PROCESSOR";
+        out << "END_PRE_PROCESSOR";
         break;
     }
   }

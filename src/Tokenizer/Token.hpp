@@ -24,7 +24,7 @@ namespace Tokenizer {
     } u;
     int line;
 
-    void print();
+    void print(std::ostream& out);
 
     static const std::function<bool(Token, Token)> typeEqual;
     static const std::function<bool(Token, Token)> typeIntEqual;

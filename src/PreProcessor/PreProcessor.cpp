@@ -277,11 +277,11 @@ namespace PreProcessor {
     }
   }
 
-  void PreProcessor::print() {
+  void PreProcessor::print(std::ostream& out) {
     std::vector<Token> output = getOutput();
     for (Token token : output) {
-      token.print();
-      std::cout << '\n';
+      token.print(out);
+      out << '\n';
     }
   }
 }

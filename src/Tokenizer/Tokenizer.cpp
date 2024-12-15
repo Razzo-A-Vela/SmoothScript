@@ -184,11 +184,11 @@ namespace Tokenizer {
     }
   }
 
-  void Tokenizer::print() {
+  void Tokenizer::print(std::ostream& out) {
     std::vector<Token> output = getOutput();
     for (Token token : output) {
-      token.print();
-      std::cout << '\n';
+      token.print(out);
+      out << '\n';
     }
   }
 }

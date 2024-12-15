@@ -1,38 +1,38 @@
 #include "Literal.hpp"
 
 namespace Tokenizer {
-  void Literal::print() {
+  void Literal::print(std::ostream& out) {
     switch (type) {
       case LiteralType::integer :
-        std::cout << "INT(" << u.integer << ')';
+        out << "INT(" << u.integer << ')';
         break;
 
       case LiteralType::floating :
-        std::cout << "FLOAT(" << u.floating << ')';
+        out << "FLOAT(" << u.floating << ')';
         break;
 
       case LiteralType::byte :
-        std::cout << "BYTE(" << (unsigned int) u.byte << ')';
+        out << "BYTE(" << (unsigned int) u.byte << ')';
         break;
 
       case LiteralType::character :
-        std::cout << "CHAR(" << u.character << ')';
+        out << "CHAR(" << u.character << ')';
         break;
 
       case LiteralType::string :
-        std::cout << "STRING(" << std::string(u.string) << ')';
+        out << "STRING(" << std::string(u.string) << ')';
         break;
 
       case LiteralType::longint :
-        std::cout << "LONG(" << u.longint << ')';
+        out << "LONG(" << u.longint << ')';
         break;
 
       case LiteralType::doubled :
-        std::cout << "DOUBLE(" << u.doubled << ')';
+        out << "DOUBLE(" << u.doubled << ')';
         break;
 
       case LiteralType::shorted :
-        std::cout << "SHORT(" << u.shorted << ')';
+        out << "SHORT(" << u.shorted << ')';
         break;
     }
   }
@@ -172,9 +172,9 @@ namespace Tokenizer {
     addToOutput(literal);
   }
 
-  void LiteralParser::print() {
-    std::cout << "LITERAL(";
-    getSingleOutput().print();
-    std::cout << ")\n";
+  void LiteralParser::print(std::ostream& out) {
+    out << "LITERAL(";
+    getSingleOutput().print(out);
+    out << ")\n";
   }
 }

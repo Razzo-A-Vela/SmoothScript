@@ -20,7 +20,7 @@ namespace PreTokenizer {
   public:
     PreTokenizer(std::string file) : file(file), Processor(file.size()) {}
     virtual void process();
-    virtual void print();
+    virtual void print(std::ostream& out);
   
   protected:
     virtual char get(int index) { return file.at(index); }

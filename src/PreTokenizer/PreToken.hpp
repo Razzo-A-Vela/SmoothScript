@@ -15,7 +15,7 @@ namespace PreTokenizer {
     } u;
     int line;
 
-    void print();
+    void print(std::ostream& out);
 
     static const std::function<bool(PreToken, PreToken)> typeEqual;
     static const std::function<bool(PreToken, PreToken)> typeCharEqual;

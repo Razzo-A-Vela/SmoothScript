@@ -22,7 +22,7 @@ namespace Tokenizer {
   public:
     Tokenizer(std::vector<PreToken> preTokens) : preTokens(preTokens), Processor(preTokens.size()) {}
     virtual void process();
-    virtual void print();
+    virtual void print(std::ostream& out);
 
   protected:
     virtual PreToken get(int index) { return preTokens.at(index); }

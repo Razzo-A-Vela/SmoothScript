@@ -1,26 +1,26 @@
 #include "PreToken.hpp"
 
 namespace PreTokenizer {
-  void PreToken::print() {
+  void PreToken::print(std::ostream& out) {
     switch (type) {
       case PreTokenType::symbol :
-        std::cout << "SYMBOL(" << u.character << ')';
+        out << "SYMBOL(" << u.character << ')';
         break;
 
       case PreTokenType::identifier :
-        std::cout << "IDENTIFIER(" << std::string(u.string) << ')';
+        out << "IDENTIFIER(" << std::string(u.string) << ')';
         break;
 
       case PreTokenType::literal :
-        std::cout << "LITERAL(" << std::string(u.string) << ')';
+        out << "LITERAL(" << std::string(u.string) << ')';
         break;
 
       case PreTokenType::numLiteral :
-        std::cout << "NUM_LITERAL(" << std::string(u.string) << ')';
+        out << "NUM_LITERAL(" << std::string(u.string) << ')';
         break;
 
       case PreTokenType::endPreProcessor :
-        std::cout << "END_PRE_PROCESSOR";
+        out << "END_PRE_PROCESSOR";
         break;
     }
   }

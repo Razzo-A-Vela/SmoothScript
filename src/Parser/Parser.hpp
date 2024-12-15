@@ -22,7 +22,7 @@ namespace Parser {
   public:
     Parser(std::vector<Token> tokens) : tokens(tokens), Processor(tokens.size()) {}
     virtual void process();
-    virtual void print();
+    virtual void print(std::ostream& out);
     
   protected:
     virtual Token get(int index) { return tokens.at(index); }
