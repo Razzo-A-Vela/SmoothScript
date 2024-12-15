@@ -1,4 +1,200 @@
 
+func a() : <5>;
+
+func main() : <4> {
+  return 2;
+}
+
+/*
+
+main:
+  mov @eax, 2;
+  sub rsp, 4;
+  mov [rsp], @eax;
+  
+  mov @eax, 3;
+  sub rsp, 4;
+  mov [rsp], @eax;
+
+  push @rbx;
+
+  mov @eax, [rsp + 4];
+  push @rax;
+
+  mov @ebx, [rsp];
+  pop @rax;
+
+  add @eax, @ebx;
+
+  pop @rbx;
+  mov @eax, @eax;
+  sub rsp, 4;
+  mov [rsp], @eax;
+
+int main() {
+  int a = first();
+  int b = second();
+  int c = a + b;
+}
+
+$op(++, 15, AFTER) ()
+
+$op(+, 10) (<4>? a, <4>? b : <4>? c) $asm {
+  #if OS == "WINDOWS"
+    push @rbx;
+
+    mov @eax, a;
+    push @rax;
+
+    mov @ebx, b;
+    pop @rax;
+
+    add @eax, @ebx;
+
+    pop @rbx;
+    mov c, @eax;
+
+  #elif OS == "LINUX"
+    #error "Linux is not done yet."#
+
+  #elif OS == "MAC"
+    #error "Max will never be done."#
+
+  #
+}
+
+
+$inline $op(++, 15, AFTER)
+func op_increment(*<4>? a) : <4> {
+
+}
+
+$inline $op(+, 10)
+func op_add(<4>? a, <4>? b) : <4> $asm {
+  push @rbx;
+  mov @eax, a;
+  mov @ebx, b;
+  add @eax, @ebx;
+  pop @rbx;
+  ret;
+}
+
+// func main() : <> {}
+
+#include "stdio.smh"#
+#includeLib "stdio.smt"#
+
+// Example code to see the syntax
+
+$entry
+func main : <4> {
+  print(25y);
+  print((std::string) "Ciao come va?"); // -> *<1> -> *char
+  return 0;
+}
+
+global main
+section .text
+
+main§§4:
+  push rbp
+  mov rbp, rsp
+  
+  mov eax, 0
+  mov rsp, rbp
+  pop rbp
+  ret
+
+  mov rsp, rbp
+  pop rbp
+  ret
+
+main:
+  push rbp
+  mov rbp, rsp
+  
+  call main$$4
+  
+  mov rsp, rbp
+  pop rbp
+  ret
+
+$type byte            <1>;
+$type char            <1>;
+$type short           <2>;
+$type int             <4>;
+$type long            <8>;
+
+$type unsigned_byte  <!1>;
+$type unsigned_char  <!2>;
+$type unsigned_short <!2>;
+$type unsigned_int   <!4>;
+$type unsigned_long  <!8>;
+
+!unsigned_byte? a = 15uy;
+
+$op(+, 10)
+func op_add(<!1> a, <!1> b) : <!1> $asm {
+   @rbx;
+  mov @rax, a;
+  mov @rbx, b;
+  ret;
+}
+
+$entry
+func main : int {
+  return (int) (a + 2uy);
+}
+
+
+$type TwoInts $struct {  // $sizeof(TwoInts) = 8 bytes : CAN USE IN FUNCTIONS DIRECTLY
+  int? a;
+  int? b;
+};
+
+$type TwoLongs $struct { // $sizeof(TwoLongs) = 16 bytes : CANNOT USE IN FUNCTIONS DIRECTLY
+  long? a;
+  long? b;
+};
+
+$inline $op(+, 10)
+func op_add(TwoInts? a, TwoInts? b) : TwoInts {
+  return TwoInts{a.a + b.a, a.b + b.b};
+}
+
+$inline $op(+, 10)
+func op_add(TwoLongs? a, TwoLongs? b) : TwoLongs { // Throws error : $sizeof(TwoLongs) = 16
+  return TwoLongs{a.a + b.a, a.b + b.b};
+}
+
+$inline $op(+, 10)
+func op_add(?*TwoLongs a, ?*TwoLongs b) : !(*TwoLongs) { // Throws error? : Modifies stack and is inline
+  TwoLongs? ret;
+  ret.a = a.a + b.a;
+  ret.b = b.a + b.a;
+  return &ret;
+}
+
+
+
+// isDataType() = true;
+// processDataType() = MUTABLE_ALIAS(int);
+<4>? a = 10l; // warning <8> assigned to <4> (truncate)
+<8>? b = 10;  // warning <4> assigned to <8> (zero extend)
+
+$entry
+func main() : int {
+  return 0;
+}
+
+
+
+$entry
+func main : <4> {
+  return 0;
+}
+
+
 $extern("putchar")
 func printChar(<1>? c) : <>;
 
@@ -11,7 +207,7 @@ func main : <4> {
   return 0;
 }
 
-/*
+
 // Some of the code in this comments is not how I want it, but I keep it to remember what I have to do
 // Basically don't follow this comments as if they describe how the language will be
 
@@ -41,7 +237,7 @@ $namespace std {                          // namespaces are now Parsed and not P
   $noReturn func exit(int? code) : void;  // $noReturn tells the parser that this function will end the program before returning
   $noReturn func exit : void { exit(0); }
 
-  $op(+, 10) $inline                      // $op is now similar to inline, but it has some parameters(symbol, precedence, op_type = BINARY) (op_type can be: "BINARY", "BEFORE", "AFTER")
+  $op(+, 10) $inline                      // $op is now similar to inline, but it has some parameters(symbol, precedence, op_type = "BINARY") (op_type can be: "BINARY", "BEFORE", "AFTER")
   func op_add(int?! a, int?! b) : !int {  // ! after ? in param means don't push to stack as local variable
     %push @rbx;
     %mov @eax, a;
