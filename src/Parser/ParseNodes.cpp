@@ -30,7 +30,7 @@ namespace Parser {
   }
 
   bool FunctionDeclaration::operator==(FunctionDeclaration& other) {
-    return name == other.name && returnType == other.returnType;
+    return name == other.name && *returnType == *other.returnType;
   }
 
 
