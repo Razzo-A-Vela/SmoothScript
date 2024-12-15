@@ -21,8 +21,8 @@ namespace Parser {
     
   public:
     Parser(std::vector<Token> tokens) : tokens(tokens), Processor(tokens.size()) {}
-    void process();
-    void print();
+    virtual void process();
+    virtual void print();
     
   protected:
     virtual Token get(int index) { return tokens.at(index); }

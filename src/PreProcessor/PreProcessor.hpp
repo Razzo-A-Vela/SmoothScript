@@ -32,11 +32,11 @@ namespace PreProcessor {
     const int RECURSION_LIMIT = 25;
 
     PreProcessor(std::vector<Token> tokens) : tokens(tokens), Processor(tokens.size()) {}
-    void process();
-    void print();
+    virtual void process();
+    virtual void print();
   
   protected:
-    Token get(int index) { return tokens.at(index); }
+    virtual Token get(int index) { return tokens.at(index); }
     void cycleOutput();
     bool isPreProcessor(Token token, const char* preProcessor);
     std::string getPreProcessorIdentifier(int errLine);
