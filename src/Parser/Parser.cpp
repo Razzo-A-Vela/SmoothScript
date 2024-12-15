@@ -13,6 +13,48 @@ namespace Parser {
       ret->type = ExpressionType::LITERAL;
       ret->u.literal = consume().value().u.literal;
       return ret;
+
+    } else if (peekEqual({ TokenType::identifier }, Token::typeEqual)) {
+      if (peekEqual({ TokenType::open_paren }, Token::typeEqual, 1)) {
+        FunctionDeclaration* funcDecl = new FunctionDeclaration();
+        funcDecl->name = std::string(consume().value().u.string);
+        int errLine = getErrLine();
+        consume();
+
+        //TODO: Parameters
+        if (peekNotEqual({ TokenType::closed_paren }, Token::typeEqual))
+          Utils::error("Parser Error", "Expected ')' closing function call", errLine);
+        consume();
+
+
+        //TODO: remove this and make return value at call optional
+        if (peekNotEqual({ TokenType::open_angolare }, Token::typeEqual))
+          Utils::error("Parser Error", "Expected '<' after function call", errLine);
+        consume();
+
+        DataType* returnType = processDataType();
+        if (returnType == NULL)
+          Utils::error("Parser Error", "Expected return type after '<' in function call", errLine);
+        funcDecl->returnType = returnType;
+
+        if (peekNotEqual({ TokenType::closed_angolare }, Token::typeEqual))
+          Utils::error("Parser Error", "Expected '>' after return type in function call", errLine);
+        consume();
+        
+        
+        for (Function* savedFunc : functions) {
+          if (*savedFunc->funcDecl == *funcDecl) {
+            Expression* ret = new Expression();
+            ret->type = ExpressionType::FUNC_CALL;
+            ret->u.funcDecl = funcDecl;
+            return ret;
+          }
+        }
+
+        std::stringstream funcDeclStream;
+        funcDecl->print(funcDeclStream);
+        Utils::error("Parser Error", std::string("Function: \"") + funcDeclStream.str() + std::string("\" was not declared"), errLine);
+      }
     }
 
     return NULL;
@@ -58,8 +100,21 @@ namespace Parser {
 
         ret->u.expression = expression;
       }
-      
       return ret;
+
+    } else {
+      Expression* expression = processExpression();
+
+      if (expression != NULL) {
+        if (peekNotEqual({ TokenType::semi_colon }, Token::typeEqual))
+          Utils::error("Parser Error", "Expected ';' after expression statement", errLine);
+        consume();
+
+        Statement* ret = new Statement();
+        ret->type = StatementType::EXPRESSION;
+        ret->u.expression = expression;
+        return ret;
+      }
     }
 
     Utils::error("Parser Error", "Invalid Statement", errLine);

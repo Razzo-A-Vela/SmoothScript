@@ -50,6 +50,12 @@ namespace Parser {
         u.literal.print(out);
         out << ')';
         break;
+      
+      case ExpressionType::FUNC_CALL :
+        out << "FUNC_CALL(";
+        u.funcDecl->print(out);
+        out << ')';
+        break;
     }
   }
 
@@ -67,6 +73,12 @@ namespace Parser {
           u.expression->print(out);
           out << ')';
         }
+        break;
+      
+      case StatementType::EXPRESSION :
+        out << "EXPRESSION_STATEMENT(";
+        u.expression->print(out);
+        out << ')';
         break;
     }
   }

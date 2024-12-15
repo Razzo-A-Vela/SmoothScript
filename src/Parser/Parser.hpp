@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <sstream>
 #include <functional>
 
 #include <util/ErrorUtils.hpp>

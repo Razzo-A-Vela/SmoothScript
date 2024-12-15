@@ -33,13 +33,14 @@ namespace Parser {
 
 
   enum class ExpressionType {
-    LITERAL
+    LITERAL, FUNC_CALL
   };
 
   struct Expression {
     ExpressionType type;
     union {
       Tokenizer::Literal literal;
+      FunctionDeclaration* funcDecl;
     } u;
 
     void print(std::ostream& out);
@@ -55,7 +56,7 @@ namespace Parser {
   };
 
   enum class StatementType {
-    SCOPE, RETURN
+    SCOPE, RETURN, EXPRESSION
   };
 
   struct Statement {
