@@ -7,8 +7,10 @@ outFile = "Prova"
 
 # should generate assembly
 genAssembly = true
-# should assemble and link (genAssembly required)
-noLink = true
+# should not assemble and link (genAssembly required)
+noLink = false
 
-# arguments for gcc assembler and linker (ex. ["-nostdlib", "-lSDL_2"])
-gccArgs = []
+# assembler, linker and cleanup commands
+assembleCommand = "nasm -f win64 $outFile$.asm"
+linkCommand = "gcc $outFile$.obj -o $outFile$.exe"
+cleanupCommand = "del $outFile$.obj"
