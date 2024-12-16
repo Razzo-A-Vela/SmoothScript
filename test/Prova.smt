@@ -1,8 +1,12 @@
 
-func a() : <5>;
+func a() : <4>;
 
 func main() : <4> {
-  return 2;
+  return a();
+}
+
+func a() : <4> {
+  return 3;
 }
 
 /*
