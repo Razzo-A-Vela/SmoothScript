@@ -19,12 +19,19 @@ outFile = \"\"\n\
 \n\
 # should generate assembly\n\
 genAssembly = false\n\
-# should assemble and link (genAssembly required)\n\
+# should not assemble and link (genAssembly required)\n\
 noLink = false\n\
 \n\
-# arguments for gcc assembler and linker (ex. [\"-nostdlib\", \"-lSDL_2\"])\n\
-gccArgs = []\n\
+# assembler, linker and cleanup commands\n\
+assembleCommand = ""\n\
+linkCommand = ""\n\
+cleanupCommand = ""\n\
+\n\
 ";
+
+std::string getReplaced(std::string toReplace, std::string mainFile, std::string outFile) {
+  return Utils::replace(Utils::replace(toReplace, "$mainFile$", mainFile), "$outFile$", outFile);
+}
 
 int main(int argc, char* argv[]) {
   std::cout << "\nReading config...\n";
@@ -36,12 +43,23 @@ int main(int argc, char* argv[]) {
   std::string outFile = std::string((char*) config.getContent("outFile")->getPointer());
   bool genAssembly = *((bool*) config.getContent("genAssembly")->getPointer());
   bool noLink = *((bool*) config.getContent("noLink")->getPointer());
+  std::string assembleCommand = std::string((char*) config.getContent("assembleCommand")->getPointer());
+  std::string linkCommand = std::string((char*) config.getContent("linkCommand")->getPointer());
+  std::string cleanupCommand = std::string((char*) config.getContent("cleanupCommand")->getPointer());
 
-  if (!Utils::fileExists(mainFile + ".smt"))
-    Utils::error("File error", "File does not exist");
+  if (!genAssembly && noLink)
+    Utils::error("\nConfig Error", "genAssembly is required for noLink");
+
+  if (outFile == "")
+    Utils::error("\nConfig Error", "outFile must not be empty");
+
+  std::string mainFileName = mainFile + ".smt";
+  if (!Utils::fileExists(mainFileName))
+    Utils::error("\nFile error", std::string("File: ") + mainFileName + std::string(" does not exist"));
+  
 
   std::cout << "\nReading file...\n";
-  std::string file = Utils::readEntireFile(mainFile + ".smt");
+  std::string file = Utils::readEntireFile(mainFileName);
 
   std::cout << "\nPreTokenizing...\n";
   PreTokenizer::PreTokenizer preTokenizer(file);
@@ -72,11 +90,36 @@ int main(int argc, char* argv[]) {
   generator.process();
   
   std::string outFileName = outFile + ".asm";
-  std::cout << "\nGenerated assembly to: " << outFileName << '\n';
+  if (genAssembly)
+    std::cout << "\nGenerated assembly to: " << outFileName << '\n';
   std::ofstream outFileStream;
   outFileStream.open(outFileName);
 
   generator.print(outFileStream);
   outFileStream.close();
+
+  // if noLink = true -> genAssembly = true
+  if (noLink) {
+    std::cout << "\nDone.\n";
+    return 0;
+  }
+
+  std::cout << "\nAssembling...\n";
+  std::cout << "\nRunning commands from config...\n";
+  const char* commands[] = { assembleCommand.c_str(), linkCommand.c_str(), cleanupCommand.c_str() };
+  for (int i = 0; i < 3; i++) {
+    std::string command = std::string(commands[i]);
+    command = getReplaced(command, mainFile, outFile);
+    if (command != "") {
+      std::cout << command << '\n';
+      system(command.c_str());
+    } else
+      std::cout << '\n';  // I'm going to make the user think I run the command
+  }
+
+  if (!genAssembly)
+    remove(("./" + outFileName).c_str());
+  
+  std::cout << "\nDone.\n";
   return 0;
 }
