@@ -26,27 +26,24 @@ namespace Parser {
           Utils::error("Parser Error", "Expected ')' closing function call", errLine);
         consume();
 
-
-        //TODO: remove this and make return value at call optional
-        if (peekNotEqual({ TokenType::open_angolare }, Token::typeEqual))
-          Utils::error("Parser Error", "Expected '<' after function call", errLine);
-        consume();
-
-        DataType* returnType = processDataType();
-        if (returnType == NULL)
-          Utils::error("Parser Error", "Expected return type after '<' in function call", errLine);
+        DataType* returnType = NULL;
+        if (peekEqual({ TokenType::open_angolare }, Token::typeEqual)) {
+          consume();
+          returnType = processDataType();
+          if (returnType == NULL)
+            Utils::error("Parser Error", "Expected return type after '<' in function call", errLine);
+          
+          if (peekNotEqual({ TokenType::closed_angolare }, Token::typeEqual))
+            Utils::error("Parser Error", "Expected '>' after return type in function call", errLine);
+          consume();
+        }
         funcDecl->returnType = returnType;
-
-        if (peekNotEqual({ TokenType::closed_angolare }, Token::typeEqual))
-          Utils::error("Parser Error", "Expected '>' after return type in function call", errLine);
-        consume();
-        
         
         for (Function* savedFunc : functions) {
           if (*savedFunc->funcDecl == *funcDecl) {
             Expression* ret = new Expression();
             ret->type = ExpressionType::FUNC_CALL;
-            ret->u.funcDecl = funcDecl;
+            ret->u.funcDecl = new FunctionDeclaration(*savedFunc->funcDecl);
             return ret;
           }
         }
@@ -160,39 +157,48 @@ namespace Parser {
     funcDecl->returnType = returnType;
 
     Function* ret = new Function();
-    ret->hasDefinition = false;
-    if (peekEqual({ TokenType::semi_colon }, Token::typeEqual)) {
+    ret->hasDefinition = peekNotEqual({ TokenType::semi_colon }, Token::typeEqual);
+    if (!ret->hasDefinition) {
       consume();
       ret->scopeStatement = NULL;
-
-    } else {
-      ret->hasDefinition = true;
-      Statement* statement = processStatement();
-      if (statement->type != StatementType::SCOPE)
-        Utils::error("Parser Error", "Expected scope or ';' after function declaration", errLine);
-      ret->scopeStatement = statement;
     }
-
-
     ret->funcDecl = funcDecl;
+    
+    int foundIndex = -1;
     for (int i = 0; i < functions.size(); i++) {
       Function* savedFunc = functions.at(i);
       if (*savedFunc->funcDecl != *ret->funcDecl)
         continue;
       
-      if (!ret->hasDefinition)
+      if (!ret->hasDefinition) {
+        delete ret;
         return NULL;
+      }
       
       if (savedFunc->hasDefinition)
         Utils::error("Parser Error", "Function already defined", errLine);
       
-      delete functions.at(i);
-      functions.at(i) = ret;
+      foundIndex = i;
+    }
+
+
+    if (foundIndex == -1)
+      functions.push_back(ret);
+    
+    if (ret->hasDefinition) {
+      Statement* statement = processStatement();
+      if (statement->type != StatementType::SCOPE)
+        Utils::error("Parser Error", "Expected scope or ';' after function declaration", errLine);
+      ret->scopeStatement = statement;
+
+      if (foundIndex != -1) {
+        delete functions.at(foundIndex);
+        functions.at(foundIndex) = ret;
+      }
       return ret;
     }
 
-    functions.push_back(ret);
-    return ret->hasDefinition ? ret : NULL;
+    return NULL;
   }
 
   void Parser::process() {

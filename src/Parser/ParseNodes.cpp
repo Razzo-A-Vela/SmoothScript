@@ -25,11 +25,16 @@ namespace Parser {
 
   void FunctionDeclaration::print(std::ostream& out) {
     //TODO: Parameters
-    out << name << "()" << " : ";
-    returnType->print(out);
+    out << name << "()";
+    if (returnType != NULL) {
+      out << " : ";
+      returnType->print(out);
+    }
   }
 
   bool FunctionDeclaration::operator==(FunctionDeclaration& other) {
+    if (returnType == NULL || other.returnType == NULL)
+      return name == other.name;
     return name == other.name && *returnType == *other.returnType;
   }
 
