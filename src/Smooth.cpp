@@ -7,6 +7,7 @@
 #include <Tokenizer/Tokenizer.hpp>
 #include <PreProcessor/PreProcessor.hpp>
 #include <Parser/Parser.hpp>
+#include <Generator/Generator.hpp>
 
 const std::string configTOMLName = "smoothConfig.toml";
 const std::string defaultConfigTOML = "\n\
@@ -65,5 +66,17 @@ int main(int argc, char* argv[]) {
   parser.process();
   std::cout << "\nPrinting Parse Tree...\n";
   parser.print(std::cout);
+
+  std::cout << "\nGenerating...\n";
+  Generator::Generator generator(parser.getOutput());
+  generator.process();
+  
+  std::string outFileName = outFile + ".asm";
+  std::cout << "\nGenerated assembly to: " << outFileName << '\n';
+  std::ofstream outFileStream;
+  outFileStream.open(outFileName);
+
+  generator.print(outFileStream);
+  outFileStream.close();
   return 0;
 }
