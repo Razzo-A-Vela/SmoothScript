@@ -2,6 +2,8 @@
 test/out.exe
 test/out.asm
 test/smooth.exe
+test/Prova.obj
+test/Prova.exe
 
 legacy/test/out.exe
 legacy/test/out.asm
