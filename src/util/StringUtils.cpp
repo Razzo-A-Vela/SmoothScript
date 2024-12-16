@@ -61,6 +61,33 @@ namespace Utils {
   }
 
 
+  std::string replace(std::string toReplace, std::string toFind, std::string replaceValue) {
+    std::stringstream retStream;
+
+    for (int i = 0; i < toReplace.size(); i++) {
+      if (toReplace.at(i) == toFind.at(0)) {
+        bool found = true;
+        for (int j = 0; j < toFind.size(); j++) {
+          if (i + j >= toReplace.size() || toReplace.at(i + j) != toFind.at(j)) {
+            found = false;
+            break;
+          }
+        }
+
+        if (found) {
+          retStream << replaceValue;
+          i += toFind.size() - 1;
+          continue;
+        }
+      }
+      
+      retStream << toReplace.at(i);
+    }
+
+    return retStream.str();
+  }
+
+
   std::string trim(std::string toTrim, std::function<bool(char)> trimChar) {
     std::stringstream stream;
     bool foundAlphaLeft = false;
