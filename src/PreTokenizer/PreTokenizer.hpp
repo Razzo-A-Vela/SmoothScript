@@ -11,7 +11,7 @@
 namespace PreTokenizer {
   class PreTokenizer : public Processor<char, PreToken> {
   private:
-    const std::function<bool(char)> shouldIgnore = [](char c) { return c == ' ' || c == '\n'; };
+    const std::function<bool(char)> shouldIgnore = [](char c) { return c == ' ' || c == '\r' || c == '\n'; };
     std::string file;
     int multiLineCommentDepth = 0;
     int commentState = 0;
