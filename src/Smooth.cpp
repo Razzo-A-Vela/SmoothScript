@@ -23,9 +23,9 @@ genAssembly = false\n\
 noLink = false\n\
 \n\
 # assembler, linker and cleanup commands\n\
-assembleCommand = ""\n\
-linkCommand = ""\n\
-cleanupCommand = ""\n\
+assembleCommand = \"\"\n\
+linkCommand = \"\"\n\
+cleanupCommand = \"\"\n\
 \n\
 ";
 
