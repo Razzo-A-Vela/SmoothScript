@@ -27,12 +27,6 @@ public:
   int size() {
     return values.size();
   }
-
-  std::optional<Value> at(int index) {
-    if (index >= 0 && index < size())
-      return values.at(index);
-    return {};
-  }
   
   std::vector<Key> getKeys() {
     return keys;
@@ -50,6 +44,18 @@ public:
     return Utils::getVectorIndex(keys, key);
   }
   
+  std::optional<Key> getKey(int index) {
+    if (index >= 0 && index < size())
+      return keys.at(index);
+    return {};
+  }
+  
+  std::optional<Value> at(int index) {
+    if (index >= 0 && index < size())
+      return values.at(index);
+    return {};
+  }
+
   std::optional<Value> getValue(Key key) {
     if (hasKey(key))
       return at(getIndex(key));
