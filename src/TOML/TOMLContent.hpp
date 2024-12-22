@@ -1,55 +1,45 @@
 #pragma once
 #include <string>
 
-namespace TOML {
-  const int MAX_SIZE = 25;
+#include <util/ErrorUtils.hpp>
+#include <util/Map.hpp>
 
-  struct Array;
+namespace TOML {
   struct Table;
 
   enum class ContentType {
-    null, boolean, string, array, table
+    TABLE, STRING, BOOL
   };
 
   struct Content {
-  private:
     ContentType type;
     union {
-      bool* boolean;
-      char* string;
-      Array* array;
       Table* table;
+      const char* string;
+      bool boolean;
     } u;
 
-  public:
-    Content() : type(ContentType::null) {}
-    Content(ContentType type, void* value);
-    ContentType getType() { return type; }
-    void* getPointer();
+    void print(std::ostream& out);
+    static std::string getTypeAsString(ContentType type);
   };
-
-
-  struct Array {
-  private:
-    Content contents[MAX_SIZE];
-    int size = 0;
-
-  public:
-    int getSize() { return size; }
-    Content* getContent(int index);
-    bool addContent(Content* content);
-  };
-
+  
 
   struct Table {
+    Map<std::string, Content*> map;
+
+    void setCheckType(ContentType toCheck) {
+      checkType = toCheck;
+    }
+
+    Content* getContent(std::string contentName) {
+      return getContent(contentName, checkType);
+    }
+
+    Content* getContentOrError(std::string contentName);
+    Content* getContent(std::string contentName, ContentType toCheck);
+    void print(std::ostream& out);
+
   private:
-    std::string names[MAX_SIZE];
-    Array contents;
-  
-  public:
-    int getSize() { return contents.getSize(); }
-    std::string* getNames() { return names; }
-    Content* getContent(std::string name);
-    bool addContent(std::string name, Content* content);
+    ContentType checkType = ContentType::TABLE;
   };
 }
