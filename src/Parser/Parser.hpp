@@ -32,6 +32,9 @@ namespace Parser {
     DataType* processDataType();
     Statement* processStatement();
     Expression* processExpression();
-    int getErrLine();
+    
+    int getErrLine() {
+      return hasPeek() ? peekValue().line : peekValue(-1).line;
+    }
   };
 }

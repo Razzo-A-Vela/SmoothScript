@@ -3,9 +3,6 @@
 namespace Parser {
   //TODO: MOVE NAMESPACE FROM PREPROCESSOR TO PARSER
 
-  int Parser::getErrLine() {
-    return hasPeek() ? peekValue().line : peekValue(-1).line;
-  }
 
   Expression* Parser::processExpression() {
     if (peekEqual({ TokenType::literal }, Token::typeEqual)) {
