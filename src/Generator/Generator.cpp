@@ -99,6 +99,7 @@ namespace Generator {
             }
         }
 
+        //HACK: should add a way to tell the entry function
         asmGlobalStatement.entryFunctionName = "main§§4";
         addToOutput(asmGlobalStatement);
     }
