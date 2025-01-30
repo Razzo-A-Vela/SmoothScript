@@ -39,7 +39,7 @@ namespace PreTokenizer {
       PreToken preToken;
       preToken.line = line;
 
-      if (c == '#' && (peekEqual('\n') || peekEqual(' '))) {
+      if (c == '\\' && peekEqual('#')) {
         consume();
         preToken.type = PreTokenType::endPreProcessor;
         addToOutput(preToken);
