@@ -3,11 +3,6 @@
 
 #include <util/StringUtils.hpp>
 #include <TOML/TOML.hpp>
-#include <PreTokenizer/PreTokenizer.hpp>
-#include <Tokenizer/Tokenizer.hpp>
-#include <PreProcessor/PreProcessor.hpp>
-#include <Parser/Parser.hpp>
-#include <Generator/Generator.hpp>
 
 const std::string defaultConfigTOMLName = "smoothConfig.toml";
 const std::string defaultConfigTOML = "\n\
@@ -104,68 +99,68 @@ int main(int argc, char* argv[]) {
   std::string file = Utils::readEntireFile(mainFile);
   Utils::setErrorFileName(mainFile);
 
-  std::cout << "\nPreTokenizing...\n";
-  PreTokenizer::PreTokenizer preTokenizer(file);
-  preTokenizer.process();
-  std::cout << "\nPrinting PreTokens...\n";
-  preTokenizer.print(std::cout);
+  // std::cout << "\nPreTokenizing...\n";
+  // PreTokenizer::PreTokenizer preTokenizer(file);
+  // preTokenizer.process();
+  // std::cout << "\nPrinting PreTokens...\n";
+  // preTokenizer.print(std::cout);
 
 
-  std::cout << "\nTokenizing...\n";
-  Tokenizer::Tokenizer tokenizer(preTokenizer.getOutput());
-  tokenizer.process();
-  std::cout << "\nPrinting Tokens...\n";
-  tokenizer.print(std::cout);
+  // std::cout << "\nTokenizing...\n";
+  // Tokenizer::Tokenizer tokenizer(preTokenizer.getOutput());
+  // tokenizer.process();
+  // std::cout << "\nPrinting Tokens...\n";
+  // tokenizer.print(std::cout);
 
 
-  std::cout << "\nPreProcessing...\n";
-  PreProcessor::PreProcessor preProcessor(tokenizer.getOutput());
-  preProcessor.process();
-  std::cout << "\nPrinting PreProcessed Tokens...\n";
-  preProcessor.print(std::cout);  
+  // std::cout << "\nPreProcessing...\n";
+  // PreProcessor::PreProcessor preProcessor(tokenizer.getOutput());
+  // preProcessor.process();
+  // std::cout << "\nPrinting PreProcessed Tokens...\n";
+  // preProcessor.print(std::cout);  
 
 
-  std::cout << "\nParsing...\n";
-  Parser::Parser parser(preProcessor.getOutput());
-  parser.process();
-  std::cout << "\nPrinting Parse Tree...\n";
-  parser.print(std::cout);
+  // std::cout << "\nParsing...\n";
+  // Parser::Parser parser(preProcessor.getOutput());
+  // parser.process();
+  // std::cout << "\nPrinting Parse Tree...\n";
+  // parser.print(std::cout);
 
-  Utils::resetErrorFileName();
-  std::cout << "\nGenerating...\n";
-  Generator::Generator generator(parser.getOutput());
-  generator.process();
+  // Utils::resetErrorFileName();
+  // std::cout << "\nGenerating...\n";
+  // Generator::Generator generator(parser.getOutput());
+  // generator.process();
   
-  if (genAssembly)
-    std::cout << "\nGenerated assembly to: " << asmFile << '\n';
-  std::ofstream asmFileStream;
-  asmFileStream.open(asmFile);
+  // if (genAssembly)
+  //   std::cout << "\nGenerated assembly to: " << asmFile << '\n';
+  // std::ofstream asmFileStream;
+  // asmFileStream.open(asmFile);
 
-  generator.print(asmFileStream);
-  asmFileStream.close();
+  // generator.print(asmFileStream);
+  // asmFileStream.close();
 
-  // if noLink = true -> genAssembly = true
-  if (noLink) {
-    std::cout << "\nDone.\n";
-    return 0;
-  }
+  // // if noLink = true -> genAssembly = true
+  // if (noLink) {
+  //   std::cout << "\nDone.\n";
+  //   return 0;
+  // }
 
 
-  std::cout << "\nAssembling...\n";
-  std::cout << "\nRunning commands from config...\n";
-  const char* cCommands[] = { assembleCommand.c_str(), linkCommand.c_str(), cleanupCommand.c_str() };
-  for (int i = 0; i < 3; i++) {
-    std::string command = std::string(cCommands[i]);
-    command = getReplacedCommand(command, mainFile, outFile);
-    if (command != "") {
-      std::cout << command << '\n';
-      system(command.c_str());
-    } else
-      std::cout << '\n';  // I'm going to make the user think I run the command
-  }
+  // std::cout << "\nAssembling...\n";
+  // std::cout << "\nRunning commands from config...\n";
+  // const char* cCommands[] = { assembleCommand.c_str(), linkCommand.c_str(), cleanupCommand.c_str() };
+  // for (int i = 0; i < 3; i++) {
+  //   std::string command = std::string(cCommands[i]);
+  //   command = getReplacedCommand(command, mainFile, outFile);
+  //   if (command != "") {
+  //     std::cout << command << '\n';
+  //     system(command.c_str());
+  //   } else
+  //     std::cout << '\n';  // I'm going to make the user think I run the command
+  // }
 
-  if (!genAssembly)
-    remove(("./" + asmFile).c_str());
+  // if (!genAssembly)
+  //   remove(("./" + asmFile).c_str());
   
   std::cout << "\nDone.\n";
   return 0;
