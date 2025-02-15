@@ -27,6 +27,10 @@ namespace TOML {
         out << "NEW_LINE";
         break;
       
+      case TokenType::COMMA :
+        out << "COMMA";
+        break;
+      
       case TokenType::DOT :
         out << "DOT";
         break;
@@ -68,6 +72,9 @@ namespace TOML {
 
       else if (c == '=')
         token.type = TokenType::EQUALS;
+      
+      else if (c == ',')
+        token.type = TokenType::COMMA;
       
       else if (c == '.')
         token.type = TokenType::DOT;
@@ -189,6 +196,49 @@ namespace TOML {
     return table;
   }
 
+  List* Parser::processList() {
+    if (peekNotEqual({ TokenType::OPEN_SQUARE }, Token::typeEqual))
+      Utils::error("TOML Error", "Invalid list", getErrLine());
+    consume();
+
+    List* ret = new List();
+    bool first = true;
+    int errLine = getErrLine();
+
+    while (true) {
+      while (peekEqual({TokenType::NEW_LINE}, Token::typeEqual))
+        consume();
+      
+      if (peekEqual({ TokenType::CLOSED_SQUARE }, Token::typeEqual))
+        break;
+      
+      if (!hasPeek())
+        Utils::error("TOML Error", "List not closed", errLine);
+
+      if (!first) {
+        if (peekNotEqual({ TokenType::COMMA }, Token::typeEqual))
+          Utils::error("TOML Error", "Expected ',' or ']' after list content", getErrLine());
+        else
+          consume();
+      }
+
+      while (peekEqual({TokenType::NEW_LINE}, Token::typeEqual))
+        consume();
+      
+      if (peekEqual({ TokenType::CLOSED_SQUARE }, Token::typeEqual))
+        break;
+      
+      if (!hasPeek())
+        Utils::error("TOML Error", "List not closed", errLine);
+      
+      ret->list.push_back(processValue());
+      first = false;
+    }
+    consume();
+
+    return ret;
+  }
+
   Content* Parser::processValue() {
     Content* ret = new Content();
 
@@ -200,6 +250,10 @@ namespace TOML {
     } else if (peekEqual({ TokenType::STRING }, Token::typeEqual)) {
       ret->type = ContentType::STRING;
       ret->u.string = consume().value().u.string;
+
+    } else if (peekEqual({ TokenType::OPEN_SQUARE }, Token::typeEqual)) {
+      ret->type = ContentType::LIST;
+      ret->u.list = processList();
 
     } else
       Utils::error("TOML Error", "Invalid content", getErrLine());

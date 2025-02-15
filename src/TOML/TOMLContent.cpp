@@ -6,6 +6,10 @@ namespace TOML {
       case ContentType::TABLE :
         u.table->print(out);
         break;
+      
+      case ContentType::LIST :
+        u.list->print(out);
+        break;
 
       case ContentType::BOOL :
         out << (u.boolean ? "true" : "false");
@@ -21,6 +25,9 @@ namespace TOML {
     switch (type) {
       case ContentType::TABLE :
         return std::string("table");
+      
+      case ContentType::LIST :
+        return std::string("list");
 
       case ContentType::BOOL :
         return std::string("boolean");
@@ -65,5 +72,40 @@ namespace TOML {
     }
 
     out << '}';
+  }
+
+
+  Content* List::getContentOrError(int index) {
+    Content* ret = getContent(index);
+
+    if (ret == NULL)
+      Utils::error("TOML Error", std::string("Could not find content at index: ") + std::to_string(index) + std::string(" of type: \"") + Content::getTypeAsString(checkType) + std::string("\" inside list"));
+    
+    return ret;
+  }
+
+  Content* List::getContent(int index, ContentType toCheck) {
+    if (index < 0 || index >= list.size())
+      return NULL;
+    
+    Content* ret = list.at(index);
+    if (ret->type != toCheck)
+      return NULL;
+    
+    return ret;
+  }
+
+  void List::print(std::ostream& out) {
+    out << "[ ";
+
+    for (int i = 0; i < list.size(); i++) {
+      Content* value = list.at(i);
+      value->print(out);
+      if (i != list.size() - 1)
+        out << ',';
+      out << ' ';
+    }
+
+    out << ']';
   }
 }

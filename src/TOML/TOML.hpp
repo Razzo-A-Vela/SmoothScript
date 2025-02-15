@@ -15,7 +15,7 @@
 
 namespace TOML {
   enum class TokenType {
-    IDENTIFIER, EQUALS, TRUE, FALSE, STRING, NEW_LINE, DOT, OPEN_SQUARE, CLOSED_SQUARE
+    IDENTIFIER, EQUALS, TRUE, FALSE, STRING, NEW_LINE, COMMA, DOT, OPEN_SQUARE, CLOSED_SQUARE
   };
   
   struct Token {
@@ -68,6 +68,7 @@ namespace TOML {
     virtual Token get(int index) { return tokens.at(index); }
     std::string processKey();
     Content* processValue();
+    List* processList();
     Table* addTableTo(Table* toAdd, std::string tableName);
     Table* getTable(Table* table, std::string name);
 
