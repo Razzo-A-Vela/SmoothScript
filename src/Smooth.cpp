@@ -13,13 +13,15 @@ const std::string defaultConfigTOMLName = "smoothConfig.toml";
 const std::string defaultConfigTOML = "\n\
 [files]\n\
 # all paths are relative to smooth.exe\n\
-# main file(.smt) path (without extension)\n\
+# main file path\n\
 mainFile = \"\"\n\
-# out file path (without extension)\n\
+# asm file path\n\
+asmFile = \"\"\n\
+# out file path\n\
 outFile = \"\"\n\
 \n\
 [options]\n\
-# should generate assembly\n\
+# should leave assembly to read\n\
 genAssembly = false\n\
 # should not assemble and link (genAssembly required)\n\
 noLink = false\n\
@@ -70,6 +72,7 @@ int main(int argc, char* argv[]) {
 
   files->setCheckType(TOML::ContentType::STRING);
   std::string mainFile = std::string(files->getContentOrError("mainFile")->u.string);
+  std::string asmFile = std::string(files->getContentOrError("asmFile")->u.string);
   std::string outFile = std::string(files->getContentOrError("outFile")->u.string);
 
   options->setCheckType(TOML::ContentType::BOOL);
@@ -87,17 +90,19 @@ int main(int argc, char* argv[]) {
 
   if (mainFile == "")
     Utils::error("Config Error", "mainFile must not be empty");
+  
+  if (asmFile == "")
+    Utils::error("Config Error", "asmFile must not be empty");
 
   if (outFile == "")
     Utils::error("Config Error", "outFile must not be empty");
   Utils::resetErrorFileName();
 
-  std::string mainFileName = mainFile + ".smt";
-  if (!Utils::fileExists(mainFileName))
-    Utils::error("File error", std::string("File: \"") + mainFileName + std::string("\" does not exist"));
+  if (!Utils::fileExists(mainFile))
+    Utils::error("File error", std::string("File: \"") + mainFile + std::string("\" does not exist"));
   std::cout << "Reading file...\n";
-  std::string file = Utils::readEntireFile(mainFileName);
-  Utils::setErrorFileName(mainFileName);
+  std::string file = Utils::readEntireFile(mainFile);
+  Utils::setErrorFileName(mainFile);
 
   std::cout << "\nPreTokenizing...\n";
   PreTokenizer::PreTokenizer preTokenizer(file);
@@ -131,14 +136,13 @@ int main(int argc, char* argv[]) {
   Generator::Generator generator(parser.getOutput());
   generator.process();
   
-  std::string outFileName = outFile + ".asm";
   if (genAssembly)
-    std::cout << "\nGenerated assembly to: " << outFileName << '\n';
-  std::ofstream outFileStream;
-  outFileStream.open(outFileName);
+    std::cout << "\nGenerated assembly to: " << asmFile << '\n';
+  std::ofstream asmFileStream;
+  asmFileStream.open(asmFile);
 
-  generator.print(outFileStream);
-  outFileStream.close();
+  generator.print(asmFileStream);
+  asmFileStream.close();
 
   // if noLink = true -> genAssembly = true
   if (noLink) {
@@ -161,7 +165,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (!genAssembly)
-    remove(("./" + outFileName).c_str());
+    remove(("./" + asmFile).c_str());
   
   std::cout << "\nDone.\n";
   return 0;

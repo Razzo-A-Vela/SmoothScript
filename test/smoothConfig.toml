@@ -1,13 +1,15 @@
 
 [files]
 # all paths are relative to smooth.exe
-# main file(.smt) path (without extension)
-mainFile = "Prova"
-# out file path (without extension)
-outFile = "Prova"
+# main file path
+mainFile = "Prova.smt"
+# asm file path
+asmFile = "Prova.asm"
+# out file path
+outFile = "Prova.exe"
 
 [options]
-# should generate assembly
+# should leave assembly to read
 genAssembly = true
 # should not assemble and link (genAssembly required)
 noLink = false
