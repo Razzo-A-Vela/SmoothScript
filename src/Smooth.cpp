@@ -10,26 +10,18 @@ const std::string defaultConfigTOML = "\n\
 # all paths are relative to smooth.exe\n\
 # main file path\n\
 mainFile = \"\"\n\
-# asm file path\n\
-asmFile = \"\"\n\
-# out file path\n\
+# out file path (without extension)\n\
 outFile = \"\"\n\
-\n\
-[options]\n\
-# should leave assembly to read\n\
-genAssembly = false\n\
-# should not assemble and link (genAssembly required)\n\
-noLink = false\n\
+outFileExt = \"\"\n\
 \n\
 [commands]\n\
-# assembler, linker and cleanup commands\n\
-assembleCommand = \"\"\n\
-linkCommand = \"\"\n\
-cleanupCommand = \"\"\n\
+# run commands (can use $outFile$ to replace with outFile)\n\
+run = false\n\
+list = []\n\
 ";
 
-std::string getReplacedCommand(std::string toReplace, std::string mainFile, std::string outFile) {
-  return Utils::replace(Utils::replace(toReplace, "$mainFile$", mainFile), "$outFile$", outFile);
+std::string getReplacedCommand(std::string toReplace, std::string outFile) {
+  return Utils::replace(toReplace, "$outFile$", outFile);
 }
 
 int main(int argc, char* argv[]) {
@@ -62,33 +54,23 @@ int main(int argc, char* argv[]) {
 
   config->setCheckType(TOML::ContentType::TABLE);
   TOML::Table* files = config->getContentOrError("files")->u.table;
-  TOML::Table* options = config->getContentOrError("options")->u.table;
   TOML::Table* commands = config->getContentOrError("commands")->u.table;
 
   files->setCheckType(TOML::ContentType::STRING);
   std::string mainFile = std::string(files->getContentOrError("mainFile")->u.string);
-  std::string asmFile = std::string(files->getContentOrError("asmFile")->u.string);
   std::string outFile = std::string(files->getContentOrError("outFile")->u.string);
+  std::string outFileExt = std::string(files->getContentOrError("outFileExt")->u.string);
+  std::string outFileName = outFile + outFileExt;
 
-  options->setCheckType(TOML::ContentType::BOOL);
-  bool genAssembly = options->getContentOrError("genAssembly")->u.boolean;
-  bool noLink = options->getContentOrError("noLink")->u.boolean;
-  
-  commands->setCheckType(TOML::ContentType::STRING);
-  std::string assembleCommand = std::string(commands->getContentOrError("assembleCommand")->u.string);
-  std::string linkCommand = std::string(commands->getContentOrError("linkCommand")->u.string);
-  std::string cleanupCommand = std::string(commands->getContentOrError("cleanupCommand")->u.string);
-
-
-  if (!genAssembly && noLink)
-    Utils::error("Config Error", "genAssembly is required for noLink");
+  commands->setCheckType(TOML::ContentType::BOOL);
+  bool runCommands = commands->getContentOrError("run")->u.boolean;
+  commands->setCheckType(TOML::ContentType::LIST);
+  TOML::List* commandsList = commands->getContentOrError("list")->u.list;
+  commandsList->setCheckType(TOML::ContentType::STRING);
 
   if (mainFile == "")
     Utils::error("Config Error", "mainFile must not be empty");
   
-  if (asmFile == "")
-    Utils::error("Config Error", "asmFile must not be empty");
-
   if (outFile == "")
     Utils::error("Config Error", "outFile must not be empty");
   Utils::resetErrorFileName();
@@ -99,69 +81,22 @@ int main(int argc, char* argv[]) {
   std::string file = Utils::readEntireFile(mainFile);
   Utils::setErrorFileName(mainFile);
 
-  // std::cout << "\nPreTokenizing...\n";
-  // PreTokenizer::PreTokenizer preTokenizer(file);
-  // preTokenizer.process();
-  // std::cout << "\nPrinting PreTokens...\n";
-  // preTokenizer.print(std::cout);
 
 
-  // std::cout << "\nTokenizing...\n";
-  // Tokenizer::Tokenizer tokenizer(preTokenizer.getOutput());
-  // tokenizer.process();
-  // std::cout << "\nPrinting Tokens...\n";
-  // tokenizer.print(std::cout);
+  if (runCommands) {
+    std::cout << "\nRunning commands from config...\n";
 
+    for (int i = 0; i < commandsList->list.size(); i++) {
+      std::string command = std::string(commandsList->getContentOrError(i)->u.string);
 
-  // std::cout << "\nPreProcessing...\n";
-  // PreProcessor::PreProcessor preProcessor(tokenizer.getOutput());
-  // preProcessor.process();
-  // std::cout << "\nPrinting PreProcessed Tokens...\n";
-  // preProcessor.print(std::cout);  
-
-
-  // std::cout << "\nParsing...\n";
-  // Parser::Parser parser(preProcessor.getOutput());
-  // parser.process();
-  // std::cout << "\nPrinting Parse Tree...\n";
-  // parser.print(std::cout);
-
-  // Utils::resetErrorFileName();
-  // std::cout << "\nGenerating...\n";
-  // Generator::Generator generator(parser.getOutput());
-  // generator.process();
-  
-  // if (genAssembly)
-  //   std::cout << "\nGenerated assembly to: " << asmFile << '\n';
-  // std::ofstream asmFileStream;
-  // asmFileStream.open(asmFile);
-
-  // generator.print(asmFileStream);
-  // asmFileStream.close();
-
-  // // if noLink = true -> genAssembly = true
-  // if (noLink) {
-  //   std::cout << "\nDone.\n";
-  //   return 0;
-  // }
-
-
-  // std::cout << "\nAssembling...\n";
-  // std::cout << "\nRunning commands from config...\n";
-  // const char* cCommands[] = { assembleCommand.c_str(), linkCommand.c_str(), cleanupCommand.c_str() };
-  // for (int i = 0; i < 3; i++) {
-  //   std::string command = std::string(cCommands[i]);
-  //   command = getReplacedCommand(command, mainFile, outFile);
-  //   if (command != "") {
-  //     std::cout << command << '\n';
-  //     system(command.c_str());
-  //   } else
-  //     std::cout << '\n';  // I'm going to make the user think I run the command
-  // }
-
-  // if (!genAssembly)
-  //   remove(("./" + asmFile).c_str());
-  
+      if (command != "") {
+        std::cout << command << '\n';
+        system(command.c_str());
+      } else
+        std::cout << '\n';  // I'm going to make the user think I run the command
+    }
+  }
+    
   std::cout << "\nDone.\n";
   return 0;
 }

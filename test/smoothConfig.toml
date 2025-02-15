@@ -3,19 +3,16 @@
 # all paths are relative to smooth.exe
 # main file path
 mainFile = "Prova.smt"
-# asm file path
-asmFile = "Prova.asm"
-# out file path
-outFile = "Prova.exe"
-
-[options]
-# should leave assembly to read
-genAssembly = true
-# should not assemble and link (genAssembly required)
-noLink = false
+# out file path (without extension)
+outFile = "Prova"
+outFileExt = ".asm"
 
 [commands]
-# assembler, linker and cleanup commands
-assembleCommand = "nasm -f win64 $outFile$.asm"
-linkCommand = "gcc $outFile$.obj -o $outFile$.exe"
-cleanupCommand = "del $outFile$.obj"
+# run commands (can use $outFile$ to replace with outFile)
+run = false
+list = [
+  "nasm -f win64 $outFile$.asm",
+  "gcc $outFile$.obj -o $outFile$.exe",
+  "del $outFile$.obj",
+  "del $outFile$.asm"
+]
