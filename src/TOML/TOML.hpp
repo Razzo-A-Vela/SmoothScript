@@ -9,7 +9,7 @@
 #include <util/ErrorUtils.hpp>
 #include <util/StringUtils.hpp>
 #include <util/FileUtils.hpp>
-#include <Processor/Processor.hpp>
+#include <util/Processor.hpp>
 
 #include "TOMLContent.hpp"
 
@@ -31,7 +31,7 @@ namespace TOML {
   };
 
 
-  class Tokenizer : public Processor<char, Token> {
+  class Tokenizer : public Utils::Processor<char, Token> {
   private:
     std::string fileContent;
     int line = 1;
@@ -47,7 +47,7 @@ namespace TOML {
   };
 
 
-  class Parser : public Processor<Token, Table*> {
+  class Parser : public Utils::Processor<Token, Table*> {
   private:
     std::vector<Token> tokens;
     TOML::Table* root;
