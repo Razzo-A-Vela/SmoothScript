@@ -117,6 +117,8 @@ namespace TOML {
               buff << '\n';
             else if (escapeC == 't')
               buff << '\t';
+            else if (escapeC == '\\')
+              buff << "\\";
             else
               Utils::error("TOML Error", "Invalid escape character", line);
             
