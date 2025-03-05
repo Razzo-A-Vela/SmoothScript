@@ -3,6 +3,7 @@
 
 #include <util/StringUtils.hpp>
 #include <TOML/TOML.hpp>
+#include <PreTokenizer/PreTokenizer.hpp>
 
 const std::string defaultConfigTOMLName = "smoothConfig.toml";
 const std::string defaultConfigTOML = "\n\
@@ -20,9 +21,9 @@ run = false\n\
 list = []\n\
 ";
 
-std::string getReplacedCommand(std::string toReplace, std::string outFile) {
-  return Utils::replace(toReplace, "$outFile$", outFile);
-}
+// std::string getReplacedCommand(std::string toReplace, std::string outFile) {
+//   return Utils::replace(toReplace, "$outFile$", outFile);
+// }
 
 int main(int argc, char* argv[]) {
   std::string configTOMLName;
@@ -54,7 +55,7 @@ int main(int argc, char* argv[]) {
 
   config->setCheckType(TOML::ContentType::TABLE);
   TOML::Table* files = config->getContentOrError("files")->u.table;
-  TOML::Table* commands = config->getContentOrError("commands")->u.table;
+  // TOML::Table* commands = config->getContentOrError("commands")->u.table;
 
   files->setCheckType(TOML::ContentType::STRING);
   std::string mainFile = std::string(files->getContentOrError("mainFile")->u.string);
@@ -62,11 +63,11 @@ int main(int argc, char* argv[]) {
   std::string outFileExt = std::string(files->getContentOrError("outFileExt")->u.string);
   std::string outFileName = outFile + outFileExt;
 
-  commands->setCheckType(TOML::ContentType::BOOL);
-  bool runCommands = commands->getContentOrError("run")->u.boolean;
-  commands->setCheckType(TOML::ContentType::LIST);
-  TOML::List* commandsList = commands->getContentOrError("list")->u.list;
-  commandsList->setCheckType(TOML::ContentType::STRING);
+  // commands->setCheckType(TOML::ContentType::BOOL);
+  // bool runCommands = commands->getContentOrError("run")->u.boolean;
+  // commands->setCheckType(TOML::ContentType::LIST);
+  // TOML::List* commandsList = commands->getContentOrError("list")->u.list;
+  // commandsList->setCheckType(TOML::ContentType::STRING);
 
   if (mainFile == "")
     Utils::error("Config Error", "mainFile must not be empty");
@@ -81,22 +82,27 @@ int main(int argc, char* argv[]) {
   std::string file = Utils::readEntireFile(mainFile);
   Utils::setErrorFileName(mainFile);
 
+  std::cout << "\nPreTokenizing...\n";
+  PreTokenizer::PreTokenizer preTokenizer(file);
+  preTokenizer.process();
+  std::cout << "\nPrinting PreTokens...\n";
+  preTokenizer.print(std::cout);
 
 
-  if (runCommands) {
-    std::cout << "\nRunning commands from config...\n";
+  // if (runCommands) {
+  //   std::cout << "\nRunning commands from config...\n";
 
-    for (int i = 0; i < commandsList->list.size(); i++) {
-      std::string command = std::string(commandsList->getContentOrError(i)->u.string);
+  //   for (int i = 0; i < commandsList->list.size(); i++) {
+  //     std::string command = std::string(commandsList->getContentOrError(i)->u.string);
 
-      if (command != "") {
-        std::cout << command << '\n';
-        system(command.c_str());
-      } else
-        std::cout << '\n';  // I'm going to make the user think I run the command
-    }
-  }
+  //     if (command != "") {
+  //       std::cout << command << '\n';
+  //       system(command.c_str());
+  //     } else
+  //       std::cout << '\n';  // I'm going to make the user think I run the command
+  //   }
+  // }
     
-  std::cout << "\nDone.\n";
+  // std::cout << "\nDone.\n";
   return 0;
 }
