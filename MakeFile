@@ -1,6 +1,6 @@
 
 FLAGS = -g3 -std=c++20 -I src
-CPP_FILES = src\Smooth.cpp src\TOML\\*.cpp src\util\\*.cpp src\PreTokenizer\\*.cpp
+CPP_FILES = src\Smooth.cpp src\TOML\\*.cpp src\util\\*.cpp src\PreTokenizer\\*.cpp src\Tokenizer\\*.cpp src\Literal\\*.cpp
 
 build:
 	g++ $(FLAGS) $(CPP_FILES) -o test\smooth.exe

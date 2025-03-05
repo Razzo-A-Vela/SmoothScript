@@ -4,6 +4,7 @@
 #include <util/StringUtils.hpp>
 #include <TOML/TOML.hpp>
 #include <PreTokenizer/PreTokenizer.hpp>
+#include <Tokenizer/Tokenizer.hpp>
 
 const std::string defaultConfigTOMLName = "smoothConfig.toml";
 const std::string defaultConfigTOML = "\n\
@@ -82,12 +83,18 @@ int main(int argc, char* argv[]) {
   std::string file = Utils::readEntireFile(mainFile);
   Utils::setErrorFileName(mainFile);
 
+
   std::cout << "\nPreTokenizing...\n";
   PreTokenizer::PreTokenizer preTokenizer(file);
   preTokenizer.process();
   std::cout << "\nPrinting PreTokens...\n";
   preTokenizer.print(std::cout);
 
+  std::cout << "\nTokenizing...\n";
+  Tokenizer::Tokenizer tokenizer(preTokenizer.getOutput());
+  tokenizer.process();
+  std::cout << "\nPrinting Tokens...\n";
+  tokenizer.print(std::cout);
 
   // if (runCommands) {
   //   std::cout << "\nRunning commands from config...\n";
