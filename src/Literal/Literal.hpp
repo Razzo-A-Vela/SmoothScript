@@ -13,5 +13,5 @@ struct Literal {
   } u;
 
   void print(std::ostream& out);
-  bool operator==(Literal& right);
+  bool operator==(const Literal& right) const;
 };

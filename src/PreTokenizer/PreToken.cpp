@@ -21,7 +21,7 @@ namespace PreTokenizer {
   }
 
 
-  bool PreToken::operator==(const PreToken& right) {
+  bool PreToken::operator==(const PreToken& right) const {
     return type == right.type;
   }
 

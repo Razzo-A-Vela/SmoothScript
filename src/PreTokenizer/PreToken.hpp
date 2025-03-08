@@ -16,7 +16,7 @@ namespace PreTokenizer {
     int line; 
 
     void print(std::ostream& out);
-    bool operator==(const PreToken& right);
+    bool operator==(const PreToken& right) const;
 
     static bool typeCharEqual(PreToken left, PreToken right);
     static bool typeStringEqual(PreToken left, PreToken right);

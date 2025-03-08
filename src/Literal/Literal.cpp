@@ -8,7 +8,7 @@ void Literal::print(std::ostream& out) {
   }
 }
 
-bool Literal::operator==(Literal& right) {
+bool Literal::operator==(const Literal& right) const {
   if (type != right.type)
     return false;
   

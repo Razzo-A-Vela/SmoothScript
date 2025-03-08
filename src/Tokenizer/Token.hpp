@@ -26,7 +26,7 @@ namespace Tokenizer {
     int line;
 
     void print(std::ostream& out);
-    bool operator==(Token& right);
+    bool operator==(Token& right) const;
 
     bool typeStringEqual(Token& left, Token& right);
     bool typeCharEqual(Token& left, Token& right);

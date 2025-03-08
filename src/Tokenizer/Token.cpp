@@ -74,7 +74,7 @@ namespace Tokenizer {
   }
 
   
-  bool Token::operator==(Token& right) {
+  bool Token::operator==(Token& right) const {
     return type == right.type;    
   }
 
