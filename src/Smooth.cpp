@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 
+#include <util/ErrorUtils.hpp>
 #include <util/StringUtils.hpp>
 #include <TOML/TOML.hpp>
 #include <PreTokenizer/PreTokenizer.hpp>

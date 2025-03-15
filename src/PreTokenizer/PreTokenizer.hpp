@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include <util/Processor.hpp>
+#include <util/ErrorUtils.hpp>
 #include <util/StringUtils.hpp>
 
 #include "PreToken.hpp"

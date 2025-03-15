@@ -2,6 +2,7 @@
 #include <ostream>
 
 #include <util/Processor.hpp>
+#include <util/ErrorUtils.hpp>
 #include <PreTokenizer/PreToken.hpp>
 
 #include "Token.hpp"
