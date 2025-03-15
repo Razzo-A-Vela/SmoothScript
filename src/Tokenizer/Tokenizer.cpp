@@ -21,8 +21,8 @@ namespace Tokenizer {
       if (preToken.type == PreTokenType::IDENTIFIER) {
         std::string str = std::string(preToken.u.string);
 
-        if (str == "function")
-          token.type = TokenType::FUNCTION;
+        if (str == "func")
+          token.type = TokenType::FUNC;
         
         else if (str == "impl")
           token.type = TokenType::IMPL;
