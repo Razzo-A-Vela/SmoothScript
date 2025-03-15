@@ -48,8 +48,8 @@ namespace Utils {
     }
 
     
-    bool tryConsume(I equal, std::function<bool(I, I)> equalFunc) { return hasPeek() && equalFunc(peekValue(), equal) && consume().has_value(); }
-    bool tryConsume(I equal) { return hasPeek() && peekValue() == equal && consume().has_value(); }
+    bool tryConsume(I equal, std::function<bool(I, I)> equalFunc) { return peekEqual(equal, equalFunc) && consume().has_value(); }
+    bool tryConsume(I equal) { return peekEqual(equal) && consume().has_value(); }
     std::optional<I> consume() {
       std::optional<I> t = peek();
 
