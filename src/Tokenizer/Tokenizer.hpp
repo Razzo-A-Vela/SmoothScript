@@ -1,8 +1,10 @@
 #pragma once
 #include <ostream>
+#include <sstream>
 
 #include <util/Processor.hpp>
 #include <util/ErrorUtils.hpp>
+#include <util/StringUtils.hpp>
 #include <PreTokenizer/PreToken.hpp>
 
 #include "Token.hpp"

@@ -15,9 +15,30 @@ namespace PreTokenizer {
       case PreTokenType::NUMBER :
         out << "NUMBER(" << u.string << ')';
         break;
+
+      case PreTokenType::STRING_LITERAL :
+        out << "STRING(" << u.string << ')';
+        break;
+
+      case PreTokenType::CHAR_LITERAL :
+        out << "CHAR(" << u.string << ')';
+        break;
+      
+      
+      case PreTokenType::PRE_PROCESSOR :
+        out << "PRE_PROCESSOR(" << u.string << ')';
+        break;
+      
+      case PreTokenType::END_PRE_PROCESSOR :
+        out << "END_PRE_PROCESSOR";
+        break;
+      
+      case PreTokenType::SPACES :
+        out << "SPACES";
+        break;
     }
 
-    out << '[' << line << ']';
+    out << " [" << line << ']';
   }
 
 

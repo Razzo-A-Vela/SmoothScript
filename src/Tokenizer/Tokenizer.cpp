@@ -7,6 +7,76 @@ namespace Tokenizer {
     if (preToken.type == PreTokenType::NUMBER) {
       literal.type = LiteralType::INTEGER;
       literal.u.integer = std::stoi(std::string(preToken.u.string));
+    
+    } else if (preToken.type == PreTokenType::STRING_LITERAL) {
+      literal.type = LiteralType::STRING;
+      std::string toCheck = std::string(preToken.u.string);
+      std::stringstream toModify;
+
+      bool foundBackslash = false;
+      for (char c : toCheck) {
+        if (c == '\\') {
+          foundBackslash = true;
+          continue;
+        }
+
+        if (foundBackslash) {
+          foundBackslash = false;
+
+          if (c == 'n')
+            toModify << '\n';
+          
+          else if (c == 'r')
+            toModify << '\r';
+          
+          else if (c == 't')
+            toModify << '\t';
+          
+          else if (c == '0')
+            toModify << '\0';
+          
+          else if (c == '0')
+            toModify << '\0';
+          
+          else if (c == '\\')
+            toModify << '\\';
+          
+          else
+            Utils::error("Syntax Error", "Invalid stringLiteral", preToken.line);
+        
+        } else
+          toModify << c;
+      }
+
+      literal.u.string = Utils::stringToCString(toModify.str());
+
+    } else if (preToken.type == PreTokenType::CHAR_LITERAL) {
+      literal.type = LiteralType::CHAR;
+      std::string toCheck = std::string(preToken.u.string);
+      char character;
+
+      if (toCheck.size() == 1)
+        character = toCheck.at(0);
+
+      else if (toCheck == "\\n")
+        character = '\n';
+        
+      else if (toCheck == "\\r")
+        character = '\r';
+        
+      else if (toCheck == "\\t")
+        character = '\t';
+        
+      else if (toCheck == "\\0")
+        character = '\0';
+        
+      else if (toCheck == "\\\\")
+        character = '\\';
+      
+      else
+        Utils::error("Syntax Error", "Invalid charLiteral", preToken.line);
+      
+      literal.u.character = character;
     }
 
     addToOutput({ TokenType::LITERAL, { .literal = literal }, preToken.line });
@@ -72,10 +142,18 @@ namespace Tokenizer {
           token.u.character = c;
         }
       
-      } else if (preToken.type == PreTokenType::NUMBER) {
+      } else if (preToken.type == PreTokenType::NUMBER || preToken.type == PreTokenType::STRING_LITERAL || preToken.type == PreTokenType::CHAR_LITERAL) {
         processLiteral(preToken);
         continue;
-      }
+      
+      } else if (preToken.type == PreTokenType::SPACES)
+        continue;
+
+      else if (preToken.type == PreTokenType::PRE_PROCESSOR)
+        Utils::error("Internal Error", "Unexpected preProcessor inside Tokenizer", preToken.line);
+      
+      else if (preToken.type == PreTokenType::END_PRE_PROCESSOR)
+        Utils::error("Internal Error", "Unexpected endPreProcessor inside Tokenizer", preToken.line);
 
       addToOutput(token);
     }

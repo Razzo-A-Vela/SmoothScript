@@ -3,13 +3,15 @@
 
 
 enum class LiteralType {
-  INTEGER
+  INTEGER, STRING, CHAR
 };
 
 struct Literal {
   LiteralType type;
   union {
     int integer;
+    const char* string;
+    char character;
   } u;
 
   void print(std::ostream& out);
