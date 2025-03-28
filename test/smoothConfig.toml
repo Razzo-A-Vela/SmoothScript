@@ -1,18 +1,3 @@
 
 [files]
-# all paths are relative to smooth.exe
-# main file path
 mainFile = "Prova.smt"
-# out file path (without extension)
-outFile = "Prova"
-outFileExt = ".asm"
-
-[commands]
-# run commands (can use $outFile$ to replace with outFile)
-run = false
-list = [
-  "nasm -f win64 $outFile$.asm",
-  "gcc $outFile$.obj -o $outFile$.exe",
-  "del $outFile$.obj",
-  "del $outFile$.asm"
-]
