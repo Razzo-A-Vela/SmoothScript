@@ -23,6 +23,8 @@ run = false\n\
 list = []\n\
 ";
 
+//TODO: make use of size_t instead of int when necessary
+
 // std::string getReplacedCommand(std::string toReplace, std::string outFile) {
 //   return Utils::replace(toReplace, "$outFile$", outFile);
 // }
