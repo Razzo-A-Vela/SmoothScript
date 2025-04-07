@@ -7,10 +7,6 @@ namespace Tokenizer {
         out << "FUNC";
         break;
       
-      case TokenType::IMPL :
-        out << "IMPL";
-        break;
-      
       case TokenType::RETURN :
         out << "RETURN";
         break;

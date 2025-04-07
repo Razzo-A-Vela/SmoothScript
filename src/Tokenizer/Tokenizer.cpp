@@ -94,9 +94,6 @@ namespace Tokenizer {
         if (str == "func")
           token.type = TokenType::FUNC;
         
-        else if (str == "impl")
-          token.type = TokenType::IMPL;
-        
         else if (str == "return")
           token.type = TokenType::RETURN;
         

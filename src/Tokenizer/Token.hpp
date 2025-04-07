@@ -5,7 +5,7 @@
 
 namespace Tokenizer {
   enum class TokenType {
-    FUNC, IMPL, RETURN,
+    FUNC, RETURN,
 
     
     SEMI, MINUS,
