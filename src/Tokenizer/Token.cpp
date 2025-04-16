@@ -74,15 +74,15 @@ namespace Tokenizer {
     return type == right.type;    
   }
 
-  bool Token::typeStringEqual(Token& left, Token& right) {
+  bool Token::typeStringEqual(Token left, Token right) {
     return left.type == right.type && std::string(left.u.string) == std::string(right.u.string);
   }
 
-  bool Token::typeCharEqual(Token& left, Token& right) {
+  bool Token::typeCharEqual(Token left, Token right) {
     return left.type == right.type && left.u.character == right.u.character;
   }
 
-  bool Token::typeLiteralEqual(Token& left, Token& right) {
+  bool Token::typeLiteralEqual(Token left, Token right) {
     return left.type == right.type && left.u.literal == right.u.literal;
   }
 }
