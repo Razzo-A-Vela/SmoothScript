@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
   tokenizer.process();
   std::cout << "\nPrinting Tokens...\n";
   tokenizer.print(std::cout);
-    
+  
   std::cout << "\n\nDone.\n";
   return 0;
 }

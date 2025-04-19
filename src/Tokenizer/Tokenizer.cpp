@@ -35,11 +35,14 @@ namespace Tokenizer {
           else if (c == '0')
             toModify << '\0';
           
-          else if (c == '0')
-            toModify << '\0';
-          
           else if (c == '\\')
             toModify << '\\';
+          
+          else if (c == '\"')
+            toModify << '\"';
+          
+          else if (c == '\'')
+            toModify << '\'';
           
           else
             Utils::error("Syntax Error", "Invalid stringLiteral", preToken.line);
@@ -72,6 +75,12 @@ namespace Tokenizer {
         
       else if (toCheck == "\\\\")
         character = '\\';
+        
+      else if (toCheck == "\\\"")
+        character = '\"';
+        
+      else if (toCheck == "\\\'")
+        character = '\'';
       
       else
         Utils::error("Syntax Error", "Invalid charLiteral", preToken.line);
