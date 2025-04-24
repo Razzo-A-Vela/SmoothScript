@@ -20,7 +20,8 @@ namespace Tokenizer {
 
   protected:
     virtual PreToken get(int index) { return preTokens.at(index); }
-    void processLiteral(PreToken preToken);
+    Token* processToken(PreToken preToken);
+    Token* processLiteral(PreToken preToken);
 
   private:
     std::vector<PreToken> preTokens;

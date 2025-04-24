@@ -1,7 +1,10 @@
 #include "Tokenizer.hpp"
 
 namespace Tokenizer {
-  void Tokenizer::processLiteral(PreToken preToken) {
+  Token* Tokenizer::processLiteral(PreToken preToken) {
+    Token* ret = new Token();
+    ret->type = TokenType::LITERAL;
+    ret->line = preToken.line;
     Literal literal;
     
     if (preToken.type == PreTokenType::NUMBER) {
@@ -88,80 +91,103 @@ namespace Tokenizer {
       literal.u.character = character;
     }
 
-    addToOutput({ TokenType::LITERAL, { .literal = literal }, preToken.line });
+    ret->u.literal = literal;
+    return ret;
+  }
+
+  Token* Tokenizer::processToken(PreToken preToken) {
+    Token* ret = new Token();
+    ret->line = preToken.line;
+    
+    if (preToken.type == PreTokenType::IDENTIFIER) {
+      std::string str = std::string(preToken.u.string);
+
+      if (str == "func")
+        ret->type = TokenType::FUNC;
+      
+      else if (str == "return")
+        ret->type = TokenType::RETURN;
+      
+      else {
+        ret->type = TokenType::IDENTIFIER;
+        ret->u.string = preToken.u.string;
+      }
+    
+    } else if (preToken.type == PreTokenType::SYMBOL) {
+      char c = preToken.u.character;
+
+      if (c == '(') {
+        ret->type = TokenType::PARENTS;
+        ret->u.tokens = new std::vector<Token*>();
+        while (!tryConsume({ PreTokenType::SYMBOL, { .character = ')' } }, PreToken::typeCharEqual)) {
+          if (!hasPeek())
+            Utils::error("Expected ')' after '('", preToken.line);
+          
+          Token* token = processToken(consume().value());
+          if (token != NULL)
+            ret->u.tokens->push_back(token);
+        }
+
+      } else if (c == '[') {
+        ret->type = TokenType::SQUARES;
+        ret->u.tokens = new std::vector<Token*>();
+        while (!tryConsume({ PreTokenType::SYMBOL, { .character = ']' } }, PreToken::typeCharEqual)) {
+          if (!hasPeek())
+            Utils::error("Expected ']' after '['", preToken.line);
+          
+          Token* token = processToken(consume().value());
+          if (token != NULL)
+            ret->u.tokens->push_back(token);
+        }
+
+      } else if (c == '{') {
+        ret->type = TokenType::BRACKETS;
+        ret->u.tokens = new std::vector<Token*>();
+        while (!tryConsume({ PreTokenType::SYMBOL, { .character = '}' } }, PreToken::typeCharEqual)) {
+          if (!hasPeek())
+            Utils::error("Expected '}' after '{'", preToken.line);
+          
+          Token* token = processToken(consume().value());
+          if (token != NULL)
+            ret->u.tokens->push_back(token);
+        }
+
+      } else if (c == ';')
+        ret->type = TokenType::SEMI;
+      
+      else if (c == '-') {
+        if (peekEqual({ PreTokenType::SYMBOL, { .character = '>' } }, PreToken::typeCharEqual)) {
+          consume();
+          ret->type = TokenType::ARROW;
+        
+        } else
+          ret->type = TokenType::MINUS;
+      
+      } else {
+        ret->type = TokenType::SYMBOL;
+        ret->u.character = c;
+      }
+    
+    } else if (preToken.type == PreTokenType::NUMBER || preToken.type == PreTokenType::STRING_LITERAL || preToken.type == PreTokenType::CHAR_LITERAL) {
+      return processLiteral(preToken);
+    
+    } else if (preToken.type == PreTokenType::SPACES)
+      return NULL;
+
+    else if (preToken.type == PreTokenType::PRE_PROCESSOR)
+      Utils::error("Internal Error", "Unexpected preProcessor inside Tokenizer", preToken.line);
+    
+    else if (preToken.type == PreTokenType::END_PRE_PROCESSOR)
+      Utils::error("Internal Error", "Unexpected endPreProcessor inside Tokenizer", preToken.line);
+    
+    return ret;
   }
 
   void Tokenizer::process() {
     while (hasPeek()) {
-      PreToken preToken = consume().value();
-      Token token;
-      token.line = preToken.line;
-
-      if (preToken.type == PreTokenType::IDENTIFIER) {
-        std::string str = std::string(preToken.u.string);
-
-        if (str == "func")
-          token.type = TokenType::FUNC;
-        
-        else if (str == "return")
-          token.type = TokenType::RETURN;
-        
-        else {
-          token.type = TokenType::IDENTIFIER;
-          token.u.string = preToken.u.string;
-        }
-      
-      } else if (preToken.type == PreTokenType::SYMBOL) {
-        char c = preToken.u.character;
-
-        if (c == ';')
-          token.type = TokenType::SEMI;
-        
-        else if (c == '(')
-          token.type = TokenType::OPEN_PAREN;
-
-        else if (c == ')')
-          token.type = TokenType::CLOSED_PAREN;
-
-        else if (c == '[')
-          token.type = TokenType::OPEN_SQUARE;
-
-        else if (c == ']')
-          token.type = TokenType::CLOSED_SQUARE;
-
-        else if (c == '{')
-          token.type = TokenType::OPEN_BRACKET;
-
-        else if (c == '}')
-          token.type = TokenType::CLOSED_BRACKET;
-        
-        else if (c == '-') {
-          if (peekEqual({ PreTokenType::SYMBOL, { .character = '>' } }, PreToken::typeCharEqual)) {
-            consume();
-            token.type = TokenType::ARROW;
-          
-          } else
-            token.type = TokenType::MINUS;
-        
-        } else {
-          token.type = TokenType::SYMBOL;
-          token.u.character = c;
-        }
-      
-      } else if (preToken.type == PreTokenType::NUMBER || preToken.type == PreTokenType::STRING_LITERAL || preToken.type == PreTokenType::CHAR_LITERAL) {
-        processLiteral(preToken);
-        continue;
-      
-      } else if (preToken.type == PreTokenType::SPACES)
-        continue;
-
-      else if (preToken.type == PreTokenType::PRE_PROCESSOR)
-        Utils::error("Internal Error", "Unexpected preProcessor inside Tokenizer", preToken.line);
-      
-      else if (preToken.type == PreTokenType::END_PRE_PROCESSOR)
-        Utils::error("Internal Error", "Unexpected endPreProcessor inside Tokenizer", preToken.line);
-
-      addToOutput(token);
+      Token* token = processToken(consume().value());
+      if (token != NULL)
+        addToOutput(*token);
     }
   }
 

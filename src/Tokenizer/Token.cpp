@@ -21,28 +21,34 @@ namespace Tokenizer {
         break;
       
       
-      case TokenType::OPEN_PAREN :
-        out << "OPEN_PAREN";
+      case TokenType::PARENTS :
+        out << "( ";
+        for (int i = 0; i < u.tokens->size(); i++) {
+          u.tokens->at(i)->print(out);
+          if (i != u.tokens->size() - 1)
+            out << ", ";
+        }
+        out << " )";
         break;
       
-      case TokenType::CLOSED_PAREN :
-        out << "CLOSED_PAREN";
+      case TokenType::SQUARES :
+        out << "[ ";
+        for (int i = 0; i < u.tokens->size(); i++) {
+          u.tokens->at(i)->print(out);
+          if (i != u.tokens->size() - 1)
+            out << ", ";
+        }
+        out << " ]";
         break;
       
-      case TokenType::OPEN_SQUARE :
-        out << "OPEN_SQUARE";
-        break;
-      
-      case TokenType::CLOSED_SQUARE :
-        out << "CLOSED_SQUARE";
-        break;
-      
-      case TokenType::OPEN_BRACKET :
-        out << "OPEN_BRACKET";
-        break;
-      
-      case TokenType::CLOSED_BRACKET :
-        out << "CLOSED_BRACKET";
+      case TokenType::BRACKETS :
+        out << "{ ";
+        for (int i = 0; i < u.tokens->size(); i++) {
+          u.tokens->at(i)->print(out);
+          if (i != u.tokens->size() - 1)
+            out << ", ";
+        }
+        out << " }";
         break;
       
 

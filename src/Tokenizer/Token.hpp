@@ -1,5 +1,6 @@
 #pragma once
 #include <ostream>
+#include <vector>
 
 #include <Literal/Literal.hpp>
 
@@ -9,7 +10,7 @@ namespace Tokenizer {
 
     
     SEMI, MINUS,
-    OPEN_PAREN, CLOSED_PAREN, OPEN_SQUARE, CLOSED_SQUARE, OPEN_BRACKET, CLOSED_BRACKET,
+    PARENTS, SQUARES, BRACKETS,
     ARROW,
     
 
@@ -22,6 +23,7 @@ namespace Tokenizer {
       const char* string;
       char character;
       Literal literal;
+      std::vector<Token*>* tokens;
     } u;
     int line;
 
