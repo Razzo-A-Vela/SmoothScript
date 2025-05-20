@@ -152,20 +152,22 @@ namespace Tokenizer {
             ret->u.tokens->push_back(token);
         }
 
-      } else if (c == ';')
-        ret->type = TokenType::SEMI;
-      
-      else if (c == '-') {
-        if (peekEqual({ PreTokenType::SYMBOL, { .character = '>' } }, PreToken::typeCharEqual)) {
-          consume();
-          ret->type = TokenType::ARROW;
+      } else switch (c) {
+        case ';' :
+          ret->type = TokenType::SEMI;
+          break;
         
-        } else
-          ret->type = TokenType::MINUS;
-      
-      } else {
-        ret->type = TokenType::SYMBOL;
-        ret->u.character = c;
+        case '-' :
+          if (tryConsume({ PreTokenType::SYMBOL, { .character = '>' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::ARROW;
+          else
+            ret->type = TokenType::MINUS;
+          break;
+          
+        default :
+          ret->type = TokenType::SYMBOL;
+          ret->u.character = c;
+          break;
       }
     
     } else if (preToken.type == PreTokenType::NUMBER || preToken.type == PreTokenType::STRING_LITERAL || preToken.type == PreTokenType::CHAR_LITERAL) {
