@@ -19,8 +19,12 @@ namespace Tokenizer {
       case TokenType::MINUS :
         out << "MINUS";
         break;
+
+      case TokenType::EQUALS :
+        out << "EQUALS";
+        break;
       
-      
+
       case TokenType::PARENTS :
         out << "( ";
         for (int i = 0; i < u.tokens->size(); i++) {
@@ -69,6 +73,10 @@ namespace Tokenizer {
         out << "LITERAL(";
         u.literal.print(out);
         out << ')';
+        break;
+      
+      case TokenType::PARSER_PARAM :
+        out << "$" << u.string;
         break;
     }
 

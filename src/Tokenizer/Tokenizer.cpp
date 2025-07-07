@@ -152,6 +152,10 @@ namespace Tokenizer {
             ret->u.tokens->push_back(token);
         }
 
+      } else if (c == '$' && peekEqual({ PreTokenType::IDENTIFIER })) {
+        ret->type = TokenType::PARSER_PARAM;
+        ret->u.string = consume().value().u.string;
+
       } else switch (c) {
         case ';' :
           ret->type = TokenType::SEMI;
@@ -163,7 +167,12 @@ namespace Tokenizer {
           else
             ret->type = TokenType::MINUS;
           break;
-          
+        
+        case '=' :
+          ret->type = TokenType::EQUALS;
+          break;
+        
+        
         default :
           ret->type = TokenType::SYMBOL;
           ret->u.character = c;

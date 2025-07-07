@@ -9,12 +9,12 @@ namespace Tokenizer {
     FUNC, RETURN,
 
     
-    SEMI, MINUS,
+    SEMI, MINUS, EQUALS,
     PARENTS, SQUARES, BRACKETS,
     ARROW,
     
 
-    IDENTIFIER, SYMBOL, LITERAL
+    IDENTIFIER, SYMBOL, LITERAL, PARSER_PARAM
   };
   
   struct Token {
