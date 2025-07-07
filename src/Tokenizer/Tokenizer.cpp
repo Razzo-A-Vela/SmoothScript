@@ -170,17 +170,10 @@ namespace Tokenizer {
           break;
       }
     
-    } else if (preToken.type == PreTokenType::NUMBER || preToken.type == PreTokenType::STRING_LITERAL || preToken.type == PreTokenType::CHAR_LITERAL) {
+    } else if (preToken.type == PreTokenType::NUMBER || preToken.type == PreTokenType::STRING_LITERAL || preToken.type == PreTokenType::CHAR_LITERAL)
       return processLiteral(preToken);
-    
-    } else if (preToken.type == PreTokenType::SPACES)
+    else if (preToken.type == PreTokenType::SPACES)
       return NULL;
-
-    else if (preToken.type == PreTokenType::PRE_PROCESSOR)
-      Utils::error("Internal Error", "Unexpected preProcessor inside Tokenizer", preToken.line);
-    
-    else if (preToken.type == PreTokenType::END_PRE_PROCESSOR)
-      Utils::error("Internal Error", "Unexpected endPreProcessor inside Tokenizer", preToken.line);
     
     return ret;
   }

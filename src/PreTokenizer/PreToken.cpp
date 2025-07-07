@@ -24,15 +24,6 @@ namespace PreTokenizer {
         out << "CHAR(" << u.string << ')';
         break;
       
-      
-      case PreTokenType::PRE_PROCESSOR :
-        out << "PRE_PROCESSOR(" << u.string << ')';
-        break;
-      
-      case PreTokenType::END_PRE_PROCESSOR :
-        out << "END_PRE_PROCESSOR";
-        break;
-      
       case PreTokenType::SPACES :
         out << "SPACES";
         break;

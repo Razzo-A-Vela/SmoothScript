@@ -72,21 +72,6 @@ namespace PreTokenizer {
         
         addToOutput({ PreTokenType::NUMBER, { .string = Utils::stringToCString(stream.str()) }, line });
 
-      } else if (c == '#') {
-          if (!hasPeek())
-            Utils::error("Syntax Error", "Expected preProcessor name after '#'", line);
-          if (!isalpha(peekValue()) && peekValue() != '_')
-            Utils::error("Syntax Error", "Invalid preProcessor name", line);
-
-          std::stringstream stream;
-          while (hasPeek() && (isalnum(peekValue()) || peekValue() == '_'))
-            stream << consume().value();
-          addToOutput({ PreTokenType::PRE_PROCESSOR, { .string = Utils::stringToCString(stream.str()) }, line });
-
-      } else if (c == '\\' && peekEqual('#')) {
-          consume();
-          addToOutput({ PreTokenType::END_PRE_PROCESSOR, {}, line });
-
       } else if (c == '\"' || c == '\'') {
         std::stringstream stream;
         char quote = c;

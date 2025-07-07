@@ -4,9 +4,7 @@
 
 namespace PreTokenizer {
   enum class PreTokenType {
-    IDENTIFIER, SYMBOL, NUMBER, STRING_LITERAL, CHAR_LITERAL,
-    
-    PRE_PROCESSOR, END_PRE_PROCESSOR, SPACES
+    IDENTIFIER, SYMBOL, NUMBER, STRING_LITERAL, CHAR_LITERAL, SPACES
   };
 
   struct PreToken {
