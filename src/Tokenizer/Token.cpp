@@ -10,10 +10,75 @@ namespace Tokenizer {
       case TokenType::RETURN :
         out << "RETURN";
         break;
+
+      
+      case TokenType::INT8 :
+        out << "INT8";
+        break;
+      
+      case TokenType::INT16 :
+        out << "INT16";
+        break;
+      
+      case TokenType::INT32 :
+        out << "INT32";
+        break;
+      
+      case TokenType::INT64 :
+        out << "INT64";
+        break;
+      
+      case TokenType::UINT8 :
+        out << "UINT8";
+        break;
+      
+      case TokenType::UINT16 :
+        out << "UINT16";
+        break;
+      
+      case TokenType::UINT32 :
+        out << "UINT32";
+        break;
+      
+      case TokenType::UINT64 :
+        out << "UINT64";
+        break;
+      
+      case TokenType::FLOAT :
+        out << "FLOAT";
+        break;
+      
+      case TokenType::DOUBLE :
+        out << "DOUBLE";
+        break;
+      
+      case TokenType::BOOL :
+        out << "BOOL";
+        break;
+      
+      case TokenType::CSTR :
+        out << "CSTR";
+        break;
+      
+      case TokenType::CHAR :
+        out << "CHAR";
+        break;
+      
+      case TokenType::SIZE_T :
+        out << "SIZE_T";
+        break;
+      
+      case TokenType::VOID :
+        out << "VOID";
+        break;
       
 
       case TokenType::SEMI :
         out << "SEMI";
+        break;
+      
+      case TokenType::COLON :
+        out << "COLON";
         break;
 
       case TokenType::MINUS :

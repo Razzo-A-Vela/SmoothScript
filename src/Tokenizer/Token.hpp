@@ -8,8 +8,12 @@ namespace Tokenizer {
   enum class TokenType {
     FUNC, RETURN,
 
+    INT8, INT16, INT32, INT64,
+    UINT8, UINT16, UINT32, UINT64,
+    FLOAT, DOUBLE, BOOL, CSTR, CHAR,
+    SIZE_T, VOID,
     
-    SEMI, MINUS, EQUALS,
+    SEMI, COLON, MINUS, EQUALS,
     PARENTS, SQUARES, BRACKETS,
     ARROW,
     

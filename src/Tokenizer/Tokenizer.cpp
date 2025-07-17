@@ -99,7 +99,10 @@ namespace Tokenizer {
     Token* ret = new Token();
     ret->line = preToken.line;
     
-    if (preToken.type == PreTokenType::IDENTIFIER) {
+    if (preToken.type == PreTokenType::SPACES)
+      return NULL;
+    
+    else if (preToken.type == PreTokenType::IDENTIFIER) {
       std::string str = std::string(preToken.u.string);
 
       if (str == "func")
@@ -108,6 +111,53 @@ namespace Tokenizer {
       else if (str == "return")
         ret->type = TokenType::RETURN;
       
+      
+      else if (str == "int8")
+        ret->type = TokenType::INT8;
+      
+      else if (str == "int16")
+        ret->type = TokenType::INT16;
+      
+      else if (str == "int32")
+        ret->type = TokenType::INT32;
+      
+      else if (str == "int64")
+        ret->type = TokenType::INT64;
+      
+      else if (str == "uint8")
+        ret->type = TokenType::UINT8;
+      
+      else if (str == "uint16")
+        ret->type = TokenType::UINT16;
+      
+      else if (str == "uint32")
+        ret->type = TokenType::UINT32;
+      
+      else if (str == "uint64")
+        ret->type = TokenType::UINT64;
+      
+      else if (str == "float")
+        ret->type = TokenType::FLOAT;
+      
+      else if (str == "double")
+        ret->type = TokenType::DOUBLE;
+      
+      else if (str == "bool")
+        ret->type = TokenType::BOOL;
+      
+      else if (str == "cstr")
+        ret->type = TokenType::CSTR;
+      
+      else if (str == "char")
+        ret->type = TokenType::CHAR;
+      
+      else if (str == "size_t")
+        ret->type = TokenType::SIZE_T;
+
+      else if (str == "void")
+        ret->type = TokenType::VOID;
+
+
       else {
         ret->type = TokenType::IDENTIFIER;
         ret->u.string = preToken.u.string;
@@ -161,6 +211,10 @@ namespace Tokenizer {
           ret->type = TokenType::SEMI;
           break;
         
+        case ':' :
+          ret->type = TokenType::COLON;
+          break;
+        
         case '-' :
           if (tryConsume({ PreTokenType::SYMBOL, { .character = '>' } }, PreToken::typeCharEqual))
             ret->type = TokenType::ARROW;
@@ -181,8 +235,6 @@ namespace Tokenizer {
     
     } else if (preToken.type == PreTokenType::NUMBER || preToken.type == PreTokenType::STRING_LITERAL || preToken.type == PreTokenType::CHAR_LITERAL)
       return processLiteral(preToken);
-    else if (preToken.type == PreTokenType::SPACES)
-      return NULL;
     
     return ret;
   }
