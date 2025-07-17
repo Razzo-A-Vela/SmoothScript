@@ -23,7 +23,7 @@ namespace Tokenizer {
       const char* string;
       char character;
       Literal literal;
-      std::vector<Token*>* tokens;
+      std::vector<Token>* tokens;
     } u;
     int line;
 

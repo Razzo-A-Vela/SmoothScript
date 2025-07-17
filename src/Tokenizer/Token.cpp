@@ -28,7 +28,7 @@ namespace Tokenizer {
       case TokenType::PARENTS :
         out << "( ";
         for (int i = 0; i < u.tokens->size(); i++) {
-          u.tokens->at(i)->print(out);
+          u.tokens->at(i).print(out);
           if (i != u.tokens->size() - 1)
             out << ", ";
         }
@@ -38,7 +38,7 @@ namespace Tokenizer {
       case TokenType::SQUARES :
         out << "[ ";
         for (int i = 0; i < u.tokens->size(); i++) {
-          u.tokens->at(i)->print(out);
+          u.tokens->at(i).print(out);
           if (i != u.tokens->size() - 1)
             out << ", ";
         }
@@ -48,7 +48,7 @@ namespace Tokenizer {
       case TokenType::BRACKETS :
         out << "{ ";
         for (int i = 0; i < u.tokens->size(); i++) {
-          u.tokens->at(i)->print(out);
+          u.tokens->at(i).print(out);
           if (i != u.tokens->size() - 1)
             out << ", ";
         }

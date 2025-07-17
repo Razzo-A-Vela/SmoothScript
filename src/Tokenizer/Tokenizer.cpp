@@ -118,38 +118,38 @@ namespace Tokenizer {
 
       if (c == '(') {
         ret->type = TokenType::PARENTS;
-        ret->u.tokens = new std::vector<Token*>();
+        ret->u.tokens = new std::vector<Token>();
         while (!tryConsume({ PreTokenType::SYMBOL, { .character = ')' } }, PreToken::typeCharEqual)) {
           if (!hasPeek())
             Utils::error("Expected ')' after '('", preToken.line);
           
           Token* token = processToken(consume().value());
           if (token != NULL)
-            ret->u.tokens->push_back(token);
+            ret->u.tokens->push_back(*token);
         }
 
       } else if (c == '[') {
         ret->type = TokenType::SQUARES;
-        ret->u.tokens = new std::vector<Token*>();
+        ret->u.tokens = new std::vector<Token>();
         while (!tryConsume({ PreTokenType::SYMBOL, { .character = ']' } }, PreToken::typeCharEqual)) {
           if (!hasPeek())
             Utils::error("Expected ']' after '['", preToken.line);
           
           Token* token = processToken(consume().value());
           if (token != NULL)
-            ret->u.tokens->push_back(token);
+            ret->u.tokens->push_back(*token);
         }
 
       } else if (c == '{') {
         ret->type = TokenType::BRACKETS;
-        ret->u.tokens = new std::vector<Token*>();
+        ret->u.tokens = new std::vector<Token>();
         while (!tryConsume({ PreTokenType::SYMBOL, { .character = '}' } }, PreToken::typeCharEqual)) {
           if (!hasPeek())
             Utils::error("Expected '}' after '{'", preToken.line);
           
           Token* token = processToken(consume().value());
           if (token != NULL)
-            ret->u.tokens->push_back(token);
+            ret->u.tokens->push_back(*token);
         }
 
       } else if (c == '$' && peekEqual({ PreTokenType::IDENTIFIER })) {
