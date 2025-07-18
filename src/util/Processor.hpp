@@ -10,8 +10,10 @@ namespace Utils {
   class Processor {
   private:
     std::vector<O> output;
-    int index = 0;
     int maxIndex;
+  
+  protected:
+    int index = 0;
 
   public:
     Processor(int maxIndex) : maxIndex(maxIndex) {}
