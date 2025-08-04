@@ -8,6 +8,7 @@
 #include <Tokenizer/Tokenizer.hpp>
 #include <Parser/Parser.hpp>
 
+const std::string version = "{version}";
 const std::string defaultConfigTOMLName = "smoothConfig.toml";
 const std::string defaultConfigTOML = "\n\
 [files]\n\
@@ -25,6 +26,7 @@ mainFile = \"\"\n\
 
 int main(int argc, char* argv[]) {
   std::string configTOMLName;
+  std::cout << "SmoothScript v" << version << '\n';
 
   if (argc == 1)
     configTOMLName = std::string(defaultConfigTOMLName);
