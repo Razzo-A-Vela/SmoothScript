@@ -6,6 +6,7 @@
 #include <TOML/TOML.hpp>
 #include <PreTokenizer/PreTokenizer.hpp>
 #include <Tokenizer/Tokenizer.hpp>
+#include <Parser/Parser.hpp>
 
 const std::string defaultConfigTOMLName = "smoothConfig.toml";
 const std::string defaultConfigTOML = "\n\
@@ -13,7 +14,13 @@ const std::string defaultConfigTOML = "\n\
 mainFile = \"\"\n\
 ";
 
+//TODO: add consts in all the needed code
 //TODO: make use of size_t instead of int when necessary
+//TODO: make vector processor and single output processor different classes
+//TODO: use uints instead of ints when needed (make 0 the not correct value? or use optional?)
+//TODO: free memory when done with it
+//TODO: Try to not heap-allocate everything
+//TODO: Remake the extension, but better
 
 
 int main(int argc, char* argv[]) {
@@ -72,6 +79,12 @@ int main(int argc, char* argv[]) {
   tokenizer.process();
   std::cout << "\nPrinting Tokens...\n";
   tokenizer.print(std::cout);
+
+  std::cout << "\nParsing...\n";
+  Parser::Parser parser(tokenizer.getOutput());
+  parser.process();
+  std::cout << "\nPrinting Parser Output...\n";
+  parser.print(std::cout);
   
   std::cout << "\n\nDone.\n";
   return 0;
