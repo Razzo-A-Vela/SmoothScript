@@ -111,6 +111,12 @@ namespace Tokenizer {
       else if (str == "return")
         ret->type = TokenType::RETURN;
       
+      else if (str == "if")
+        ret->type = TokenType::IF;
+      
+      else if (str == "else")
+        ret->type = TokenType::ELSE;
+      
       
       else if (str == "int8")
         ret->type = TokenType::INT8;

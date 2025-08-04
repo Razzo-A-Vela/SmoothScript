@@ -10,6 +10,14 @@ namespace Tokenizer {
       case TokenType::RETURN :
         out << "RETURN";
         break;
+      
+      case TokenType::IF :
+        out << "IF";
+        break;
+      
+      case TokenType::ELSE :
+        out << "ELSE";
+        break;
 
       
       case TokenType::INT8 :
