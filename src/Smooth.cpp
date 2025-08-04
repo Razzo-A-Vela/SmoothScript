@@ -10,10 +10,7 @@
 
 const std::string version = "{version}";
 const std::string defaultConfigTOMLName = "smoothConfig.toml";
-const std::string defaultConfigTOML = "\n\
-[files]\n\
-mainFile = \"\"\n\
-";
+const std::string defaultConfigTOML = "{defaultConfig}";
 
 //TODO: add consts in all the needed code
 //TODO: make use of size_t instead of int when necessary
