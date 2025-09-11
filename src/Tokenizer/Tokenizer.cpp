@@ -142,11 +142,11 @@ namespace Tokenizer {
       else if (str == "uint64")
         ret->type = TokenType::UINT64;
       
-      else if (str == "float")
-        ret->type = TokenType::FLOAT;
+      else if (str == "float32")
+        ret->type = TokenType::FLOAT32;
       
-      else if (str == "double")
-        ret->type = TokenType::DOUBLE;
+      else if (str == "float64")
+        ret->type = TokenType::FLOAT64;
       
       else if (str == "bool")
         ret->type = TokenType::BOOL;

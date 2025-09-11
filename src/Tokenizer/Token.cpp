@@ -52,12 +52,12 @@ namespace Tokenizer {
         out << "UINT64";
         break;
       
-      case TokenType::FLOAT :
-        out << "FLOAT";
+      case TokenType::FLOAT32 :
+        out << "FLOAT32";
         break;
       
-      case TokenType::DOUBLE :
-        out << "DOUBLE";
+      case TokenType::FLOAT64 :
+        out << "FLOAT64";
         break;
       
       case TokenType::BOOL :
