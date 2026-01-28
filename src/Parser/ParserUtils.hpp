@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 
 #include <util/ErrorUtils.hpp>
 
@@ -16,30 +17,33 @@ namespace Parser {
   };
 
   namespace Result {
-    template<typename T>
+    template <typename T>
     struct inst {
       T* value;
+      bool isError;
       const char* error;
-      int line = -1;
-      int ignoredStep = -1;
+      int line;
     };
 
-    template<typename T>
-    inst<T> success(T* value) { return { value, "", -1, -1 }; }
-    template<typename T>
-    inst<T> error(const char* error, int line = -1) { return { NULL, error, line, -1 }; }
-    template<typename T>
-    inst<T> ignore(int ignoredStep) { return { NULL, NULL, -1, ignoredStep }; }
-    template<typename T>
-    inst<T> ignore() { return ignore<T>(1); }
+    template <typename T>
+    inst<T> success(T* value) { return { value, false, "", -1 }; }
+    template <typename T>
+    inst<T> ignore(const char* error, int line) { return { NULL, false, error, line }; }
+    template <typename T>
+    inst<T> error(const char* error, int line) { return { NULL, true, error, line }; }
 
-    template<typename T>
-    bool isError(inst<T> result) { return result.value == NULL && result.ignoredStep == -1; }
-    template<typename T>
+    template <typename T>
     bool hasValue(inst<T> result) { return result.value != NULL; }
-    template<typename T>
-    bool isIgnored(inst<T> result) { return result.ignoredStep != -1; }
-    template<typename T>
-    bool hasLine(inst<T> result) { return result.line != -1; }
+    template <typename T>
+    bool isError(inst<T> result) { return !hasValue(result) && result.isError; }
+    template <typename T>
+    bool isIgnored(inst<T> result) { return !hasValue(result) && !result.isError; }
+
+    template <typename T>
+    T* expect(inst<T> result) {
+      if (!hasValue(result))
+        syntaxError(result.error, result.line);
+      return result.value;
+    }
   }
 }

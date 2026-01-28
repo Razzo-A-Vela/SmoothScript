@@ -1,30 +1,10 @@
 #include "ParseNodes.hpp"
 
 namespace Parser {
-  void Type::printIntSize(IntSize intSize, std::ostream& out) {
-    switch (intSize) {
-      case IntSize::INT8 :
-        out << "INT8";
-        break;
-      
-      case IntSize::INT16 :
-        out << "INT16";
-        break;
-
-      case IntSize::INT32 :
-        out << "INT32";
-        break;
-
-      case IntSize::INT64 :
-        out << "INT64";
-        break;
-    }
-  }
-
   void Type::print(std::ostream& out) {
     switch (type) {
       case TypeT::INT :
-        printIntSize(u.intSize, out);
+        out << "INT";
         break;
     }
   }
@@ -36,12 +16,21 @@ namespace Parser {
       type->print(out);
   }
 
+  void InitExpression::print(std::ostream& out) {
+    switch (type) {
+      case Type::EXPRESSION :
+        out << "INIT ";
+        u.expr->print(out);
+        break;
+    }
+  }
+
   void Variable::print(std::ostream& out) {
     type->print(out);
     out << ": " << name;
-    if (initialValue != NULL) {
+    if (init != NULL) {
       out << " = ";
-      initialValue->print(out);
+      init->print(out);
     }
   }
 

@@ -7,18 +7,16 @@
 namespace Tokenizer {
   enum class TokenType {
     FUNC, RETURN, IF, ELSE,
-
-    INT8, INT16, INT32, INT64,
-    UINT8, UINT16, UINT32, UINT64,
-    FLOAT32, FLOAT64, BOOL, CSTR, CHAR,
-    SIZE_T, VOID,
+    
+    INT, FLOAT, BOOL, CHAR, CSTR, SIZE_T, VOID,
     
     SEMI, COLON, MINUS, EQUALS,
-    PARENTS, SQUARES, BRACKETS,
-    ARROW,
     
+    PARENTS, SQUARES, BRACKETS,
+    
+    ARROW,
 
-    IDENTIFIER, SYMBOL, LITERAL, PARSER_PARAM
+    IDENTIFIER, SYMBOL, LITERAL
   };
   
   struct Token {

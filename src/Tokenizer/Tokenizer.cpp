@@ -118,35 +118,11 @@ namespace Tokenizer {
         ret->type = TokenType::ELSE;
       
       
-      else if (str == "int8")
-        ret->type = TokenType::INT8;
+      else if (str == "int")
+        ret->type = TokenType::INT;
       
-      else if (str == "int16")
-        ret->type = TokenType::INT16;
-      
-      else if (str == "int32")
-        ret->type = TokenType::INT32;
-      
-      else if (str == "int64")
-        ret->type = TokenType::INT64;
-      
-      else if (str == "uint8")
-        ret->type = TokenType::UINT8;
-      
-      else if (str == "uint16")
-        ret->type = TokenType::UINT16;
-      
-      else if (str == "uint32")
-        ret->type = TokenType::UINT32;
-      
-      else if (str == "uint64")
-        ret->type = TokenType::UINT64;
-      
-      else if (str == "float32")
-        ret->type = TokenType::FLOAT32;
-      
-      else if (str == "float64")
-        ret->type = TokenType::FLOAT64;
+      else if (str == "float")
+        ret->type = TokenType::FLOAT;
       
       else if (str == "bool")
         ret->type = TokenType::BOOL;
@@ -207,10 +183,6 @@ namespace Tokenizer {
           if (token != NULL)
             ret->u.tokens->push_back(*token);
         }
-
-      } else if (c == '$' && peekEqual({ PreTokenType::IDENTIFIER })) {
-        ret->type = TokenType::PARSER_PARAM;
-        ret->u.string = consume().value().u.string;
 
       } else switch (c) {
         case ';' :

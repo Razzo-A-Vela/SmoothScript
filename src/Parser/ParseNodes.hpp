@@ -5,23 +5,14 @@
 #include <Literal/Literal.hpp>
 
 namespace Parser {
-  enum class IntSize {
-    // BYTE = 1, SHORT = 2, INT = 4,   LONG = 8,
-    INT8 = 1, INT16 = 2, INT32 = 4, INT64 = 8
-  };
-  
   struct Type {
     enum class TypeT {
       INT
-      // INT, UINT,
-      // FLOAT, DOUBLE, BOOL, CSTR, CHAR, SIZE_T,
-      // STRUCT, UNION, BFIELD, ENUM, ENUM_CLASS
+      // FLOAT, CUSTOM,
+      // BOOL, CSTR, CHAR, SIZE_T,
+      // STRUCT, UNION, BFIELD, ENUM
     } type;
-    union {
-      IntSize intSize;
-    } u;
 
-    static void printIntSize(IntSize intSize, std::ostream& out);
     void print(std::ostream& out);
   };
 
@@ -32,15 +23,24 @@ namespace Parser {
     void print(std::ostream& out);
   };
 
-  //TODO: IMPLEMENT ALL THIS AND -------------------------->
-
   struct Expression;
   struct Statement;
+
+  struct InitExpression {
+    enum class Type {
+      EXPRESSION
+    } type;
+    union {
+      Expression* expr;
+    } u;
+
+    void print(std::ostream& out);
+  };
 
   struct Variable {
     Type* type;
     const char* name;
-    Expression* initialValue;
+    InitExpression* init;
 
     void print(std::ostream& out);
   };
