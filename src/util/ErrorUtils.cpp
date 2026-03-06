@@ -37,4 +37,8 @@ namespace Utils {
   void error(std::string msg) {
     error("Error", msg, -1);
   }
+
+  void error(Error err) {
+    error(err.errType, err.msg, err.line);
+  }
 }
