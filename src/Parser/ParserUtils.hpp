@@ -5,8 +5,6 @@
 #include <util/ErrorUtils.hpp>
 
 namespace Parser {
-  [[noreturn]] void syntaxError(std::string msg, int line);
-
   class IntStack {
   public:
     void push(int i);
@@ -16,21 +14,31 @@ namespace Parser {
     std::vector<int> vect;
   };
 
+  Utils::Error syntaxError(const char* msg, int line);
+
+
   namespace Result {
+    using Utils::Error;
+    typedef int None;
+
     template <typename T>
     struct inst {
       T* value;
       bool isError;
-      const char* error;
-      int line;
+      Error error;
     };
 
     template <typename T>
-    inst<T> success(T* value) { return { value, false, "", -1 }; }
+    inst<T> success(T* value) { return { value, false, {} }; }
+    inst<None> success();
+
     template <typename T>
-    inst<T> ignore(const char* error, int line) { return { NULL, false, error, line }; }
+    inst<T> ignore(Error err) { return { NULL, false, err }; }
+    inst<None> ignore(Error err);
+
     template <typename T>
-    inst<T> error(const char* error, int line) { return { NULL, true, error, line }; }
+    inst<T> error(Error err) { return { NULL, true, err }; }
+    inst<None> error(Error err);
 
     template <typename T>
     bool hasValue(inst<T> result) { return result.value != NULL; }
@@ -42,8 +50,15 @@ namespace Parser {
     template <typename T>
     T* expect(inst<T> result) {
       if (!hasValue(result))
-        syntaxError(result.error, result.line);
+        Utils::error(result.error);
       return result.value;
+    }
+
+    template <typename T>
+    inst<T> throwErr(inst<T> result) {
+      if (isError(result))
+        Utils::error(result.error);
+      return result;
     }
   }
 }
