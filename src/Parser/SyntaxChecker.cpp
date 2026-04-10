@@ -24,16 +24,16 @@ namespace Parser {
 
 
   #define expectError(retType, type, result, function) \
-    Result::inst<type> result##_result = function; \
+    { Result::inst<type> result##_result = function; \
     if (!result##_result.hasValue()) \
       return Result::error<retType>(result##_result.error); \
-    result = result##_result.value
+    result = result##_result.value; } 0
   
   #define expectIgnore(retType, type, result, function) \
-    Result::inst<type> result##_result = function; \
+    { Result::inst<type> result##_result = function; \
     if (!result##_result.hasValue()) \
       return Result::ignore<retType>(result##_result.error); \
-    result = result##_result.value
+    result = result##_result.value; } 0
 
 
   Result::inst<Variable> SyntaxChecker::processVariable() {
