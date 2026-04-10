@@ -3,8 +3,8 @@
 namespace Tokenizer {
   void Token::print(std::ostream& out) {
     switch (type) {
-      case TokenType::FUNC :
-        out << "FUNC";
+      case TokenType::FUN :
+        out << "FUN";
         break;
       
       case TokenType::RETURN :
