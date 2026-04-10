@@ -24,8 +24,24 @@ namespace Parser {
     template <typename T>
     struct inst {
       T* value;
-      bool isError;
+      bool _isError;
       Error error;
+
+      bool hasValue() { return value != NULL; }
+      bool isError() { return !hasValue() && _isError; }
+      bool isIgnored() { return !hasValue() && !_isError; }
+
+      T* expect() {
+        if (!hasValue())
+          Utils::error(error);
+        return value;
+      }
+
+      inst<T> throwErr() {
+        if (isError())
+          Utils::error(error);
+        return *this;
+      }
     };
 
     template <typename T>
@@ -39,26 +55,5 @@ namespace Parser {
     template <typename T>
     inst<T> error(Error err) { return { NULL, true, err }; }
     inst<None> error(Error err);
-
-    template <typename T>
-    bool hasValue(inst<T> result) { return result.value != NULL; }
-    template <typename T>
-    bool isError(inst<T> result) { return !hasValue(result) && result.isError; }
-    template <typename T>
-    bool isIgnored(inst<T> result) { return !hasValue(result) && !result.isError; }
-
-    template <typename T>
-    T* expect(inst<T> result) {
-      if (!hasValue(result))
-        Utils::error(result.error);
-      return result.value;
-    }
-
-    template <typename T>
-    inst<T> throwErr(inst<T> result) {
-      if (isError(result))
-        Utils::error(result.error);
-      return result;
-    }
   }
 }
