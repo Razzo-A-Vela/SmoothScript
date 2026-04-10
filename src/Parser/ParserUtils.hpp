@@ -14,7 +14,7 @@ namespace Parser {
     std::vector<int> vect;
   };
 
-  Utils::Error syntaxError(const char* msg, int line);
+  [[nodiscard]] Utils::Error syntaxError(const char* msg, int line);
 
 
   namespace Result {
