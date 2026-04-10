@@ -25,6 +25,8 @@ namespace Parser {
     Result::inst<Variable> processVariable();
     Result::inst<Identifier> processIdentifier();
     Result::inst<Type> processType();
+    Result::inst<InitExpression> processInitExpression();
+    Result::inst<Expression> processExpression();
     
     template <typename T>
     Result::inst<T> expectSemi(Result::inst<T> other) {

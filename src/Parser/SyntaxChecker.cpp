@@ -41,7 +41,11 @@ namespace Parser {
     Identifier* name;
     expectError(Variable, Type, type, processType());
     expectError(Variable, Identifier, name, processIdentifier());
-    return Result::success(new Variable{ type, name, NULL });
+    
+    InitExpression* initExpr = NULL;
+    if (wakeup(TokenType::EQUALS))
+      expectError(Variable, InitExpression, initExpr, processInitExpression());
+    return Result::success(new Variable{ type, name, initExpr });
   }
 
   Result::inst<Identifier> SyntaxChecker::processIdentifier() {
@@ -54,6 +58,24 @@ namespace Parser {
     if (tryConsume({ TokenType::INT }))
       return Result::success(new Type{ Type::TypeT::INT });
     return Result::ignore<Type>(syntaxError("Expected type"));
+  }
+
+  Result::inst<InitExpression> SyntaxChecker::processInitExpression() {
+    Expression* expr;
+    expectError(InitExpression, Expression, expr, processExpression());
+    return Result::success(new InitExpression{ InitExpression::Type::EXPRESSION, { .expr = expr } });
+  }
+
+  Result::inst<Expression> SyntaxChecker::processExpression() {
+    if (peekEqual({ TokenType::LITERAL })) {
+      Token token = consume().value();
+      Literal literal = token.u.literal;
+
+      if (literal.type != LiteralType::INTEGER)
+        return Result::error<Expression>(Parser::syntaxError("Invalid expression", token.line));
+      return Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal } });
+    }
+    return Result::ignore<Expression>(syntaxError("Expected expression"));
   }
 
 
