@@ -5,6 +5,12 @@
 #include <Literal/Literal.hpp>
 
 namespace Parser {
+  struct Identifier {
+    const char* name;
+
+    void print(std::ostream& out);
+  };
+
   struct Type {
     enum class TypeT {
       INT
@@ -39,24 +45,25 @@ namespace Parser {
 
   struct Variable {
     Type* type;
-    const char* name;
+    Identifier* name;
     InitExpression* init;
 
     void print(std::ostream& out);
   };
 
   struct VarAssign {
-    const char* name;
+    Identifier* name;
     Expression* expr;
   };
 
   struct Expression {
     enum class Type {
-      LITERAL, VAR_ASSIGN
+      LITERAL, VAR_ASSIGN, VAR
     } type;
     union {
       Literal literal;
       VarAssign* varAssign;
+      Identifier* var;
     } u;
     ReturnType* returnType;
 
@@ -91,7 +98,7 @@ namespace Parser {
 
 
   struct Function {
-    const char* name;
+    Identifier* name;
     ReturnType* returnType;
     Scope* scope;
 

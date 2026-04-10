@@ -1,6 +1,10 @@
 #include "ParseNodes.hpp"
 
 namespace Parser {
+  void Identifier::print(std::ostream& out) {
+    out << name;
+  }
+
   void Type::print(std::ostream& out) {
     switch (type) {
       case TypeT::INT :
@@ -26,8 +30,10 @@ namespace Parser {
   }
 
   void Variable::print(std::ostream& out) {
+    out << ':';
     type->print(out);
-    out << ": " << name;
+    out << ' ';
+    name->print(out);
     if (init != NULL) {
       out << " = ";
       init->print(out);
@@ -35,9 +41,11 @@ namespace Parser {
   }
 
   void Expression::print(std::ostream& out) {
-    out << "{ ";
-    returnType->print(out);
-    out << " } ";
+    if (returnType != NULL) {
+      out << "{ ";
+      returnType->print(out);
+      out << " } ";
+    }
 
     switch (type) {
       case Type::LITERAL :
@@ -45,7 +53,8 @@ namespace Parser {
         break;
       
       case Type::VAR_ASSIGN :
-        out << u.varAssign->name << " = ";
+        u.varAssign->name->print(out);
+        out << " = ";
         u.varAssign->expr->print(out);
         break;
     }
@@ -106,8 +115,9 @@ namespace Parser {
   }
 
   void Function::print(std::ostream& out) {
-    out << name << "()";    //TODO: PARAMS
-    out << "->";
+    name->print(out);
+    out << "()";    //TODO: PARAMS
+    out << ':';
     returnType->print(out);
     out << ' ';
     scope->print(out);
