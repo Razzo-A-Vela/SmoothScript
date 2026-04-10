@@ -52,6 +52,12 @@ namespace Parser {
         u.literal.print(out);   //TODO: CHANGE THIS PRINT WITH A CUSTOM PARSER PRINT
         break;
       
+      case Type::VAR :
+        out << "VAR(";
+        u.var->print(out);
+        out << ')';
+        break;
+
       case Type::VAR_ASSIGN :
         u.varAssign->name->print(out);
         out << " = ";
