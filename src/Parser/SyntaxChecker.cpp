@@ -75,28 +75,31 @@ namespace Parser {
   }
 
   Result::inst<Expression> SyntaxChecker::processExpression() {
-    if (peekEqual({ TokenType::LITERAL })) {
-      Token token = consume().value();
-      Literal literal = token.u.literal;
-
-      if (literal.type != LiteralType::INTEGER)
-        return Result::error<Expression>(Parser::syntaxError("Invalid expression", token.line));
-      return Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal } });
+    if (peekEqual({ TokenType::LITERAL }))
+      return processLiteralExpression();
     
-    } else if (identifierPeek()) {
+    else if (identifierPeek()) {
       Identifier* var = processIdentifier().expect();
 
       if (wakeup(TokenType::EQUALS)) {
         Expression* expr;
         expectError(Expression, Expression, expr, processExpression());
-
-        return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ .name = var, .expr = expr } } });
+        return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ var, expr } }, expr->returnType });
       }
 
-      return Result::success(new Expression{ Expression::Type::VAR, { .var = var } });
+      return Result::success(new Expression{ Expression::Type::VAR, { .var = var }, ReturnType::unknown() });
     }
 
     return Result::ignore<Expression>(syntaxError("Expected expression"));
+  }
+
+  Result::inst<Expression> SyntaxChecker::processLiteralExpression() {
+    Token token = consume().value();
+    Literal literal = token.u.literal;
+
+    if (literal.type != LiteralType::INTEGER)
+      return Result::error<Expression>(Parser::syntaxError("Invalid expression", token.line));
+    return Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal }, ReturnType::fromType(new Type{ Type::TypeT::INT }) });
   }
 
 

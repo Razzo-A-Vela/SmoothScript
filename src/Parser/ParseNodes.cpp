@@ -13,9 +13,23 @@ namespace Parser {
     }
   }
 
+  ReturnType* ReturnType::unknown() {
+    return new ReturnType{ true, false, NULL };
+  }
+
+  ReturnType* ReturnType::_void() {
+    return new ReturnType{ false, true, NULL };
+  }
+
+  ReturnType* ReturnType::fromType(Type* type) {
+    return new ReturnType{ false, false, type };
+  }
+
   void ReturnType::print(std::ostream& out) {
     if (isVoid)
       out << "void";
+    else if (isUnknown)
+      out << "unknown";
     else
       type->print(out);
   }
@@ -41,21 +55,14 @@ namespace Parser {
   }
 
   void Expression::print(std::ostream& out) {
-    if (returnType != NULL) {
-      out << "{ ";
-      returnType->print(out);
-      out << " } ";
-    }
-
+    out << '(';
     switch (type) {
       case Type::LITERAL :
         u.literal.print(out);   //TODO: CHANGE THIS PRINT WITH A CUSTOM PARSER PRINT
         break;
       
       case Type::VAR :
-        out << "VAR(";
         u.var->print(out);
-        out << ')';
         break;
 
       case Type::VAR_ASSIGN :
@@ -64,6 +71,9 @@ namespace Parser {
         u.varAssign->expr->print(out);
         break;
     }
+
+    out << ") -> ";
+    returnType->print(out);
   }
 
   void Statement::print(std::ostream& out) {
@@ -121,6 +131,7 @@ namespace Parser {
   }
 
   void Function::print(std::ostream& out) {
+    out << "fun ";
     name->print(out);
     out << "()";    //TODO: PARAMS
     out << ':';
@@ -132,15 +143,11 @@ namespace Parser {
   void GlobalNode::print(std::ostream& out) {
     switch (type) {
       case Type::VAR :
-        out << "VAR(";
         u.var->print(out);
-        out << ')';
         break;
       
       case Type::FUNC :
-        out << "FUNC(";
         u.func->print(out);
-        out << ')';
         break;
     }
   }

@@ -23,8 +23,13 @@ namespace Parser {
   };
 
   struct ReturnType {
+    bool isUnknown;
     bool isVoid;
     Type* type;
+
+    static ReturnType* unknown();
+    static ReturnType* _void();
+    static ReturnType* fromType(Type* type);
 
     void print(std::ostream& out);
   };
