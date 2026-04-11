@@ -83,8 +83,19 @@ namespace Parser {
         return Result::error<Expression>(Parser::syntaxError("Invalid expression", token.line));
       return Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal } });
     
-    } else if (identifierPeek())
-      return Result::success(new Expression{ Expression::Type::VAR, { .var = processIdentifier().expect() } });
+    } else if (identifierPeek()) {
+      Identifier* var = processIdentifier().expect();
+
+      if (wakeup(TokenType::EQUALS)) {
+        Expression* expr;
+        expectError(Expression, Expression, expr, processExpression());
+
+        return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ .name = var, .expr = expr } } });
+      }
+
+      return Result::success(new Expression{ Expression::Type::VAR, { .var = var } });
+    }
+
     return Result::ignore<Expression>(syntaxError("Expected expression"));
   }
 
