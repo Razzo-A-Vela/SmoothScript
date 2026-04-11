@@ -49,7 +49,7 @@ namespace Parser {
   }
 
   bool SyntaxChecker::identifierPeek() {
-    // HACK: I should make a better system to return the alredy processed identifier instead of processing it again
+    // HACK: I should make a better system to return the already processed identifier instead of processing it again
     int prevIndex = index;
     bool ret = processIdentifier().hasValue();
     index = prevIndex;
