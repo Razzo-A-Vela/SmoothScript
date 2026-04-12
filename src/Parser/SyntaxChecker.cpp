@@ -108,7 +108,7 @@ namespace Parser {
 
 
   void SyntaxChecker::process() {
-    while(hasPeek()) {
+    while (hasPeek()) {
       Token token = consume().value();
       
       if (wakeup(token, TokenType::SEMI))
