@@ -26,7 +26,6 @@ namespace Parser {
     bool wakeup(Token token, TokenType tokenType);
     bool wakeup(TokenType tokenType);
     Result::inst<Variable> processVariable();
-    bool identifierPeek();
     Result::inst<Identifier> processIdentifier();
     Result::inst<Type> processType();
     Result::inst<InitExpression> processInitExpression();

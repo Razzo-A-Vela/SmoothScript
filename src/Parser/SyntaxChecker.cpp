@@ -48,14 +48,6 @@ namespace Parser {
     return Result::success(new Variable{ type, name, initExpr });
   }
 
-  bool SyntaxChecker::identifierPeek() {
-    // HACK: I should make a better system to return the already processed identifier instead of processing it again
-    int prevIndex = index;
-    bool ret = processIdentifier().hasValue();
-    index = prevIndex;
-    return ret;
-  }
-
   Result::inst<Identifier> SyntaxChecker::processIdentifier() {
     if (peekEqual({ TokenType::IDENTIFIER }))
       return Result::success(new Identifier{ consume().value().u.string });
@@ -75,11 +67,13 @@ namespace Parser {
   }
 
   Result::inst<Expression> SyntaxChecker::processExpression() {
+    Result::inst<Identifier> identifier;
+
     if (peekEqual({ TokenType::LITERAL }))
       return processLiteralExpression();
     
-    else if (identifierPeek()) {
-      Identifier* var = processIdentifier().expect();
+    else if ((identifier = processIdentifier()).hasValue()) {
+      Identifier* var = identifier.expect();
 
       if (wakeup(TokenType::EQUALS)) {
         Expression* expr;
