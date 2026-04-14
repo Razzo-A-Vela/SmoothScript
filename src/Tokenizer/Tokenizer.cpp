@@ -105,8 +105,8 @@ namespace Tokenizer {
     else if (preToken.type == PreTokenType::IDENTIFIER) {
       std::string str = std::string(preToken.u.string);
 
-      if (str == "fun")
-        ret->type = TokenType::FUN;
+      if (str == "func")
+        ret->type = TokenType::FUNC;
       
       else if (str == "return")
         ret->type = TokenType::RETURN;
