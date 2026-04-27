@@ -11,7 +11,7 @@ namespace Parser {
     else if (hasPeek(-1))
       return peekValue(-1).line;
     else
-      return 1; //* Technically it should be unreachable
+      return -2; //* Technically it SHOULD be unreachable
   }
 
   bool SyntaxChecker::wakeup(Token token, TokenType tokenType) {
