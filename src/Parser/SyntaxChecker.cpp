@@ -109,9 +109,15 @@ namespace Parser {
     std::vector<Statement*>* statements = new std::vector<Statement*>();
     Result::inst<Statement> statement;
     
+    #define ignoresSemi(type) ( type == Statement::Type::NOTHING || type == Statement::Type::SCOPE )
+
     scopeDepth++;
-    while ((statement = expectSemi(processStatement())).hasValue())
+    while ((statement = processStatement()).hasValue() &&
+            ( ignoresSemi(statement.value->type) ||
+              (statement = expectSemi(statement)).hasValue() ))
       statements->push_back(statement.value);
+
+    #undef ignoresSemi
 
     if (statement.isError())
       return Result::error<Scope>(statement.error);
