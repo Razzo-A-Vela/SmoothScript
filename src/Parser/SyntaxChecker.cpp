@@ -38,13 +38,15 @@ namespace Parser {
 
   Result::inst<Variable> SyntaxChecker::processVariable() {
     Type* type;
-    Identifier* name;
     expectError(Variable, Type, type, processType());
+    
+    Identifier* name;
     expectError(Variable, Identifier, name, processIdentifier());
     
     InitExpression* initExpr = NULL;
     if (wakeup(TokenType::EQUALS))
       expectError(Variable, InitExpression, initExpr, processInitExpression());
+    
     return Result::success(new Variable{ type, name, initExpr });
   }
 
