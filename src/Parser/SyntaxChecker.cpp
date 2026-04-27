@@ -75,7 +75,7 @@ namespace Parser {
       return processLiteralExpression();
     
     else if ((identifier = processIdentifier()).hasValue()) {
-      Identifier* var = identifier.expect();
+      Identifier* var = identifier.value;
 
       if (wakeup(TokenType::EQUALS)) {
         Expression* expr;
