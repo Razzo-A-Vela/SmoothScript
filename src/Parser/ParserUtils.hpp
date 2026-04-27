@@ -31,7 +31,7 @@ namespace Parser {
       bool isError() { return !hasValue() && _isError; }
       bool isIgnored() { return !hasValue() && !_isError; }
 
-      T* expect() {
+      T* expectValue() {
         if (!hasValue())
           Utils::error(error);
         return value;
