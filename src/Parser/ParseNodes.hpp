@@ -105,6 +105,7 @@ namespace Parser {
   struct Function {
     Identifier* name;
     ReturnType* returnType;
+    bool defined;
     Scope* scope;
 
     void print(std::ostream& out);

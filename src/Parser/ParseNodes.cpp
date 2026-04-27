@@ -131,13 +131,17 @@ namespace Parser {
   }
 
   void Function::print(std::ostream& out) {
-    out << "fun ";
+    out << "func ";
     name->print(out);
     out << "()";    //TODO: PARAMS
     out << ':';
     returnType->print(out);
-    out << ' ';
-    scope->print(out);
+
+    if (defined) {
+      out << ' ';
+      scope->print(out);
+    } else
+      out << ';';
   }
 
   void GlobalNode::print(std::ostream& out) {
