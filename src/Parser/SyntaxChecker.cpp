@@ -22,6 +22,14 @@ namespace Parser {
     return tryConsume({ tokenType });
   }
 
+  bool SyntaxChecker::semi() {
+    return wakeup(TokenType::SEMI);
+  }
+
+  bool SyntaxChecker::semi(Token token) {
+    return wakeup(token, TokenType::SEMI);
+  }
+
 
   #define expectError(retType, type, result, function) \
     { Result::inst<type> result##_result = function; \
@@ -107,7 +115,7 @@ namespace Parser {
     while (hasPeek()) {
       Token token = consume().value();
       
-      if (wakeup(token, TokenType::SEMI))
+      if (semi(token))
         continue; //* Technically not needed (better than ';')
       else if (wakeup(token, TokenType::COLON))
         addToOutput({ GlobalNode::Type::VAR, { .var = expectSemi(processVariable()).expect() } });

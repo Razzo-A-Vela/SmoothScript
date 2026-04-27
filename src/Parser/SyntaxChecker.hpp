@@ -25,6 +25,8 @@ namespace Parser {
     //? A wakeup token is a disposable token that is used to indicate the start of a specific syntax
     bool wakeup(Token token, TokenType tokenType);
     bool wakeup(TokenType tokenType);
+    bool semi();
+    bool semi(Token token);
     Result::inst<Variable> processVariable();
     Result::inst<Identifier> processIdentifier();
     Result::inst<Type> processType();
@@ -34,7 +36,7 @@ namespace Parser {
     
     template <typename T>
     Result::inst<T> expectSemi(Result::inst<T> other) {
-      if (!wakeup(TokenType::SEMI))
+      if (other.hasValue() && !semi())
         return Result::error<T>(syntaxError("Expected ';'"));
       return other;
     }
