@@ -21,6 +21,10 @@ namespace Parser {
     }
   };
 
+  #define ignores
+  #define alwaysErrors
+  #define childOf(parent)
+  #define withWakeup(wakeupToken)
 
   class SyntaxChecker : public Utils::Processor<Token, GlobalNode> {
   public:
@@ -38,13 +42,13 @@ namespace Parser {
     bool wakeup(TokenType tokenType);
     bool semi();
     bool semi(Token token);
-    Result::inst<Variable> processVariable();
-    Result::inst<Identifier> processIdentifier();
-    Result::inst<Type> processType();
-    Result::inst<InitExpression> processInitExpression();
-    Result::inst<Expression> processExpression();
-    Result::inst<Expression> processLiteralExpression();
-    
+    Result::inst<Variable> alwaysErrors withWakeup(TokenType::COLON) processVariable();   // TYPE NAME [= INIT_EXPRESSION];
+    Result::inst<Identifier> ignores processIdentifier();                                 // RAW_IDENTIFIER
+    Result::inst<Type> ignores processType();                                             // ...
+    Result::inst<InitExpression> alwaysErrors processInitExpression();                    // INIT_SPECIFIC_EXPRESSION | EXPRESSION
+    Result::inst<Expression> ignores processExpression();                                 // ...
+    Result::inst<Expression> alwaysErrors childOf(processExpression()) processLiteralExpression();
+
     template <typename T>
     Result::inst<T> expectSemi(Result::inst<T> other) {
       if (other.hasValue() && !semi())
