@@ -1,24 +1,30 @@
 
-int32: a;
-int32: c = 2;
-
 ;
 
-func f() -> int32 {
+:int b = 2;
+:int c = b;
+:int d;
+:int e = d = 6;
+
+func h() int;
+
+func g() int {}
+
+func f() int {
   ;
   { a = 10; }
 
-  int32: b;
+  :int b;
 
-  if (1) {
-    b = 1;
-  }
+  // if (1) {
+  //   b = 1;
+  // }
 
-  if (0);
+  // if (0);
 
-  if (b = 1) return 2;
+  // if (b = 1) return 2;
 
-  int32: d = b = 3;
+  :int d = b = 3;
   a = 2;
   return b = 22;
   return 10;
