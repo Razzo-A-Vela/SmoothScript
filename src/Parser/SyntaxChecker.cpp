@@ -126,7 +126,7 @@ namespace Parser {
       if (semi(token))
         continue; //* Technically not needed (better than ';')
       else if (wakeup(token, TokenType::COLON))
-        addToOutput({ GlobalNode::Type::VAR, { .var = expectSemi(processVariable()).expect() } });
+        addToOutput({ GlobalNode::Type::VAR, { .var = expectSemi(processVariable()).expectValue() } });
       else
         Utils::error(syntaxError("Unexpected token"));
     }
