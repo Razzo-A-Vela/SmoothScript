@@ -66,6 +66,95 @@ namespace Parser {
     return Result::success(new Variable{ type, name, initExpr });
   }
 
+  Result::inst<Function> SyntaxChecker::processFunction() {
+    Identifier* name;
+    expectError(Function, Identifier, name, processIdentifier());
+
+    //TODO: PARAMS
+    if (!tryConsume({ TokenType::PARENTS }))
+      return Result::error<Function>(syntaxError("Expected '('"));
+
+    ReturnType* returnType;
+    expectError(Function, ReturnType, returnType, processReturnType());
+
+    if (semi())
+      return Result::success(new Function{ name, returnType, false, NULL });
+
+    Scope* scope;
+    expectError(Function, Scope, scope, processScope());
+
+    return Result::success(new Function{ name, returnType, true, scope });
+  }
+
+  Result::inst<ReturnType> SyntaxChecker::processReturnType() {
+    if (tryConsume({ TokenType::VOID }))
+      return Result::success(ReturnType::_void());
+    
+    Result::inst<Type> type = processType();
+    if (type.isIgnored())
+      return Result::ignore<ReturnType>(syntaxError("Expected return type"));
+    else if (type.isError())
+      return Result::error<ReturnType>(syntaxError("Expected return type"));
+    
+    return Result::success(ReturnType::fromType(type.value));
+  }
+
+  Result::inst<Scope> SyntaxChecker::processScope() {
+    if (peekNotEqual({ TokenType::BRACKETS }))
+      return Result::ignore<Scope>(syntaxError("Expected '{'"));
+    
+    std::vector<Token>* curlyTokens = consume().value().u.tokens;
+    Context previous = switchContext(Context::fromTokens(curlyTokens));
+
+    std::vector<Statement*>* statements = new std::vector<Statement*>();
+    Result::inst<Statement> statement;
+    
+    scopeDepth++;
+    while ((statement = expectSemi(processStatement())).hasValue())
+      statements->push_back(statement.value);
+
+    if (statement.isError())
+      return Result::error<Scope>(statement.error);
+    
+    switchContext(previous);
+    return Result::success(new Scope{ statements, scopeDepth-- });
+  }
+
+  Result::inst<Statement> SyntaxChecker::processStatement() {
+    if (!hasPeek())
+      return Result::ignore<Statement>(syntaxError("Expected statement"));
+    
+    if (semi())
+      return Result::success(new Statement{ Statement::Type::NOTHING });
+
+    if (wakeup(TokenType::COLON)) {
+      Variable* var;
+      expectError(Statement, Variable, var, processVariable());
+      return Result::success(new Statement{ Statement::Type::VAR_DECL, { .var = var } });
+    }
+
+    if (wakeup(TokenType::RETURN)) {
+      Expression* expr = NULL;
+      if (!semi())
+        expectError(Statement, Expression, expr, processExpression());
+      return Result::success(new Statement{ Statement::Type::RETURN, { .expr = expr } });
+    }
+
+    Result::inst<Scope> scope;
+    if ((scope = processScope()).hasValue())
+      return Result::success(new Statement{ Statement::Type::SCOPE, { .scope = scope.value } });
+    else if (scope.isError())
+      return Result::error<Statement>(scope.error);
+    
+    Result::inst<Expression> expr;
+    if ((expr = processExpression()).hasValue())
+      return Result::success(new Statement{ Statement::Type::EXPRESSION, { .expr = expr.value } });
+    else if (expr.isError())
+      return Result::error<Statement>(expr.error);
+
+    return Result::error<Statement>(syntaxError("Invalid statement"));
+  }
+
   Result::inst<Identifier> SyntaxChecker::processIdentifier() {
     if (peekEqual({ TokenType::IDENTIFIER }))
       return Result::success(new Identifier{ consume().value().u.string });
@@ -127,6 +216,8 @@ namespace Parser {
         continue; //* Technically not needed (better than ';')
       else if (wakeup(token, TokenType::COLON))
         addToOutput({ GlobalNode::Type::VAR, { .var = expectSemi(processVariable()).expectValue() } });
+      else if (wakeup(token, TokenType::FUNC))
+        addToOutput({ GlobalNode::Type::FUNC, { .func = processFunction().expectValue() } });
       else
         Utils::error(syntaxError("Unexpected token"));
     }

@@ -27,6 +27,9 @@ namespace Parser {
   #define withWakeup(wakeupToken)
 
   class SyntaxChecker : public Utils::Processor<Token, GlobalNode> {
+  protected:
+    int scopeDepth = 0;
+
   public:
     SyntaxChecker(std::vector<Token> tokens) : Processor(tokens.size()), tokens(new std::vector<Token>(tokens)) {}
     virtual void process();
@@ -43,6 +46,10 @@ namespace Parser {
     bool semi();
     bool semi(Token token);
     Result::inst<Variable> alwaysErrors withWakeup(TokenType::COLON) processVariable();   // TYPE NAME [= INIT_EXPRESSION];
+    Result::inst<Function> alwaysErrors withWakeup(TokenType::FUNC) processFunction();    // NAME() :RETURN_TYPE SCOPE
+    Result::inst<ReturnType> ignores processReturnType();                                 // void | TYPE
+    Result::inst<Scope> ignores processScope();                                           // { STATEMENT... }
+    Result::inst<Statement> ignores processStatement();                                   // ...
     Result::inst<Identifier> ignores processIdentifier();                                 // RAW_IDENTIFIER
     Result::inst<Type> ignores processType();                                             // ...
     Result::inst<InitExpression> alwaysErrors processInitExpression();                    // INIT_SPECIFIC_EXPRESSION | EXPRESSION
