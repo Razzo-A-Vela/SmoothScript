@@ -5,6 +5,14 @@ namespace Parser {
     return Parser::syntaxError(msg, getErrorLine());
   }
 
+  Context SyntaxChecker::switchContext(Context newContext) {
+    Context context = { tokens, index };
+    tokens = newContext.tokens;
+    setMaxIndex(tokens->size());
+    index = newContext.index;
+    return context;
+  }
+
   int SyntaxChecker::getErrorLine() {
     if (hasPeek())
       return peekValue().line;
