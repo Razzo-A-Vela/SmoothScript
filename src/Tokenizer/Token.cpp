@@ -65,6 +65,10 @@ namespace Tokenizer {
         out << "EQUALS";
         break;
       
+      case TokenType::COMMA :
+        out << "COMMA";
+        break;
+      
 
       case TokenType::PARENTS :
         out << "( ";

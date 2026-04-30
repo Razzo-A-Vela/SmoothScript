@@ -204,6 +204,10 @@ namespace Tokenizer {
           ret->type = TokenType::EQUALS;
           break;
         
+        case ',' :
+          ret->type = TokenType::COMMA;
+          break;
+        
         
         default :
           ret->type = TokenType::SYMBOL;
