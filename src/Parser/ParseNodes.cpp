@@ -90,6 +90,18 @@ namespace Parser {
     returnType->print(out);
   }
 
+  bool Statement::ignoresSemi() {
+    switch (type) {
+      case Statement::Type::NOTHING :
+      case Statement::Type::SCOPE :
+      case Statement::Type::IF :
+        return true;
+      
+      default :
+        return false;
+    }
+  }
+
   void Statement::print(std::ostream& out) {
     switch (type) {
       case Type::RETURN :
@@ -114,10 +126,8 @@ namespace Parser {
         break;
       
       case Type::IF :
-        out << "IF(";
-        u.statementAndExpr->expr->print(out);
-        out << ") ";
-        u.statementAndExpr->statement->print(out);
+        out << "IF";
+        u.statementAndExpr->print(out);
         break;
       
       case Type::SCOPE :
@@ -142,6 +152,13 @@ namespace Parser {
     for (int j = 0; j < depth - 1; j++)
       out << "  ";
     out << '}';
+  }
+
+  void StatementAndExpr::print(std::ostream& out) {
+    out << " (";
+    expr->print(out);
+    out << ") ";
+    statement->print(out);
   }
 
   void Function::print(std::ostream& out) {

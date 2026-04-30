@@ -98,6 +98,8 @@ namespace Parser {
   struct StatementAndExpr {
     Statement* statement;
     Expression* expr;
+
+    void print(std::ostream& out);
   };
 
   struct Statement {
@@ -111,6 +113,7 @@ namespace Parser {
       StatementAndExpr* statementAndExpr;
     } u;
 
+    bool ignoresSemi();
     void print(std::ostream& out);
   };
 

@@ -1,6 +1,11 @@
 #include "SyntaxChecker.hpp"
 
 namespace Parser {
+  Context Context::fromTokens(std::vector<Token>* tokens)  {
+    return { tokens, 0 };
+  }
+
+
   Utils::Error SyntaxChecker::syntaxError(const char* msg) {
     return Parser::syntaxError(msg, getErrorLine());
   }
@@ -11,6 +16,20 @@ namespace Parser {
     setMaxIndex(tokens->size());
     index = newContext.index;
     return context;
+  }
+
+  Context SyntaxChecker::switchContextTo(TokenType type, Utils::Error err) {
+    if (peekNotEqual({ type }))
+      Utils::error(err);
+    return switchContext(Context::fromTokens(consume().value().u.tokens));
+  }
+
+  Context SyntaxChecker::switchContextToParents() {
+    return switchContextTo(TokenType::PARENTS, syntaxError("Expected '('"));
+  }
+
+  Context SyntaxChecker::switchContextToBrackets() {
+    return switchContextTo(TokenType::BRACKETS, syntaxError("Expected '{'"));
   }
 
   int SyntaxChecker::getErrorLine() {
@@ -41,6 +60,13 @@ namespace Parser {
 
   #define expectError(retType, type, result, function) \
     { Result::inst<type> result##_result = function; \
+    if (!result##_result.hasValue()) \
+      return Result::error<retType>(result##_result.error); \
+    result = result##_result.value; } 0
+  
+  #define expectErrorWithAlways(retType, type, result, function, alwaysFunction) \
+    { Result::inst<type> result##_result = function; \
+    alwaysFunction; \
     if (!result##_result.hasValue()) \
       return Result::error<retType>(result##_result.error); \
     result = result##_result.value; } 0
@@ -116,27 +142,20 @@ namespace Parser {
   Result::inst<Scope> SyntaxChecker::processScope() {
     if (peekNotEqual({ TokenType::BRACKETS }))
       return Result::ignore<Scope>(syntaxError("Expected '{'"));
-    
-    std::vector<Token>* curlyTokens = consume().value().u.tokens;
-    Context previous = switchContext(Context::fromTokens(curlyTokens));
+    Context previous = switchContextToBrackets();
 
     std::vector<Statement*>* statements = new std::vector<Statement*>();
     Result::inst<Statement> statement;
     
-    #define ignoresSemi(type) ( type == Statement::Type::NOTHING || type == Statement::Type::SCOPE )
-
     scopeDepth++;
     while ((statement = processStatement()).hasValue() &&
-            ( ignoresSemi(statement.value->type) ||
+            ( statement.value->ignoresSemi() ||
               (statement = expectSemi(statement)).hasValue() ))
       statements->push_back(statement.value);
 
-    #undef ignoresSemi
-
+    switchContext(previous);
     if (statement.isError())
       return Result::error<Scope>(statement.error);
-    
-    switchContext(previous);
     return Result::success(new Scope{ statements, scopeDepth-- });
   }
 
@@ -158,6 +177,12 @@ namespace Parser {
       if (!semi())
         expectError(Statement, Expression, expr, processExpression());
       return Result::success(new Statement{ Statement::Type::RETURN, { .expr = expr } });
+    }
+
+    if (wakeup(TokenType::IF)) {
+      StatementAndExpr* statementAndExpr;
+      expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
+      return Result::success(new Statement{ Statement::Type::IF, { .statementAndExpr = statementAndExpr } });
     }
 
     Result::inst<Scope> scope;
@@ -232,6 +257,18 @@ namespace Parser {
       expectError(InitIdentifier, InitExpression, initExpr, processInitExpression());
     
     return Result::success(new InitIdentifier{ name, initExpr });
+  }
+
+  Result::inst<StatementAndExpr> SyntaxChecker::processExprAndStatement() {
+    if (peekNotEqual({ TokenType::PARENTS }))
+      return Result::ignore<StatementAndExpr>(syntaxError("Expected '('"));
+    Context previous = switchContextToParents();
+    Expression* expr;
+    Statement* statement;
+
+    expectErrorWithAlways(StatementAndExpr, Expression, expr, processExpression(), switchContext(previous));
+    expectError(StatementAndExpr, Statement, statement, processStatement());
+    return Result::success(new StatementAndExpr{ statement, expr });
   }
 
 

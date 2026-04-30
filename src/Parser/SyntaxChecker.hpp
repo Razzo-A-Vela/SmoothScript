@@ -16,9 +16,7 @@ namespace Parser {
     std::vector<Token>* tokens;
     int index;
 
-    static Context fromTokens(std::vector<Token>* tokens) {
-      return { tokens, 0 };
-    }
+    static Context fromTokens(std::vector<Token>* tokens);
   };
 
   #define ignores
@@ -39,6 +37,9 @@ namespace Parser {
   protected:
     virtual Token get(int index) { return tokens->at(index); }
     Context switchContext(Context newContext);
+    Context switchContextTo(TokenType type, Utils::Error err);
+    Context switchContextToParents();
+    Context switchContextToBrackets();
     int getErrorLine();
     //? A wakeup token is a disposable token that is used to indicate the start of a specific syntax
     bool wakeup(Token token, TokenType tokenType);
@@ -57,6 +58,7 @@ namespace Parser {
     Result::inst<Expression> ignores processExpression();                                 // ...
     Result::inst<Expression> alwaysErrors childOf(processExpression()) processLiteralExpression();
     Result::inst<InitIdentifier> alwaysErrors processInitIdentifier();                    // NAME [= INIT_EXPRESSION]
+    Result::inst<StatementAndExpr> ignores processExprAndStatement();                     // (EXPRESSION) STATEMENT
 
     template <typename T>
     Result::inst<T> expectSemi(Result::inst<T> other) {
