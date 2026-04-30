@@ -3,7 +3,7 @@
 
 :int b = 2;
 :int c = b;
-:int d;
+:int d, h = 3, j;
 :int e = d = 6;
 
 func h() int;
