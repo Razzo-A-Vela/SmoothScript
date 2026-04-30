@@ -18,6 +18,7 @@ const std::string defaultConfigTOML = "{defaultConfig}";
 //TODO: use uints instead of ints when needed (make 0 the not correct value? or use optional?)
 //TODO: free memory when done with it
 //TODO: Try to not heap-allocate everything
+//TODO: USE CMAKE?
 //TODO: Remake the extension, but better
 
 
