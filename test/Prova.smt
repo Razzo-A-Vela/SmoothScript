@@ -16,13 +16,14 @@ func f() int {
 
   :int b;
 
-  // if (1) {
-  //   b = 1;
-  // }
+  if (1) {
+    b = 1;
+  }
 
-  // if (0);
+  if (0);
 
-  // if (b = 1) return 2;
+  if (b = 1)
+    return 2;
 
   :int d = b = 3;
   a = 2;
