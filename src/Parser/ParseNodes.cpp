@@ -84,6 +84,10 @@ namespace Parser {
         out << " = ";
         u.varAssign->expr->print(out);
         break;
+      
+      case Type::EXPR :
+        u.expr->print(out);
+        break;
     }
 
     out << ") -> ";
@@ -114,15 +118,15 @@ namespace Parser {
         break;
       
       case Type::VAR_DECL :
-        out << "VAR_DECL(";
+        out << "VAR_DECL (";
         u.vars->print(out);
         out << ");";
         break;
       
       case Type::EXPRESSION :
-        out << "EXPRESSION(";
+        out << "EXPRESSION ( ";
         u.expr->print(out);
-        out << ");";
+        out << " );";
         break;
       
       case Type::IF :

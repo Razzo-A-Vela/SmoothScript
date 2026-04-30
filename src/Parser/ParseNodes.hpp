@@ -76,12 +76,13 @@ namespace Parser {
 
   struct Expression {
     enum class Type {
-      LITERAL, VAR_ASSIGN, VAR
+      LITERAL, VAR_ASSIGN, VAR, EXPR
     } type;
     union {
       Literal literal;
       VarAssign* varAssign;
       Identifier* var;
+      Expression* expr;
     } u;
     ReturnType* returnType;
 

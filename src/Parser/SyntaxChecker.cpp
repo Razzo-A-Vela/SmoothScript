@@ -224,6 +224,14 @@ namespace Parser {
     if (peekEqual({ TokenType::LITERAL }))
       return processLiteralExpression();
     
+    else if (peekEqual({ TokenType::PARENTS })) {
+      Context previous = switchContextToParents();
+      
+      Expression* expr;
+      expectErrorWithAlways(Expression, Expression, expr, processExpression(), switchContext(previous));
+      return Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
+    }
+    
     else if ((identifier = processIdentifier()).hasValue()) {
       Identifier* var = identifier.value;
 
