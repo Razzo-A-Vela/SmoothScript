@@ -76,7 +76,7 @@ namespace Parser {
         break;
       
       case Type::VAR :
-        u.var->print(out);
+        u.name->print(out);
         break;
 
       case Type::VAR_ASSIGN :
@@ -87,6 +87,12 @@ namespace Parser {
       
       case Type::EXPR :
         u.expr->print(out);
+        break;
+      
+      case Type::FUNC_CALL :
+        u.name->print(out);
+        //TODO: PARAMS
+        out << "()";
         break;
     }
 

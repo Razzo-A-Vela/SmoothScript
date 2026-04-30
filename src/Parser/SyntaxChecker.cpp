@@ -237,15 +237,20 @@ namespace Parser {
     }
     
     else if ((identifier = processIdentifier()).hasValue()) {
-      Identifier* var = identifier.value;
+      Identifier* name = identifier.value;
 
       if (wakeup(TokenType::EQUALS)) {
         Expression* expr;
         expectError(Expression, Expression, expr, processExpression());
-        return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ var, expr } }, expr->returnType });
+        return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ name, expr } }, expr->returnType });
       }
 
-      return Result::success(new Expression{ Expression::Type::VAR, { .var = var }, ReturnType::unknown() });
+      //TODO: PARAMS
+      if (wakeup({ TokenType::PARENTS })) {
+        return Result::success(new Expression{ Expression::Type::FUNC_CALL, { .name = name }, ReturnType::unknown() });
+      }
+
+      return Result::success(new Expression{ Expression::Type::VAR, { .name = name }, ReturnType::unknown() });
     } else if (identifier.isError())
       return Result::error<Expression>(identifier.error);
 
