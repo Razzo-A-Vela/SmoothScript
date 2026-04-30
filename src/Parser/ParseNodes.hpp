@@ -48,10 +48,23 @@ namespace Parser {
     void print(std::ostream& out);
   };
 
+  struct InitIdentifier {
+    Identifier* name;
+    InitExpression* expr;
+
+    void print(std::ostream& out);
+  };
+
   struct Variable {
     Type* type;
-    Identifier* name;
-    InitExpression* init;
+    InitIdentifier* init;
+
+    void print(std::ostream& out);
+  };
+
+  struct Variables {
+    Variable* var;
+    std::vector<InitIdentifier*>* other;
 
     void print(std::ostream& out);
   };
@@ -93,7 +106,7 @@ namespace Parser {
     } type;
     union {
       Expression* expr;
-      Variable* var;
+      Variables* vars;
       Scope* scope;
       StatementAndExpr* statementAndExpr;
     } u;
@@ -113,10 +126,10 @@ namespace Parser {
 
   struct GlobalNode {
     enum class Type {
-      VAR, FUNC
+      VAR_DECL, FUNC
     } type;
     union {
-      Variable* var;
+      Variables* vars;
       Function* func;
     } u;
 

@@ -43,14 +43,28 @@ namespace Parser {
     }
   }
 
+  void InitIdentifier::print(std::ostream& out) {
+    name->print(out);
+    if (expr != NULL) {
+      out << " = ";
+      expr->print(out);
+    }
+  }
+
   void Variable::print(std::ostream& out) {
-    out << ':';
     type->print(out);
     out << ' ';
-    name->print(out);
-    if (init != NULL) {
-      out << " = ";
-      init->print(out);
+    init->print(out);
+  }
+
+  void Variables::print(std::ostream& out) {
+    out << ':';
+    var->print(out);
+    if (other != NULL) {
+      for (int i = 0; i < other->size(); i++) {
+        out << ", ";
+        other->at(i)->print(out);
+      }
     }
   }
 
@@ -89,7 +103,7 @@ namespace Parser {
       
       case Type::VAR_DECL :
         out << "VAR_DECL(";
-        u.var->print(out);
+        u.vars->print(out);
         out << ");";
         break;
       
@@ -146,8 +160,9 @@ namespace Parser {
 
   void GlobalNode::print(std::ostream& out) {
     switch (type) {
-      case Type::VAR :
-        u.var->print(out);
+      case Type::VAR_DECL :
+        u.vars->print(out);
+        out << ';';
         break;
       
       case Type::FUNC :

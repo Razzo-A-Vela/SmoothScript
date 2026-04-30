@@ -45,16 +45,18 @@ namespace Parser {
     bool wakeup(TokenType tokenType);
     bool semi();
     bool semi(Token token);
-    Result::inst<Variable> alwaysErrors withWakeup(TokenType::COLON) processVariable();   // TYPE NAME [= INIT_EXPRESSION];
+    Result::inst<Variables> alwaysErrors withWakeup(TokenType::COLON) processVariables(); // VARIABLE [(, INIT_IDENTIFIER)...]
+    Result::inst<Variable> alwaysErrors processVariable();                                // TYPE INIT_IDENTIFIER
     Result::inst<Function> alwaysErrors withWakeup(TokenType::FUNC) processFunction();    // NAME() :RETURN_TYPE SCOPE
     Result::inst<ReturnType> ignores processReturnType();                                 // void | TYPE
-    Result::inst<Scope> ignores processScope();                                           // { STATEMENT... }
+    Result::inst<Scope> ignores processScope();                                           // { (STATEMENT;)... }
     Result::inst<Statement> ignores processStatement();                                   // ...
     Result::inst<Identifier> ignores processIdentifier();                                 // RAW_IDENTIFIER
     Result::inst<Type> ignores processType();                                             // ...
     Result::inst<InitExpression> alwaysErrors processInitExpression();                    // INIT_SPECIFIC_EXPRESSION | EXPRESSION
     Result::inst<Expression> ignores processExpression();                                 // ...
     Result::inst<Expression> alwaysErrors childOf(processExpression()) processLiteralExpression();
+    Result::inst<InitIdentifier> alwaysErrors processInitIdentifier();                    // NAME [= INIT_EXPRESSION]
 
     template <typename T>
     Result::inst<T> expectSemi(Result::inst<T> other) {

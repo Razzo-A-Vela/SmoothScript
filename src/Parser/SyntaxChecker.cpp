@@ -52,18 +52,32 @@ namespace Parser {
     result = result##_result.value; } 0
 
 
+  Result::inst<Variables> SyntaxChecker::processVariables() {
+    Variable* var;
+    expectError(Variables, Variable, var, processVariable());
+
+    std::vector<InitIdentifier*>* other = NULL;
+    if (wakeup(TokenType::COMMA)) {
+      other = new std::vector<InitIdentifier*>();
+      InitIdentifier* init;
+      
+      do {
+        expectError(Variables, InitIdentifier, init, processInitIdentifier());
+        other->push_back(init);
+      } while(wakeup(TokenType::COMMA));
+    }
+
+    return Result::success(new Variables{ var, other });
+  }
+
   Result::inst<Variable> SyntaxChecker::processVariable() {
     Type* type;
     expectError(Variable, Type, type, processType());
     
-    Identifier* name;
-    expectError(Variable, Identifier, name, processIdentifier());
+    InitIdentifier* init;
+    expectError(Variable, InitIdentifier, init, processInitIdentifier());
     
-    InitExpression* initExpr = NULL;
-    if (wakeup(TokenType::EQUALS))
-      expectError(Variable, InitExpression, initExpr, processInitExpression());
-    
-    return Result::success(new Variable{ type, name, initExpr });
+    return Result::success(new Variable{ type, init });
   }
 
   Result::inst<Function> SyntaxChecker::processFunction() {
@@ -134,9 +148,9 @@ namespace Parser {
       return Result::success(new Statement{ Statement::Type::NOTHING });
 
     if (wakeup(TokenType::COLON)) {
-      Variable* var;
-      expectError(Statement, Variable, var, processVariable());
-      return Result::success(new Statement{ Statement::Type::VAR_DECL, { .var = var } });
+      Variables* vars;
+      expectError(Statement, Variables, vars, processVariables());
+      return Result::success(new Statement{ Statement::Type::VAR_DECL, { .vars = vars } });
     }
 
     if (wakeup(TokenType::RETURN)) {
@@ -209,6 +223,17 @@ namespace Parser {
     return Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal }, ReturnType::fromType(new Type{ Type::TypeT::INT }) });
   }
 
+  Result::inst<InitIdentifier> SyntaxChecker::processInitIdentifier() {
+    Identifier* name;
+    expectError(InitIdentifier, Identifier, name, processIdentifier());
+    
+    InitExpression* initExpr = NULL;
+    if (wakeup(TokenType::EQUALS))
+      expectError(InitIdentifier, InitExpression, initExpr, processInitExpression());
+    
+    return Result::success(new InitIdentifier{ name, initExpr });
+  }
+
 
   #undef expectError
   #undef expectIgnore
@@ -221,7 +246,7 @@ namespace Parser {
       if (semi(token))
         continue; //* Technically not needed (better than ';')
       else if (wakeup(token, TokenType::COLON))
-        addToOutput({ GlobalNode::Type::VAR, { .var = expectSemi(processVariable()).expectValue() } });
+        addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemi(processVariables()).expectValue() } });
       else if (wakeup(token, TokenType::FUNC))
         addToOutput({ GlobalNode::Type::FUNC, { .func = processFunction().expectValue() } });
       else
