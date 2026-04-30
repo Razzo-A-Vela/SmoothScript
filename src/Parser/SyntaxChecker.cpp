@@ -182,7 +182,11 @@ namespace Parser {
     if (wakeup(TokenType::IF)) {
       StatementAndExpr* statementAndExpr;
       expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
-      return Result::success(new Statement{ Statement::Type::IF, { .statementAndExpr = statementAndExpr } });
+      Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::IF, { .statementAndExpr = statementAndExpr } });
+
+      if (!statementAndExpr->statement->ignoresSemi())
+        return expectSemi(ret);
+      return ret;
     }
 
     Result::inst<Scope> scope;
