@@ -246,7 +246,8 @@ namespace Parser {
       }
 
       return Result::success(new Expression{ Expression::Type::VAR, { .var = var }, ReturnType::unknown() });
-    }
+    } else if (identifier.isError())
+      return Result::error<Expression>(identifier.error);
 
     return Result::ignore<Expression>(syntaxError("Expected expression"));
   }
