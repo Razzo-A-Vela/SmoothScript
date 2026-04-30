@@ -22,10 +22,12 @@ func f() int {
 
   if (0);
 
+  g();
+
   if (b = 1)
     return 2;
 
-  :int d = (b = 3);
+  :int d = (b = h());
   (a = 2);
   return b = (22);
   return (10);
