@@ -25,8 +25,8 @@ func f() int {
   if (b = 1)
     return 2;
 
-  :int d = b = 3;
-  a = 2;
-  return b = 22;
-  return 10;
+  :int d = (b = 3);
+  (a = 2);
+  return b = (22);
+  return (10);
 }
