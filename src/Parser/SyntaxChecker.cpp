@@ -11,11 +11,11 @@ namespace Parser {
   }
 
   Context SyntaxChecker::switchContext(Context newContext) {
-    Context context = { tokens, index };
+    Context previous = { tokens, index };
     tokens = newContext.tokens;
     setMaxIndex(tokens->size());
     index = newContext.index;
-    return context;
+    return previous;
   }
 
   Context SyntaxChecker::switchContextTo(TokenType type, Utils::Error err) {
