@@ -4,6 +4,10 @@
 
 #include <Literal/Literal.hpp>
 
+
+#define nullable
+#define nullableInCase(case)
+
 namespace Parser {
   struct Identifier {
     const char* name;
@@ -25,7 +29,7 @@ namespace Parser {
   struct ReturnType {
     bool isUnknown;
     bool isVoid;
-    Type* type;
+    nullable Type* type;
 
     static ReturnType* unknown();
     static ReturnType* _void();
@@ -50,7 +54,7 @@ namespace Parser {
 
   struct InitIdentifier {
     Identifier* name;
-    InitExpression* expr;
+    nullable InitExpression* expr;
 
     void print(std::ostream& out);
   };
@@ -64,7 +68,7 @@ namespace Parser {
 
   struct Variables {
     Variable* var;
-    std::vector<InitIdentifier*>* other;
+    nullable std::vector<InitIdentifier*>* other;
 
     void print(std::ostream& out);
   };
@@ -108,7 +112,7 @@ namespace Parser {
       RETURN, VAR_DECL, EXPRESSION, IF, SCOPE, NOTHING
     } type;
     union {
-      Expression* expr;
+      nullableInCase(Type::RETURN) Expression* expr;
       Variables* vars;
       Scope* scope;
       StatementAndExpr* statementAndExpr;
@@ -123,7 +127,7 @@ namespace Parser {
     Identifier* name;
     ReturnType* returnType;
     bool defined;
-    Scope* scope;
+    nullable Scope* scope;
 
     void print(std::ostream& out);
   };
