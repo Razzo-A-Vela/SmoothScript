@@ -127,10 +127,10 @@ namespace Parser {
   }
 
   Result::inst<ReturnType> SyntaxChecker::processReturnType() {
-    if (tryConsume({ TokenType::VOID }))
+    if (wakeup(TokenType::VOID))
       return Result::success(ReturnType::_void());
 
-    if (tryConsume({ TokenType::EXCLAMATION }))
+    if (wakeup(TokenType::EXCLAMATION))
       return Result::success(ReturnType::noReturn());
     
     

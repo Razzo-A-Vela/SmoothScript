@@ -30,7 +30,9 @@ namespace Parser {
   }
 
   void ReturnType::print(std::ostream& out) {
-    if (isVoid)
+    if (!doesReturn)
+      out << "noReturn";
+    else if (isVoid)
       out << "void";
     else if (isUnknown)
       out << "unknown";
