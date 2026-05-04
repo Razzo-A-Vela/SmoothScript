@@ -69,6 +69,10 @@ namespace Tokenizer {
         out << "COMMA";
         break;
       
+      case TokenType::EXCLAMATION :
+        out << "EXCLAMATION";
+        break;
+      
 
       case TokenType::PARENTS :
         out << "( ";

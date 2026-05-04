@@ -10,7 +10,7 @@ namespace Tokenizer {
     
     INT, FLOAT, BOOL, CHAR, CSTR, SIZE_T, VOID,
     
-    SEMI, COLON, MINUS, EQUALS, COMMA,
+    SEMI, COLON, MINUS, EQUALS, COMMA, EXCLAMATION,
     
     PARENTS, SQUARES, BRACKETS,
     

@@ -208,6 +208,10 @@ namespace Tokenizer {
           ret->type = TokenType::COMMA;
           break;
         
+        case '!' :
+          ret->type = TokenType::EXCLAMATION;
+          break;
+        
         
         default :
           ret->type = TokenType::SYMBOL;
