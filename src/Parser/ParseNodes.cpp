@@ -13,16 +13,20 @@ namespace Parser {
     }
   }
 
+  ReturnType* ReturnType::noReturn() {
+    return new ReturnType{ false, false, false, NULL };
+  }
+
   ReturnType* ReturnType::unknown() {
-    return new ReturnType{ true, false, NULL };
+    return new ReturnType{ true, true, false, NULL };
   }
 
   ReturnType* ReturnType::_void() {
-    return new ReturnType{ false, true, NULL };
+    return new ReturnType{ true, false, true, NULL };
   }
 
   ReturnType* ReturnType::fromType(Type* type) {
-    return new ReturnType{ false, false, type };
+    return new ReturnType{ true, false, false, type };
   }
 
   void ReturnType::print(std::ostream& out) {

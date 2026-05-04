@@ -27,10 +27,12 @@ namespace Parser {
   };
 
   struct ReturnType {
+    bool doesReturn;
     bool isUnknown;
     bool isVoid;
     nullable Type* type;
 
+    static ReturnType* noReturn();
     static ReturnType* unknown();
     static ReturnType* _void();
     static ReturnType* fromType(Type* type);

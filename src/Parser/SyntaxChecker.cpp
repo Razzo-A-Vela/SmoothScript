@@ -129,12 +129,16 @@ namespace Parser {
   Result::inst<ReturnType> SyntaxChecker::processReturnType() {
     if (tryConsume({ TokenType::VOID }))
       return Result::success(ReturnType::_void());
+
+    if (tryConsume({ TokenType::EXCLAMATION }))
+      return Result::success(ReturnType::noReturn());
+    
     
     Result::inst<Type> type = processType();
     if (type.isIgnored())
       return Result::ignore<ReturnType>(syntaxError("Expected return type"));
     else if (type.isError())
-      return Result::error<ReturnType>(syntaxError("Expected return type"));
+      return Result::error<ReturnType>(type.error);
     
     return Result::success(ReturnType::fromType(type.value));
   }
