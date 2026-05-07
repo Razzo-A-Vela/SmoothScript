@@ -108,7 +108,7 @@ namespace Parser {
 
   Result::inst<Function> SyntaxChecker::processFunction() {
     Identifier* name;
-    expectError(Function, Identifier, name, processIdentifier());
+    expectError(Function, Identifier, name, processRawIdentifier());
 
     //TODO: PARAMS
     if (!tryConsume({ TokenType::PARENTS }))
@@ -208,10 +208,14 @@ namespace Parser {
     return Result::error<Statement>(syntaxError("Invalid statement"));
   }
 
-  Result::inst<Identifier> SyntaxChecker::processIdentifier() {
+  Result::inst<Identifier> SyntaxChecker::processRawIdentifier() {
     if (peekEqual({ TokenType::IDENTIFIER }))
       return Result::success(new Identifier{ consume().value().u.string });
     return Result::ignore<Identifier>(syntaxError("Expected identifier"));
+  }
+
+  Result::inst<Identifier> SyntaxChecker::processIdentifier() {
+    return processRawIdentifier();
   }
 
   Result::inst<Type> SyntaxChecker::processType() {
@@ -272,7 +276,7 @@ namespace Parser {
 
   Result::inst<InitIdentifier> SyntaxChecker::processInitIdentifier() {
     Identifier* name;
-    expectError(InitIdentifier, Identifier, name, processIdentifier());
+    expectError(InitIdentifier, Identifier, name, processRawIdentifier());
     
     InitExpression* initExpr = NULL;
     if (wakeup(TokenType::EQUALS))
