@@ -125,6 +125,7 @@ namespace Parser {
       case Statement::Type::NOTHING :
       case Statement::Type::SCOPE :
       case Statement::Type::IF :
+      case Statement::Type::ELSE :
         return true;
       
       default :
@@ -156,8 +157,13 @@ namespace Parser {
         break;
       
       case Type::IF :
-        out << "IF";
+        out << "IF ";
         u.statementAndExpr->print(out);
+        break;
+      
+      case Type::ELSE :
+        out << "ELSE ";
+        u.statement->print(out);
         break;
       
       case Type::SCOPE :
@@ -185,7 +191,7 @@ namespace Parser {
   }
 
   void StatementAndExpr::print(std::ostream& out) {
-    out << " (";
+    out << '(';
     expr->print(out);
     out << ") ";
     statement->print(out);

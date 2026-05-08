@@ -119,13 +119,14 @@ namespace Parser {
 
   struct Statement {
     enum class Type {
-      RETURN, VAR_DECL, EXPRESSION, IF, SCOPE, NOTHING
+      RETURN, VAR_DECL, EXPRESSION, IF, ELSE, SCOPE, NOTHING
     } type;
     union {
       nullableInCase(Type::RETURN) Expression* expr;
       Variables* vars;
       Scope* scope;
       StatementAndExpr* statementAndExpr;
+      Statement* statement;
     } u;
 
     bool ignoresSemi();

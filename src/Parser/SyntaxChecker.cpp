@@ -57,6 +57,11 @@ namespace Parser {
     return wakeup(token, TokenType::SEMI);
   }
 
+  #define returnIgnoreSemi(ret, statement) \
+    { if (statement->ignoresSemi()) \
+      return ret; \
+    return expectSemi(ret); } 0
+
 
   #define expectError(retType, type, result, function) \
     { Result::inst<type> result##_result = function; \
@@ -214,9 +219,15 @@ namespace Parser {
       expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
       Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::IF, { .statementAndExpr = statementAndExpr } });
 
-      if (!statementAndExpr->statement->ignoresSemi())
-        return expectSemi(ret);
-      return ret;
+      returnIgnoreSemi(ret, statementAndExpr->statement);
+    }
+
+    if (wakeup(TokenType::ELSE)) {
+      Statement* statement;
+      expectError(Statement, Statement, statement, processStatement());
+      Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::ELSE, { .statement = statement } });
+
+      returnIgnoreSemi(ret, statement);
     }
 
     Result::inst<Scope> scope;
