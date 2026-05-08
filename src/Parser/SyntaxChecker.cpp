@@ -57,10 +57,19 @@ namespace Parser {
     return wakeup(token, TokenType::SEMI);
   }
 
-  #define returnIgnoreSemi(ret, statement) \
+
+  #define returnWithSemi(ret, statement) \
     { if (statement->ignoresSemi()) \
       return ret; \
     return expectSemi(ret); } 0
+  
+  #define returnIfError(retType, ret) \
+    { if (ret.isError()) \
+        return Result::error<retType>(ret.error); } 0
+
+  #define returnIfErrorPtr(retType, ret) \
+    { if (ret->isError()) \
+        return Result::error<retType>(ret->error>; } 0
 
 
   #define expectError(retType, type, result, function) \
@@ -168,8 +177,7 @@ namespace Parser {
     Result::inst<Type> type = processType();
     if (type.isIgnored())
       return Result::ignore<ReturnType>(syntaxError("Expected return type"));
-    else if (type.isError())
-      return Result::error<ReturnType>(type.error);
+    returnIfError(ReturnType, type);
     
     return Result::success(ReturnType::fromType(type.value));
   }
@@ -189,8 +197,7 @@ namespace Parser {
       statements->push_back(statement.value);
 
     switchContext(previous);
-    if (statement.isError())
-      return Result::error<Scope>(statement.error);
+    returnIfError(Scope, statement);
     return Result::success(new Scope{ statements, scopeDepth-- });
   }
 
@@ -219,7 +226,7 @@ namespace Parser {
       expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
       Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::IF, { .statementAndExpr = statementAndExpr } });
 
-      returnIgnoreSemi(ret, statementAndExpr->statement);
+      returnWithSemi(ret, statementAndExpr->statement);
     }
 
     if (wakeup(TokenType::ELSE)) {
@@ -227,20 +234,20 @@ namespace Parser {
       expectError(Statement, Statement, statement, processStatement());
       Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::ELSE, { .statement = statement } });
 
-      returnIgnoreSemi(ret, statement);
+      returnWithSemi(ret, statement);
     }
 
     Result::inst<Scope> scope;
     if ((scope = processScope()).hasValue())
       return Result::success(new Statement{ Statement::Type::SCOPE, { .scope = scope.value } });
-    else if (scope.isError())
-      return Result::error<Statement>(scope.error);
+    else
+      returnIfError(Statement, scope);
     
     Result::inst<Expression> expr;
     if ((expr = processExpression()).hasValue())
       return Result::success(new Statement{ Statement::Type::EXPRESSION, { .expr = expr.value } });
-    else if (expr.isError())
-      return Result::error<Statement>(expr.error);
+    else
+      returnIfError(Statement, expr);
 
     return Result::error<Statement>(syntaxError("Invalid statement"));
   }
@@ -273,7 +280,7 @@ namespace Parser {
     if (peekEqual({ TokenType::LITERAL }))
       return processLiteralExpression();
     
-    else if (peekEqual({ TokenType::PARENTS })) {
+    if (peekEqual({ TokenType::PARENTS })) {
       Context previous = switchContextToParents();
       
       Expression* expr;
@@ -281,7 +288,7 @@ namespace Parser {
       return Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
     }
     
-    else if ((identifier = processIdentifier()).hasValue()) {
+    if ((identifier = processIdentifier()).hasValue()) {
       Identifier* name = identifier.value;
 
       if (wakeup(TokenType::EQUALS)) {
@@ -317,8 +324,8 @@ namespace Parser {
       }
 
       return Result::success(new Expression{ Expression::Type::VAR, { .name = name }, ReturnType::unknown() });
-    } else if (identifier.isError())
-      return Result::error<Expression>(identifier.error);
+    } else
+      returnIfError(Expression, identifier);
 
     return Result::ignore<Expression>(syntaxError("Expected expression"));
   }
@@ -358,6 +365,11 @@ namespace Parser {
 
   #undef expectError
   #undef expectIgnore
+  #undef expectErrorWithAlways
+  #undef expectErrorWithOnError
+  #undef returnIfError
+  #undef returnIfErrorPtr
+  #undef returnWithSemi
 
 
   void SyntaxChecker::process() {
