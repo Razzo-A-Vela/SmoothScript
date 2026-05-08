@@ -10,6 +10,10 @@ namespace Parser {
     return Parser::syntaxError(msg, getErrorLine());
   }
 
+  Utils::Error SyntaxChecker::parentsError() {
+    return syntaxError("Expected '('");
+  }
+
   Context SyntaxChecker::switchContext(Context newContext) {
     Context previous = { tokens, index };
     tokens = newContext.tokens;
@@ -25,7 +29,7 @@ namespace Parser {
   }
 
   Context SyntaxChecker::switchContextToParents() {
-    return switchContextTo(TokenType::PARENTS, syntaxError("Expected '('"));
+    return switchContextTo(TokenType::PARENTS, parentsError());
   }
 
   Context SyntaxChecker::switchContextToBrackets() {
@@ -143,7 +147,7 @@ namespace Parser {
 
     std::vector<Variables*>* params = NULL;
     if (peekNotEqual({ TokenType::PARENTS }))
-      return Result::error<Function>(syntaxError("Expected '('"));
+      return Result::error<Function>(parentsError());
     Context previous = switchContextToParents();
     
     if (hasPeek()) {
@@ -375,7 +379,7 @@ namespace Parser {
 
   Result::inst<StatementAndExpr> SyntaxChecker::processExprAndStatement() {
     if (peekNotEqual({ TokenType::PARENTS }))
-      return Result::ignore<StatementAndExpr>(syntaxError("Expected '('"));
+      return Result::ignore<StatementAndExpr>(parentsError());
     Context previous = switchContextToParents();
     Expression* expr;
     Statement* statement;

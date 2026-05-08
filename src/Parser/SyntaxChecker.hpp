@@ -47,6 +47,7 @@ namespace Parser {
     bool semi();
     bool semi(Token token);
     Utils::Error semiError();
+    Utils::Error parentsError();
     Result::inst<Variables> alwaysErrors withWakeup(TokenType::COLON) processVariables(); // VARIABLE [(, INIT_IDENTIFIER)...]
     Result::inst<Variable> alwaysErrors processVariable();                                // TYPE INIT_IDENTIFIER
     Result::inst<Function> alwaysErrors withWakeup(TokenType::FUNC) processFunction();    // NAME() :RETURN_TYPE SCOPE
