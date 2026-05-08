@@ -23,6 +23,16 @@ func f() int {
 
   while (i < 10)
     i++;
+  
+  do {
+    i--;
+  } while (i > 3);
+
+  do {
+    i++;
+  } while (i < 18) {
+    i++;
+  }
 
   if (0);
   else {}
