@@ -258,6 +258,21 @@ namespace Parser {
       returnWithSemiPtr(ret, statementAndExpr->statement);
     }
 
+    if (wakeup(TokenType::DO)) {
+      Statement* doStatement;
+      StatementAndExpr* whileStatementAndExpr;
+
+      expectError(Statement, Statement, doStatement, processStatement());
+      if (!doStatement->ignoresSemi() && !semi())
+        return Result::error<Statement>(semiError());
+      if (!wakeup(TokenType::WHILE))
+        return Result::error<Statement>(syntaxError("Expected 'while'"));
+      expectError(Statement, StatementAndExpr, whileStatementAndExpr, processExprAndStatement());
+      
+      Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::DO_WHILE, { .doWhile = new DoWhile{ doStatement, whileStatementAndExpr } } });
+      returnWithSemiPtr(ret, whileStatementAndExpr->statement);
+    }
+
     Result::inst<Scope> scope;
     if ((scope = processScope()).hasValue())
       return Result::success(new Statement{ Statement::Type::SCOPE, { .scope = scope.value } });

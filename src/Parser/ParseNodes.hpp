@@ -119,9 +119,16 @@ namespace Parser {
     void print(std::ostream& out);
   };
 
+  struct DoWhile {
+    Statement* doStatement;
+    StatementAndExpr* whileStatementAndExpr;
+
+    void print(std::ostream& out);
+  };
+
   struct Statement {
     enum class Type {
-      RETURN, IF, ELSE, WHILE,
+      RETURN, IF, ELSE, WHILE, DO_WHILE,
       
       VAR_DECL, SCOPE, EXPRESSION, NOTHING
     } type;
@@ -131,6 +138,7 @@ namespace Parser {
       Scope* scope;
       StatementAndExpr* statementAndExpr;
       Statement* statement;
+      DoWhile* doWhile;
     } u;
 
     bool ignoresSemi();

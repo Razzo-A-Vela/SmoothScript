@@ -134,6 +134,13 @@ namespace Parser {
     returnType->print(out);
   }
 
+  void DoWhile::print(std::ostream& out) {
+    out << "DO ";
+    doStatement->print(out);
+    out << " WHILE ";
+    whileStatementAndExpr->print(out);
+  }
+
   bool Statement::ignoresSemi() {
     switch (type) {
       case Statement::Type::NOTHING :
@@ -141,6 +148,7 @@ namespace Parser {
       case Statement::Type::IF :
       case Statement::Type::ELSE :
       case Statement::Type::WHILE :
+      case Statement::Type::DO_WHILE :
         return true;
       
       default :
@@ -172,6 +180,10 @@ namespace Parser {
       case Type::WHILE :
         out << "WHILE ";
         u.statementAndExpr->print(out);
+        break;
+      
+      case Type::DO_WHILE :
+        u.doWhile->print(out);
         break;
       
 

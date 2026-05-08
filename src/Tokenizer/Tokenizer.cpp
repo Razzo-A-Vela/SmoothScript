@@ -120,6 +120,9 @@ namespace Tokenizer {
       else if (str == "while")
         ret->type = TokenType::WHILE;
       
+      else if (str == "do")
+        ret->type = TokenType::DO;
+      
       
       else if (str == "int")
         ret->type = TokenType::INT;

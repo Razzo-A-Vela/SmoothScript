@@ -22,6 +22,10 @@ namespace Tokenizer {
       case TokenType::WHILE :
         out << "WHILE";
         break;
+      
+      case TokenType::DO :
+        out << "DO";
+        break;
 
       
       case TokenType::INT :
