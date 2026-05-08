@@ -71,6 +71,14 @@ namespace Parser {
       return Result::error<retType>(result##_result.error); \
     result = result##_result.value; } 0
   
+  #define expectErrorWithOnError(retType, type, result, function, onErrorFunction) \
+    { Result::inst<type> result##_result = function; \
+    if (!result##_result.hasValue()) {\
+      onErrorFunction; \
+      return Result::error<retType>(result##_result.error); \
+    } \
+    result = result##_result.value; } 0
+  
   #define expectIgnore(retType, type, result, function) \
     { Result::inst<type> result##_result = function; \
     if (!result##_result.hasValue()) \
@@ -110,20 +118,38 @@ namespace Parser {
     Identifier* name;
     expectError(Function, Identifier, name, processRawIdentifier());
 
-    //TODO: PARAMS
-    if (!tryConsume({ TokenType::PARENTS }))
+    std::vector<Variables*>* params = NULL;
+    if (peekNotEqual({ TokenType::PARENTS }))
       return Result::error<Function>(syntaxError("Expected '('"));
+    Context previous = switchContextToParents();
+    
+    if (hasPeek()) {
+      params = new std::vector<Variables*>();
+      Variables* param;
+
+      do {
+        if (!wakeup(TokenType::COLON)) {
+          switchContext(previous);
+          return Result::error<Function>(syntaxError("Expected ':'"));
+        }
+
+        expectErrorWithOnError(Function, Variables, param, processVariables(), switchContext(previous));
+        params->push_back(param);
+      } while (hasPeek());
+    }
+
+    switchContext(previous);
 
     ReturnType* returnType;
     expectError(Function, ReturnType, returnType, processReturnType());
 
     if (semi())
-      return Result::success(new Function{ name, returnType, false, NULL });
+      return Result::success(new Function{ name, returnType, params, false, NULL });
 
     Scope* scope;
     expectError(Function, Scope, scope, processScope());
 
-    return Result::success(new Function{ name, returnType, true, scope });
+    return Result::success(new Function{ name, returnType, params, true, scope });
   }
 
   Result::inst<ReturnType> SyntaxChecker::processReturnType() {
@@ -253,9 +279,30 @@ namespace Parser {
         return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ name, expr } }, expr->returnType });
       }
 
-      //TODO: PARAMS
-      if (wakeup({ TokenType::PARENTS })) {
-        return Result::success(new Expression{ Expression::Type::FUNC_CALL, { .name = name }, ReturnType::unknown() });
+      if (peekEqual({ TokenType::PARENTS })) {
+        Context previous = switchContextToParents();
+        std::vector<Expression*>* params = NULL;
+
+        if (hasPeek()) {
+          params = new std::vector<Expression*>();
+          Expression* expr;
+        
+          while (true) {
+            expectErrorWithOnError(Expression, Expression, expr, processExpression(), switchContext(previous));
+            params->push_back(expr);
+
+            if (!wakeup(TokenType::COMMA)) {
+              if (!hasPeek())
+                break;
+              
+              switchContext(previous);
+              return Result::error<Expression>(syntaxError("Expected ','"));
+            }
+          };
+        }
+
+        switchContext(previous);
+        return Result::success(new Expression{ Expression::Type::FUNC_CALL, { .funcCall = new FuncCall{ name, params } }, ReturnType::unknown() });
       }
 
       return Result::success(new Expression{ Expression::Type::VAR, { .name = name }, ReturnType::unknown() });

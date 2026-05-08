@@ -80,6 +80,13 @@ namespace Parser {
     Expression* expr;
   };
 
+  struct FuncCall {
+    Identifier* name;
+    nullable std::vector<Expression*>* params;
+
+    void print(std::ostream& out);
+  };
+
   struct Expression {
     enum class Type {
       LITERAL, VAR_ASSIGN, VAR, EXPR, FUNC_CALL
@@ -89,6 +96,7 @@ namespace Parser {
       VarAssign* varAssign;
       Identifier* name;
       Expression* expr;
+      FuncCall* funcCall;
     } u;
     ReturnType* returnType;
 
@@ -128,6 +136,7 @@ namespace Parser {
   struct Function {
     Identifier* name;
     ReturnType* returnType;
+    nullable std::vector<Variables*>* params;
     bool defined;
     nullable Scope* scope;
 

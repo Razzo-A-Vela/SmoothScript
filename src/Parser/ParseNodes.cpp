@@ -74,6 +74,22 @@ namespace Parser {
     }
   }
 
+  void FuncCall::print(std::ostream& out) {
+    name->print(out);
+    out << '(';
+    
+    if (params != NULL) {
+      params->at(0)->print(out);
+
+      for (int i = 1; i < params->size(); i++) {
+        out << ", ";
+        params->at(i)->print(out);
+      }
+    }
+
+    out << ')';
+  }
+
   void Expression::print(std::ostream& out) {
     out << '(';
     switch (type) {
@@ -96,9 +112,7 @@ namespace Parser {
         break;
       
       case Type::FUNC_CALL :
-        u.name->print(out);
-        //TODO: PARAMS
-        out << "()";
+        u.funcCall->print(out);
         break;
     }
 
@@ -180,8 +194,17 @@ namespace Parser {
   void Function::print(std::ostream& out) {
     out << "func ";
     name->print(out);
-    out << "()";    //TODO: PARAMS
-    out << ':';
+    out << '(';
+
+    if (params != NULL) {
+      params->at(0)->print(out);
+
+      for (int i = 1; i < params->size(); i++) {
+        out << ' ';
+        params->at(i)->print(out);
+      }
+    }
+    out << ") ";
     returnType->print(out);
 
     if (defined) {
