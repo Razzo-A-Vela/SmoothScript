@@ -2,7 +2,7 @@
 ;
 
 :int b = 2;
-:int c = b;
+:int c = b--;
 :int d, i = 3, j;
 :int e = d = 6;
 
@@ -22,7 +22,7 @@ func f() int {
     p = 12;
 
   while (i < 10)
-    i = 10;
+    i++;
 
   if (0);
   else {}
