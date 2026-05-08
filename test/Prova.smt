@@ -6,9 +6,9 @@
 :int d, h = 3, j;
 :int e = d = 6;
 
-func h() int;
+func h(:int a, b, c :int x) !;
 
-func g() int {}
+func g() void {}
 
 func f() int {
   ;
@@ -27,7 +27,7 @@ func f() int {
   if (b = 1)
     return 2;
 
-  :int d = (b = h());
+  :int d = (b = h(10, 11, 12, 13));
   (a = 2);
   return b = (22);
   return (10);
