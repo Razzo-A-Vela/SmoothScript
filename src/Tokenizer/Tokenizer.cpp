@@ -196,9 +196,18 @@ namespace Tokenizer {
           ret->type = TokenType::COLON;
           break;
         
+        case '+' :
+          if (tryConsume({ PreTokenType::SYMBOL, { .character = '+' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::PLUSPLUS;
+          else
+            ret->type = TokenType::PLUS;
+          break;
+
         case '-' :
           if (tryConsume({ PreTokenType::SYMBOL, { .character = '>' } }, PreToken::typeCharEqual))
             ret->type = TokenType::ARROW;
+          else if (tryConsume({ PreTokenType::SYMBOL, { .character = '-' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::MINUSMINUS;
           else
             ret->type = TokenType::MINUS;
           break;

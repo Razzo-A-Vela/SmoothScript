@@ -65,6 +65,10 @@ namespace Tokenizer {
         out << "MINUS";
         break;
 
+      case TokenType::PLUS :
+        out << "PLUS";
+        break;
+
       case TokenType::EQUALS :
         out << "EQUALS";
         break;
@@ -111,6 +115,14 @@ namespace Tokenizer {
 
       case TokenType::ARROW :
         out << "ARROW";
+        break;
+      
+      case TokenType::PLUSPLUS :
+        out << "PLUSPLUS";
+        break;
+      
+      case TokenType::MINUSMINUS :
+        out << "MINUSMINUS";
         break;
       
       
