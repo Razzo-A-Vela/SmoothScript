@@ -74,6 +74,12 @@ namespace Parser {
     }
   }
 
+  void VarAssign::print(std::ostream& out) {
+    name->print(out);
+    out << " = ";
+    expr->print(out);
+  }
+
   void FuncCall::print(std::ostream& out) {
     name->print(out);
     out << '(';
@@ -102,9 +108,7 @@ namespace Parser {
         break;
 
       case Type::VAR_ASSIGN :
-        u.varAssign->name->print(out);
-        out << " = ";
-        u.varAssign->expr->print(out);
+        u.varAssign->print(out);
         break;
       
       case Type::EXPR :

@@ -78,6 +78,8 @@ namespace Parser {
   struct VarAssign {
     Identifier* name;
     Expression* expr;
+
+    void print(std::ostream& out);
   };
 
   struct FuncCall {
