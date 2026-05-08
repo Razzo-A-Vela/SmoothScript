@@ -21,6 +21,9 @@ func f() int {
   } else
     p = 12;
 
+  while (i < 10)
+    i = 10;
+
   if (0);
   else {}
 
