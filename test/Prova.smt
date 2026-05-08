@@ -3,7 +3,7 @@
 
 :int b = 2;
 :int c = b;
-:int d, h = 3, j;
+:int d, i = 3, j;
 :int e = d = 6;
 
 func h(:int a, b, c :int x) !;
@@ -18,9 +18,11 @@ func f() int {
 
   if (1) {
     b = 1;
-  }
+  } else
+    p = 12;
 
   if (0);
+  else {}
 
   g();
 
