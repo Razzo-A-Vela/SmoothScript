@@ -57,6 +57,10 @@ namespace Parser {
     return wakeup(token, TokenType::SEMI);
   }
 
+  Utils::Error SyntaxChecker::semiError() {
+    return syntaxError("Expected ';'");
+  }
+
 
   #define returnWithSemi(ret, statement) \
     { if (statement.ignoresSemi()) \
@@ -229,24 +233,24 @@ namespace Parser {
     if (wakeup(TokenType::IF)) {
       StatementAndExpr* statementAndExpr;
       expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
+      
       Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::IF, { .statementAndExpr = statementAndExpr } });
-
       returnWithSemiPtr(ret, statementAndExpr->statement);
     }
 
     if (wakeup(TokenType::ELSE)) {
       Statement* statement;
       expectError(Statement, Statement, statement, processStatement());
+      
       Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::ELSE, { .statement = statement } });
-
       returnWithSemiPtr(ret, statement);
     }
 
     if (wakeup(TokenType::WHILE)) {
       StatementAndExpr* statementAndExpr;
       expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
+      
       Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::WHILE, { .statementAndExpr = statementAndExpr } });
-
       returnWithSemiPtr(ret, statementAndExpr->statement);
     }
 

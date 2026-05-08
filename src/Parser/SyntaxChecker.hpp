@@ -46,6 +46,7 @@ namespace Parser {
     bool wakeup(TokenType tokenType);
     bool semi();
     bool semi(Token token);
+    Utils::Error semiError();
     Result::inst<Variables> alwaysErrors withWakeup(TokenType::COLON) processVariables(); // VARIABLE [(, INIT_IDENTIFIER)...]
     Result::inst<Variable> alwaysErrors processVariable();                                // TYPE INIT_IDENTIFIER
     Result::inst<Function> alwaysErrors withWakeup(TokenType::FUNC) processFunction();    // NAME() :RETURN_TYPE SCOPE
@@ -64,7 +65,7 @@ namespace Parser {
     template <typename T>
     Result::inst<T> expectSemi(Result::inst<T> other) {
       if (other.hasValue() && !semi())
-        return Result::error<T>(syntaxError("Expected ';'"));
+        return Result::error<T>(semiError());
       return other;
     }
 
