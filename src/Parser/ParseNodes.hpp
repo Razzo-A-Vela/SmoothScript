@@ -89,7 +89,7 @@ namespace Parser {
 
   struct Expression {
     enum class Type {
-      LITERAL, VAR_ASSIGN, VAR, EXPR, FUNC_CALL
+      LITERAL, VAR_ASSIGN, VAR, EXPR, FUNC_CALL, INCREMENT, DECREMENT
     } type;
     union {
       Literal literal;

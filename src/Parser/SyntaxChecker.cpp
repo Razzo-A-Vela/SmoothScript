@@ -336,6 +336,12 @@ namespace Parser {
         return Result::success(new Expression{ Expression::Type::FUNC_CALL, { .funcCall = new FuncCall{ name, params } }, ReturnType::unknown() });
       }
 
+      if (wakeup(TokenType::PLUSPLUS))
+        return Result::success(new Expression{ Expression::Type::INCREMENT, { .name = name }, ReturnType::unknown() });
+
+      if (wakeup(TokenType::MINUSMINUS))
+        return Result::success(new Expression{ Expression::Type::DECREMENT, { .name = name }, ReturnType::unknown() });
+
       return Result::success(new Expression{ Expression::Type::VAR, { .name = name }, ReturnType::unknown() });
     } else
       returnIfError(Expression, identifier);

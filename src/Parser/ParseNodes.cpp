@@ -114,6 +114,16 @@ namespace Parser {
       case Type::FUNC_CALL :
         u.funcCall->print(out);
         break;
+      
+      case Type::INCREMENT :
+        u.name->print(out);
+        out << "++";
+        break;
+      
+      case Type::DECREMENT :
+        u.name->print(out);
+        out << "--";
+        break;
     }
 
     out << ") -> ";
