@@ -117,6 +117,9 @@ namespace Tokenizer {
       else if (str == "else")
         ret->type = TokenType::ELSE;
       
+      else if (str == "while")
+        ret->type = TokenType::WHILE;
+      
       
       else if (str == "int")
         ret->type = TokenType::INT;

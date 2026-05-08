@@ -119,7 +119,9 @@ namespace Parser {
 
   struct Statement {
     enum class Type {
-      RETURN, VAR_DECL, EXPRESSION, IF, ELSE, SCOPE, NOTHING
+      RETURN, IF, ELSE, WHILE,
+      
+      VAR_DECL, SCOPE, EXPRESSION, NOTHING
     } type;
     union {
       nullableInCase(Type::RETURN) Expression* expr;

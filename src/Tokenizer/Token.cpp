@@ -18,6 +18,10 @@ namespace Tokenizer {
       case TokenType::ELSE :
         out << "ELSE";
         break;
+      
+      case TokenType::WHILE :
+        out << "WHILE";
+        break;
 
       
       case TokenType::INT :

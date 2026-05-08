@@ -59,6 +59,11 @@ namespace Parser {
 
 
   #define returnWithSemi(ret, statement) \
+    { if (statement.ignoresSemi()) \
+      return ret; \
+    return expectSemi(ret); } 0
+  
+  #define returnWithSemiPtr(ret, statement) \
     { if (statement->ignoresSemi()) \
       return ret; \
     return expectSemi(ret); } 0
@@ -69,7 +74,7 @@ namespace Parser {
 
   #define returnIfErrorPtr(retType, ret) \
     { if (ret->isError()) \
-        return Result::error<retType>(ret->error>; } 0
+        return Result::error<retType>(ret->error); } 0
 
 
   #define expectError(retType, type, result, function) \
@@ -226,7 +231,7 @@ namespace Parser {
       expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
       Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::IF, { .statementAndExpr = statementAndExpr } });
 
-      returnWithSemi(ret, statementAndExpr->statement);
+      returnWithSemiPtr(ret, statementAndExpr->statement);
     }
 
     if (wakeup(TokenType::ELSE)) {
@@ -234,7 +239,15 @@ namespace Parser {
       expectError(Statement, Statement, statement, processStatement());
       Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::ELSE, { .statement = statement } });
 
-      returnWithSemi(ret, statement);
+      returnWithSemiPtr(ret, statement);
+    }
+
+    if (wakeup(TokenType::WHILE)) {
+      StatementAndExpr* statementAndExpr;
+      expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
+      Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::WHILE, { .statementAndExpr = statementAndExpr } });
+
+      returnWithSemiPtr(ret, statementAndExpr->statement);
     }
 
     Result::inst<Scope> scope;

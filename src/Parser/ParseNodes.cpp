@@ -126,6 +126,7 @@ namespace Parser {
       case Statement::Type::SCOPE :
       case Statement::Type::IF :
       case Statement::Type::ELSE :
+      case Statement::Type::WHILE :
         return true;
       
       default :
@@ -144,18 +145,6 @@ namespace Parser {
         out << ';';
         break;
       
-      case Type::VAR_DECL :
-        out << "VAR_DECL (";
-        u.vars->print(out);
-        out << ");";
-        break;
-      
-      case Type::EXPRESSION :
-        out << "EXPRESSION ( ";
-        u.expr->print(out);
-        out << " );";
-        break;
-      
       case Type::IF :
         out << "IF ";
         u.statementAndExpr->print(out);
@@ -166,8 +155,26 @@ namespace Parser {
         u.statement->print(out);
         break;
       
+      case Type::WHILE :
+        out << "WHILE ";
+        u.statementAndExpr->print(out);
+        break;
+      
+
+      case Type::VAR_DECL :
+        out << "VAR_DECL (";
+        u.vars->print(out);
+        out << ");";
+        break;
+      
       case Type::SCOPE :
         u.scope->print(out);
+        break;
+      
+      case Type::EXPRESSION :
+        out << "EXPRESSION ( ";
+        u.expr->print(out);
+        out << " );";
         break;
       
       case Type::NOTHING :
