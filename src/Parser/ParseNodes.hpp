@@ -89,9 +89,26 @@ namespace Parser {
     void print(std::ostream& out);
   };
 
+  struct Operator {
+    enum class Type {
+      ADD, SUB
+    } type;
+    int precedence;
+
+    void print(std::ostream& out);
+  };
+
+  struct BinaryOp {
+    Expression* left;
+    Operator* op;
+    Expression* right;
+
+    void print(std::ostream& out);
+  };
+
   struct Expression {
     enum class Type {
-      LITERAL, VAR_ASSIGN, VAR, EXPR, FUNC_CALL, INCREMENT, DECREMENT
+      LITERAL, VAR_ASSIGN, VAR, EXPR, FUNC_CALL, INCREMENT, DECREMENT, BINARY_OP
     } type;
     union {
       Literal literal;
@@ -99,6 +116,7 @@ namespace Parser {
       Identifier* name;
       Expression* expr;
       FuncCall* funcCall;
+      BinaryOp* binaryOp;
     } u;
     ReturnType* returnType;
 

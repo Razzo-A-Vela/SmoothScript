@@ -96,6 +96,27 @@ namespace Parser {
     out << ')';
   }
 
+  void Operator::print(std::ostream& out) {
+    out << " (";
+    switch (type) {
+      case Type::ADD :
+        out << '+';
+        break;
+      
+      case Type::SUB :
+        out << '-';
+        break;
+    }
+
+    out << " {" << precedence << "}) ";
+  }
+
+  void BinaryOp::print(std::ostream& out) {
+    left->print(out);
+    op->print(out);
+    right->print(out);
+  }
+
   void Expression::print(std::ostream& out) {
     out << '(';
     switch (type) {
@@ -127,6 +148,10 @@ namespace Parser {
       case Type::DECREMENT :
         u.name->print(out);
         out << "--";
+        break;
+      
+      case Type::BINARY_OP :
+        u.binaryOp->print(out);
         break;
     }
 

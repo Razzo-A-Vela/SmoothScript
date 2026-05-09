@@ -310,7 +310,7 @@ namespace Parser {
     return Result::success(new InitExpression{ InitExpression::Type::EXPRESSION, { .expr = expr } });
   }
 
-  Result::inst<Expression> SyntaxChecker::processExpression() {
+  Result::inst<Expression> SyntaxChecker::processExpression(bool ignoreOp) {
     Result::inst<Identifier> identifier;
     Result::inst<Expression> ret;
 
@@ -371,6 +371,22 @@ namespace Parser {
     } else
       returnIfError(Expression, identifier);
 
+    if (ignoreOp || !ret.hasValue())
+      return ret;
+
+    Result::inst<Operator> opResult;
+    Expression* left;
+    Operator* op;
+    Expression* right;
+    while ((opResult = processOperator()).hasValue()) {
+      left = ret.expectValue();
+      op = opResult.expectValue();
+      expectError(Expression, Expression, right, processExpression(true));
+
+      ret = Result::success(new Expression{ Expression::Type::BINARY_OP, { .binaryOp = new BinaryOp{ left, op, right } }, ReturnType::unknown() });
+    }
+    
+    returnIfError(Expression, opResult);
     return ret;
   }
 
@@ -381,6 +397,18 @@ namespace Parser {
     if (literal.type != LiteralType::INTEGER)
       return Result::error<Expression>(Parser::syntaxError("Invalid expression", token.line));
     return Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal }, ReturnType::fromType(new Type{ Type::TypeT::INT }) });
+  }
+
+  Result::inst<Operator> SyntaxChecker::processOperator() {
+    const int OP_AMOUNT = 2;
+    const TokenType tokens[OP_AMOUNT] = { TokenType::PLUS, TokenType::MINUS };
+    const Operator operators[OP_AMOUNT] = { { Operator::Type::ADD, 0 }, { Operator::Type::SUB, 0 } };
+
+    for (int i = 0; i < OP_AMOUNT; i++) {
+      if (wakeup(tokens[i]))
+        return Result::success(new Operator(operators[i]));
+    }
+    return Result::ignore<Operator>(syntaxError("Expected operator"));
   }
 
   Result::inst<InitIdentifier> SyntaxChecker::processInitIdentifier() {
