@@ -312,28 +312,29 @@ namespace Parser {
 
   Result::inst<Expression> SyntaxChecker::processExpression() {
     Result::inst<Identifier> identifier;
+    Result::inst<Expression> ret;
 
     if (peekEqual({ TokenType::LITERAL }))
-      return processLiteralExpression();
+      ret = processLiteralExpression();
     
-    if (peekEqual({ TokenType::PARENTS })) {
+    else if (peekEqual({ TokenType::PARENTS })) {
       Context previous = switchContextToParents();
       
       Expression* expr;
       expectErrorWithAlways(Expression, Expression, expr, processExpression(), switchContext(previous));
-      return Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
+      ret = Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
     }
     
-    if ((identifier = processIdentifier()).hasValue()) {
+    else if ((identifier = processIdentifier()).hasValue()) {
       Identifier* name = identifier.value;
 
       if (wakeup(TokenType::EQUALS)) {
         Expression* expr;
         expectError(Expression, Expression, expr, processExpression());
-        return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ name, expr } }, expr->returnType });
+        ret = Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ name, expr } }, expr->returnType });
       }
 
-      if (peekEqual({ TokenType::PARENTS })) {
+      else if (peekEqual({ TokenType::PARENTS })) {
         Context previous = switchContextToParents();
         std::vector<Expression*>* params = NULL;
 
@@ -356,20 +357,21 @@ namespace Parser {
         }
 
         switchContext(previous);
-        return Result::success(new Expression{ Expression::Type::FUNC_CALL, { .funcCall = new FuncCall{ name, params } }, ReturnType::unknown() });
+        ret = Result::success(new Expression{ Expression::Type::FUNC_CALL, { .funcCall = new FuncCall{ name, params } }, ReturnType::unknown() });
       }
 
-      if (wakeup(TokenType::PLUSPLUS))
-        return Result::success(new Expression{ Expression::Type::INCREMENT, { .name = name }, ReturnType::unknown() });
+      else if (wakeup(TokenType::PLUSPLUS))
+        ret = Result::success(new Expression{ Expression::Type::INCREMENT, { .name = name }, ReturnType::unknown() });
 
-      if (wakeup(TokenType::MINUSMINUS))
-        return Result::success(new Expression{ Expression::Type::DECREMENT, { .name = name }, ReturnType::unknown() });
+      else if (wakeup(TokenType::MINUSMINUS))
+        ret = Result::success(new Expression{ Expression::Type::DECREMENT, { .name = name }, ReturnType::unknown() });
 
-      return Result::success(new Expression{ Expression::Type::VAR, { .name = name }, ReturnType::unknown() });
+      else
+        ret = Result::success(new Expression{ Expression::Type::VAR, { .name = name }, ReturnType::unknown() });
     } else
       returnIfError(Expression, identifier);
 
-    return Result::ignore<Expression>(syntaxError("Expected expression"));
+    return ret;
   }
 
   Result::inst<Expression> SyntaxChecker::processLiteralExpression() {
