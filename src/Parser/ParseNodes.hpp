@@ -91,7 +91,11 @@ namespace Parser {
 
   struct Operator {
     enum class Type {
-      ADD, SUB
+      ADD, SUB, MULT, DIV,
+      LESS, LESS_EQ, SHIFT_LEFT,
+      GREATER, GREATER_EQ, SHIFT_RIGHT,
+      AND, BIT_AND, OR, BIT_OR,
+      EQUALS, NOT_EQUALS
     } type;
     int precedence;
 
@@ -108,7 +112,7 @@ namespace Parser {
 
   struct Expression {
     enum class Type {
-      LITERAL, VAR_ASSIGN, VAR, EXPR, FUNC_CALL, INCREMENT, DECREMENT, BINARY_OP
+      LITERAL, VAR_ASSIGN, VAR, EXPR, FUNC_CALL, INCREMENT, DECREMENT, BINARY_OP, NOT, BIT_NOT
     } type;
     union {
       Literal literal;

@@ -106,6 +106,66 @@ namespace Parser {
       case Type::SUB :
         out << '-';
         break;
+      
+      case Type::MULT :
+        out << '*';
+        break;
+      
+      case Type::DIV :
+        out << '/';
+        break;
+      
+
+      case Type::LESS :
+        out << '<';
+        break;
+      
+      case Type::LESS_EQ :
+        out << "<=";
+        break;
+      
+      case Type::SHIFT_LEFT :
+        out << "<<";
+        break;
+
+
+      case Type::GREATER :
+        out << '>';
+        break;
+      
+      case Type::GREATER_EQ :
+        out << ">=";
+        break;
+      
+      case Type::SHIFT_RIGHT :
+        out << ">>";
+        break;
+      
+      
+      case Type::AND :
+        out << "&&";
+        break;
+      
+      case Type::BIT_AND:
+        out << '&';
+        break;
+      
+      case Type::OR :
+        out << "||";
+        break;
+      
+      case Type::BIT_OR :
+        out << '|';
+        break;
+      
+      
+      case Type::EQUALS :
+        out << "==";
+        break;
+      
+      case Type::NOT_EQUALS :
+        out << "!=";
+        break;
     }
 
     out << " {" << precedence << "}) ";
@@ -153,6 +213,16 @@ namespace Parser {
       case Type::BINARY_OP :
         u.binaryOp->print(out);
         break;
+      
+      case Type::NOT :
+        out << "NOT ";
+        u.expr->print(out);
+        break;
+      
+      case Type::BIT_NOT :
+        out << "BIT NOT ";
+        u.expr->print(out);
+        break;
     }
 
     out << ") -> ";
@@ -175,7 +245,7 @@ namespace Parser {
       case Statement::Type::WHILE :
       case Statement::Type::DO_WHILE :
         return true;
-      
+
       default :
         return false;
     }

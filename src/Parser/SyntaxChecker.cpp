@@ -352,6 +352,18 @@ namespace Parser {
       expectErrorWithAlways(Expression, Expression, expr, processExpression(), expectParentEnd(Expression, previous));
       return Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
     }
+
+    if (wakeup({ TokenType::EXCLAMATION })) {
+      Expression* expr;
+      expectError(Expression, Expression, expr, processExpression());
+      return Result::success(new Expression{ Expression::Type::NOT, { .expr = expr }, ReturnType::unknown() });
+    }
+
+    if (wakeup({ TokenType::TILDE })) {
+      Expression* expr;
+      expectError(Expression, Expression, expr, processExpression());
+      return Result::success(new Expression{ Expression::Type::BIT_NOT, { .expr = expr }, ReturnType::unknown() });
+    }
     
     if ((identifier = processIdentifier()).hasValue()) {
       Identifier* name = identifier.value;
@@ -411,9 +423,17 @@ namespace Parser {
   }
 
   Result::inst<Operator> SyntaxChecker::processOperator() {
-    const int OP_AMOUNT = 2;
-    const TokenType tokens[OP_AMOUNT] = { TokenType::PLUS, TokenType::MINUS };
-    const Operator operators[OP_AMOUNT] = { { Operator::Type::ADD, 0 }, { Operator::Type::SUB, 0 } };
+    const TokenType tokens[] = { TokenType::PLUS, TokenType::MINUS, TokenType::ASTERISK, TokenType::SLASH,
+                                  TokenType::LESS, TokenType::LESS_EQ, TokenType::SHIFT_LEFT,
+                                  TokenType::GREATER, TokenType::GREATER_EQ, TokenType::SHIFT_RIGHT,
+                                  TokenType::AND, TokenType::AMPERSAND, TokenType::OR, TokenType::PIPE,
+                                  TokenType::DOUBLE_EQUALS, TokenType::NOT_EQUAL };
+    const Operator operators[] = { { Operator::Type::ADD, 1 }, { Operator::Type::SUB, 1 }, { Operator::Type::MULT, 2 }, { Operator::Type::DIV, 2 },
+                                    { Operator::Type::LESS, 0 }, { Operator::Type::LESS_EQ, 0 }, { Operator::Type::SHIFT_LEFT, -2 },
+                                    { Operator::Type::GREATER, 0 }, { Operator::Type::GREATER_EQ, 0 }, { Operator::Type::SHIFT_RIGHT, -2 }, 
+                                    { Operator::Type::AND, -1 }, { Operator::Type::BIT_AND, -3 }, { Operator::Type::OR, -1 }, { Operator::Type::BIT_OR, -3 },
+                                    { Operator::Type::EQUALS, 0 }, { Operator::Type::NOT_EQUALS, 0 } };
+    const int OP_AMOUNT = sizeof(tokens) / sizeof(tokens[0]);
 
     for (int i = 0; i < OP_AMOUNT; i++) {
       if (wakeup(tokens[i]))

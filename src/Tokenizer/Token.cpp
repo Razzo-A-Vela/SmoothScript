@@ -85,6 +85,34 @@ namespace Tokenizer {
         out << "EXCLAMATION";
         break;
       
+      case TokenType::ASTERISK :
+        out << "ASTERISK";
+        break;
+      
+      case TokenType::SLASH :
+        out << "SLASH";
+        break;
+      
+      case TokenType::LESS :
+        out << "LESS";
+        break;
+      
+      case TokenType::GREATER :
+        out << "GREATER";
+        break;
+      
+      case TokenType::AMPERSAND :
+        out << "AMPERSAND";
+        break;
+      
+      case TokenType::PIPE :
+        out << "PIPE";
+        break;
+      
+      case TokenType::TILDE :
+        out << "TILDE";
+        break;
+      
 
       case TokenType::PARENTS :
         out << "( ";
@@ -127,6 +155,38 @@ namespace Tokenizer {
       
       case TokenType::MINUSMINUS :
         out << "MINUSMINUS";
+        break;
+      
+      case TokenType::DOUBLE_EQUALS :
+        out << "DOUBLE_EQUALS";
+        break;
+      
+      case TokenType::NOT_EQUAL :
+        out << "NOT_EQUAL";
+        break;
+      
+      case TokenType::LESS_EQ :
+        out << "LESS_EQ";
+        break;
+      
+      case TokenType::GREATER_EQ :
+        out << "GREATER_EQ";
+        break;
+      
+      case TokenType::SHIFT_LEFT :
+        out << "SHIFT_LEFT";
+        break;
+      
+      case TokenType::SHIFT_RIGHT :
+        out << "SHIFT_RIGHT";
+        break;
+      
+      case TokenType::AND :
+        out << "AND";
+        break;
+      
+      case TokenType::OR :
+        out << "OR";
         break;
       
       

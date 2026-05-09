@@ -216,7 +216,10 @@ namespace Tokenizer {
           break;
         
         case '=' :
-          ret->type = TokenType::EQUALS;
+          if (tryConsume({ PreTokenType::SYMBOL, { .character = '=' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::DOUBLE_EQUALS;
+          else
+            ret->type = TokenType::EQUALS;
           break;
         
         case ',' :
@@ -224,7 +227,54 @@ namespace Tokenizer {
           break;
         
         case '!' :
-          ret->type = TokenType::EXCLAMATION;
+          if (tryConsume({ PreTokenType::SYMBOL, { .character = '=' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::NOT_EQUAL;
+          else
+            ret->type = TokenType::EXCLAMATION;
+          break;
+
+        case '*' :
+          ret->type = TokenType::ASTERISK;
+          break;
+
+        case '/' :
+          ret->type = TokenType::SLASH;
+          break;
+        
+        case '<' :
+          if (tryConsume({ PreTokenType::SYMBOL, { .character = '=' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::LESS_EQ;
+          else if (tryConsume({ PreTokenType::SYMBOL, { .character = '<' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::SHIFT_LEFT;
+          else
+            ret->type = TokenType::LESS;
+          break;
+        
+        case '>' :
+          if (tryConsume({ PreTokenType::SYMBOL, { .character = '=' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::GREATER_EQ;
+          else if (tryConsume({ PreTokenType::SYMBOL, { .character = '>' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::SHIFT_RIGHT;
+          else
+            ret->type = TokenType::GREATER;
+          break;
+        
+        case '&' :
+          if (tryConsume({ PreTokenType::SYMBOL, { .character = '&' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::AND;
+          else
+            ret->type = TokenType::AMPERSAND;
+          break;
+        
+        case '|' :
+          if (tryConsume({ PreTokenType::SYMBOL, { .character = '|' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::OR;
+          else
+            ret->type = TokenType::PIPE;
+          break;
+        
+        case '~' :
+          ret->type = TokenType::TILDE;
           break;
         
         
