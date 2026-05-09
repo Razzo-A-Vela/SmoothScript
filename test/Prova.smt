@@ -30,6 +30,10 @@ func f() int {
     i--;
   } while (i == ~3);
 
+  do
+    j++;
+  while (j < 3);
+
   do {
     i++;
   } while (i <= 18) {
