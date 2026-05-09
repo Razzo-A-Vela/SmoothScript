@@ -8,7 +8,9 @@
 
 func h(:int a, b, c :int x) !;
 
-func g() void {}
+func g() void {
+  return;
+}
 
 func f() int {
   ;
@@ -16,21 +18,21 @@ func f() int {
 
   :int b;
 
-  if (1) {
+  if (1 || !4 && 2) {
     b = 1;
   } else
     p = 12;
 
-  while (i - 10)
+  while (i > 10 >= 0)
     i++;
   
   do {
     i--;
-  } while (i + 3);
+  } while (i == ~3);
 
   do {
     i++;
-  } while (i - 18) {
+  } while (i <= 18) {
     i++;
   }
 
@@ -39,7 +41,7 @@ func f() int {
 
   g();
 
-  if (b = 1)
+  if (b != 1)
     return 2;
 
   :int d = (b = h(10, 11, 12, 13));
