@@ -235,9 +235,10 @@ namespace Parser {
     }
 
     if (wakeup(TokenType::RETURN)) {
-      Expression* expr = NULL;
-      if (!semi())
-        expectError(Statement, Expression, expr, processExpression());
+      Result::inst<Expression> exprResult = processExpression();
+      returnIfError(Statement, exprResult);
+
+      Expression* expr = exprResult.hasValue() ? exprResult.value : NULL;
       return Result::success(new Statement{ Statement::Type::RETURN, { .expr = expr } });
     }
 
