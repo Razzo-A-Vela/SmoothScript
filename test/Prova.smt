@@ -21,16 +21,16 @@ func f() int {
   } else
     p = 12;
 
-  while (i < 10)
+  while (i - 10)
     i++;
   
   do {
     i--;
-  } while (i > 3);
+  } while (i + 3);
 
   do {
     i++;
-  } while (i < 18) {
+  } while (i - 18) {
     i++;
   }
 
