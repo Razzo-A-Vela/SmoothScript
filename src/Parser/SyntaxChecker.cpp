@@ -281,6 +281,20 @@ namespace Parser {
       returnWithSemiPtr(ret, whileStatementAndExpr->statement);
     }
 
+    if (wakeup(TokenType::LOOP)) {
+      Statement* statement;
+      expectError(Statement, Statement, statement, processStatement());
+
+      Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::LOOP, { .statement = statement } });
+      returnWithSemiPtr(ret, statement);
+    }
+
+    if (wakeup(TokenType::BREAK))
+      return Result::success(new Statement{ Statement::Type::BREAK });
+
+    if (wakeup(TokenType::CONTINUE))
+      return Result::success(new Statement{ Statement::Type::CONTINUE });
+
     Result::inst<Scope> scope;
     if ((scope = processScope()).hasValue())
       return Result::success(new Statement{ Statement::Type::SCOPE, { .scope = scope.value } });

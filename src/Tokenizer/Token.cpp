@@ -26,6 +26,18 @@ namespace Tokenizer {
       case TokenType::DO :
         out << "DO";
         break;
+      
+      case TokenType::LOOP :
+        out << "LOOP";
+        break;
+      
+      case TokenType::BREAK :
+        out << "BREAK";
+        break;
+      
+      case TokenType::CONTINUE :
+        out << "CONTINUE";
+        break;
 
       
       case TokenType::INT :

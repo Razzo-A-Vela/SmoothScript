@@ -244,6 +244,7 @@ namespace Parser {
       case Statement::Type::ELSE :
       case Statement::Type::WHILE :
       case Statement::Type::DO_WHILE :
+      case Statement::Type::LOOP :
         return true;
 
       default :
@@ -279,6 +280,19 @@ namespace Parser {
       
       case Type::DO_WHILE :
         u.doWhile->print(out);
+        break;
+      
+      case Type::LOOP :
+        out << "LOOP ";
+        u.statement->print(out);
+        break;
+      
+      case Type::BREAK :
+        out << "BREAK";
+        break;
+      
+      case Type::CONTINUE :
+        out << "CONTINUE";
         break;
       
 

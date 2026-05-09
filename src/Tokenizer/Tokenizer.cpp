@@ -123,6 +123,15 @@ namespace Tokenizer {
       else if (str == "do")
         ret->type = TokenType::DO;
       
+      else if (str == "loop")
+        ret->type = TokenType::LOOP;
+      
+      else if (str == "break")
+        ret->type = TokenType::BREAK;
+      
+      else if (str == "continue")
+        ret->type = TokenType::CONTINUE;
+      
       
       else if (str == "int")
         ret->type = TokenType::INT;
@@ -277,7 +286,7 @@ namespace Tokenizer {
           ret->type = TokenType::TILDE;
           break;
         
-        
+
         default :
           ret->type = TokenType::SYMBOL;
           ret->u.character = c;

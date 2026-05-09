@@ -150,7 +150,7 @@ namespace Parser {
 
   struct Statement {
     enum class Type {
-      RETURN, IF, ELSE, WHILE, DO_WHILE,
+      RETURN, IF, ELSE, WHILE, DO_WHILE, LOOP, BREAK, CONTINUE,
       
       VAR_DECL, SCOPE, EXPRESSION, NOTHING
     } type;
