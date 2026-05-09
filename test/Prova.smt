@@ -36,8 +36,14 @@ func f() int {
     i++;
   }
 
-  if (0);
-  else {}
+  loop {
+    if (0);
+    else {
+      break;
+    }
+
+    continue;
+  }
 
   g();
 
