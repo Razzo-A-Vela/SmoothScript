@@ -318,31 +318,51 @@ namespace Parser {
     return Result::success(new InitExpression{ InitExpression::Type::EXPRESSION, { .expr = expr } });
   }
 
-  Result::inst<Expression> SyntaxChecker::processExpression(bool ignoreOp) {
+  Result::inst<Expression> SyntaxChecker::processExpression() {
+    Result::inst<Expression> ret = processBaseExpression();
+    if (!ret.hasValue())
+      return ret;
+
+    Result::inst<Operator> opResult;
+    Expression* left;
+    Operator* op;
+    Expression* right;
+    while ((opResult = processOperator()).hasValue()) {
+      left = ret.value;
+      op = opResult.value;
+      expectError(Expression, Expression, right, processBaseExpression());
+
+      ret = Result::success(new Expression{ Expression::Type::BINARY_OP, { .binaryOp = new BinaryOp{ left, op, right } }, ReturnType::unknown() });
+    }
+    
+    returnIfError(Expression, opResult);
+    return ret;
+  }
+
+  Result::inst<Expression> SyntaxChecker::processBaseExpression() {
     Result::inst<Identifier> identifier;
-    Result::inst<Expression> ret;
 
     if (peekEqual({ TokenType::LITERAL }))
-      ret = processLiteralExpression();
+      return processLiteralExpression();
     
-    else if (peekEqual({ TokenType::PARENTS })) {
+    if (peekEqual({ TokenType::PARENTS })) {
       Context previous = switchContextToParents();
       
       Expression* expr;
       expectErrorWithAlways(Expression, Expression, expr, processExpression(), expectParentEnd(Expression, previous));
-      ret = Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
+      return Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
     }
     
-    else if ((identifier = processIdentifier()).hasValue()) {
+    if ((identifier = processIdentifier()).hasValue()) {
       Identifier* name = identifier.value;
 
       if (wakeup(TokenType::EQUALS)) {
         Expression* expr;
         expectError(Expression, Expression, expr, processExpression());
-        ret = Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ name, expr } }, expr->returnType });
+        return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ name, expr } }, expr->returnType });
       }
 
-      else if (peekEqual({ TokenType::PARENTS })) {
+      if (peekEqual({ TokenType::PARENTS })) {
         Context previous = switchContextToParents();
         std::vector<Expression*>* params = NULL;
 
@@ -365,37 +385,20 @@ namespace Parser {
         }
 
         switchContext(previous);
-        ret = Result::success(new Expression{ Expression::Type::FUNC_CALL, { .funcCall = new FuncCall{ name, params } }, ReturnType::unknown() });
+        return Result::success(new Expression{ Expression::Type::FUNC_CALL, { .funcCall = new FuncCall{ name, params } }, ReturnType::unknown() });
       }
 
-      else if (wakeup(TokenType::PLUSPLUS))
-        ret = Result::success(new Expression{ Expression::Type::INCREMENT, { .name = name }, ReturnType::unknown() });
+      if (wakeup(TokenType::PLUSPLUS))
+        return Result::success(new Expression{ Expression::Type::INCREMENT, { .name = name }, ReturnType::unknown() });
 
-      else if (wakeup(TokenType::MINUSMINUS))
-        ret = Result::success(new Expression{ Expression::Type::DECREMENT, { .name = name }, ReturnType::unknown() });
+      if (wakeup(TokenType::MINUSMINUS))
+        return Result::success(new Expression{ Expression::Type::DECREMENT, { .name = name }, ReturnType::unknown() });
 
-      else
-        ret = Result::success(new Expression{ Expression::Type::VAR, { .name = name }, ReturnType::unknown() });
+      return Result::success(new Expression{ Expression::Type::VAR, { .name = name }, ReturnType::unknown() });
     } else
       returnIfError(Expression, identifier);
-
-    if (ignoreOp || !ret.hasValue())
-      return ret;
-
-    Result::inst<Operator> opResult;
-    Expression* left;
-    Operator* op;
-    Expression* right;
-    while ((opResult = processOperator()).hasValue()) {
-      left = ret.expectValue();
-      op = opResult.expectValue();
-      expectError(Expression, Expression, right, processExpression(true));
-
-      ret = Result::success(new Expression{ Expression::Type::BINARY_OP, { .binaryOp = new BinaryOp{ left, op, right } }, ReturnType::unknown() });
-    }
     
-    returnIfError(Expression, opResult);
-    return ret;
+    return Result::ignore<Expression>(syntaxError("Expected expression"));
   }
 
   Result::inst<Expression> SyntaxChecker::processLiteralExpression() {
