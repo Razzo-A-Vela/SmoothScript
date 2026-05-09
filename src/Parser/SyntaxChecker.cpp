@@ -111,6 +111,13 @@ namespace Parser {
     if (!result##_result.hasValue()) \
       return Result::ignore<retType>(result##_result.error); \
     result = result##_result.value; } 0
+  
+  #define expectParentEnd(retType, previous) \
+    { if (hasPeek()) { \
+      switchContext(previous); \
+      return Result::error<retType>(syntaxError("Expected ')'")); \
+    } \
+    switchContext(previous); } 0
 
 
   Result::inst<Variables> SyntaxChecker::processVariables() {
@@ -321,7 +328,7 @@ namespace Parser {
       Context previous = switchContextToParents();
       
       Expression* expr;
-      expectErrorWithAlways(Expression, Expression, expr, processExpression(), switchContext(previous));
+      expectErrorWithAlways(Expression, Expression, expr, processExpression(), expectParentEnd(Expression, previous));
       ret = Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
     }
     
@@ -429,7 +436,7 @@ namespace Parser {
     Expression* expr;
     Statement* statement;
 
-    expectErrorWithAlways(StatementAndExpr, Expression, expr, processExpression(), switchContext(previous));
+    expectErrorWithAlways(StatementAndExpr, Expression, expr, processExpression(), expectParentEnd(StatementAndExpr, previous));
     expectError(StatementAndExpr, Statement, statement, processStatement());
     return Result::success(new StatementAndExpr{ statement, expr });
   }
