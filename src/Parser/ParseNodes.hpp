@@ -163,7 +163,6 @@ namespace Parser {
       DoWhile* doWhile;
     } u;
 
-    bool ignoresSemi();
     void print(std::ostream& out);
   };
 

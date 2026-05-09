@@ -66,7 +66,7 @@ namespace Parser {
     Result::inst<StatementAndExpr> ignores processExprAndStatement();                     // (EXPRESSION) STATEMENT
 
     template <typename T>
-    Result::inst<T> expectSemi(Result::inst<T> other) {
+    Result::inst<T> expectSemiOnResult(Result::inst<T> other) {
       if (other.hasValue() && !semi())
         return Result::error<T>(semiError());
       return other;

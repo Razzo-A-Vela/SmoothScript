@@ -236,22 +236,6 @@ namespace Parser {
     whileStatementAndExpr->print(out);
   }
 
-  bool Statement::ignoresSemi() {
-    switch (type) {
-      case Statement::Type::NOTHING :
-      case Statement::Type::SCOPE :
-      case Statement::Type::IF :
-      case Statement::Type::ELSE :
-      case Statement::Type::WHILE :
-      case Statement::Type::DO_WHILE :
-      case Statement::Type::LOOP :
-        return true;
-
-      default :
-        return false;
-    }
-  }
-
   void Statement::print(std::ostream& out) {
     switch (type) {
       case Type::RETURN :
@@ -288,11 +272,11 @@ namespace Parser {
         break;
       
       case Type::BREAK :
-        out << "BREAK";
+        out << "BREAK;";
         break;
       
       case Type::CONTINUE :
-        out << "CONTINUE";
+        out << "CONTINUE;";
         break;
       
 

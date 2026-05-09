@@ -65,17 +65,11 @@ namespace Parser {
     return syntaxError("Expected ';'");
   }
 
+  
+  #define expectSemi(retType) \
+    { if (!semi()) \
+        return Result::error<retType>(semiError()); } 0
 
-  #define returnWithSemi(ret, statement) \
-    { if (statement.ignoresSemi()) \
-      return ret; \
-    return expectSemi(ret); } 0
-  
-  #define returnWithSemiPtr(ret, statement) \
-    { if (statement->ignoresSemi()) \
-      return ret; \
-    return expectSemi(ret); } 0
-  
   #define returnIfError(retType, ret) \
     { if (ret.isError()) \
         return Result::error<retType>(ret.error); } 0
@@ -211,9 +205,7 @@ namespace Parser {
     Result::inst<Statement> statement;
     
     scopeDepth++;
-    while ((statement = processStatement()).hasValue() &&
-            ( statement.value->ignoresSemi() ||
-              (statement = expectSemi(statement)).hasValue() ))
+    while ((statement = processStatement()).hasValue())
       statements->push_back(statement.value);
 
     switchContext(previous);
@@ -222,23 +214,23 @@ namespace Parser {
   }
 
   Result::inst<Statement> SyntaxChecker::processStatement() {
-    if (!hasPeek())
-      return Result::ignore<Statement>(syntaxError("Expected statement"));
-    
     if (semi())
       return Result::success(new Statement{ Statement::Type::NOTHING });
 
     if (wakeup(TokenType::COLON)) {
       Variables* vars;
       expectError(Statement, Variables, vars, processVariables());
+      expectSemi(Statement);
       return Result::success(new Statement{ Statement::Type::VAR_DECL, { .vars = vars } });
     }
 
     if (wakeup(TokenType::RETURN)) {
-      Result::inst<Expression> exprResult = processExpression();
-      returnIfError(Statement, exprResult);
-
-      Expression* expr = exprResult.hasValue() ? exprResult.value : NULL;
+      Expression* expr = NULL;
+      if (!semi()) {
+        expectError(Statement, Expression, expr, processExpression());
+        expectSemi(Statement);
+      }
+ 
       return Result::success(new Statement{ Statement::Type::RETURN, { .expr = expr } });
     }
 
@@ -246,24 +238,21 @@ namespace Parser {
       StatementAndExpr* statementAndExpr;
       expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
       
-      Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::IF, { .statementAndExpr = statementAndExpr } });
-      returnWithSemiPtr(ret, statementAndExpr->statement);
+      return Result::success(new Statement{ Statement::Type::IF, { .statementAndExpr = statementAndExpr } });
     }
 
     if (wakeup(TokenType::ELSE)) {
       Statement* statement;
       expectError(Statement, Statement, statement, processStatement());
       
-      Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::ELSE, { .statement = statement } });
-      returnWithSemiPtr(ret, statement);
+      return Result::success(new Statement{ Statement::Type::ELSE, { .statement = statement } });
     }
 
     if (wakeup(TokenType::WHILE)) {
       StatementAndExpr* statementAndExpr;
       expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
       
-      Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::WHILE, { .statementAndExpr = statementAndExpr } });
-      returnWithSemiPtr(ret, statementAndExpr->statement);
+      return Result::success(new Statement{ Statement::Type::WHILE, { .statementAndExpr = statementAndExpr } });
     }
 
     if (wakeup(TokenType::DO)) {
@@ -271,29 +260,29 @@ namespace Parser {
       StatementAndExpr* whileStatementAndExpr;
 
       expectError(Statement, Statement, doStatement, processStatement());
-      if (!doStatement->ignoresSemi() && !semi())
-        return Result::error<Statement>(semiError());
       if (!wakeup(TokenType::WHILE))
         return Result::error<Statement>(syntaxError("Expected 'while'"));
       expectError(Statement, StatementAndExpr, whileStatementAndExpr, processExprAndStatement());
       
-      Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::DO_WHILE, { .doWhile = new DoWhile{ doStatement, whileStatementAndExpr } } });
-      returnWithSemiPtr(ret, whileStatementAndExpr->statement);
+      return Result::success(new Statement{ Statement::Type::DO_WHILE, { .doWhile = new DoWhile{ doStatement, whileStatementAndExpr } } });
     }
 
     if (wakeup(TokenType::LOOP)) {
       Statement* statement;
       expectError(Statement, Statement, statement, processStatement());
 
-      Result::inst<Statement> ret = Result::success(new Statement{ Statement::Type::LOOP, { .statement = statement } });
-      returnWithSemiPtr(ret, statement);
+      return Result::success(new Statement{ Statement::Type::LOOP, { .statement = statement } });
     }
 
-    if (wakeup(TokenType::BREAK))
+    if (wakeup(TokenType::BREAK)) {
+      expectSemi(Statement);
       return Result::success(new Statement{ Statement::Type::BREAK });
+    }
 
-    if (wakeup(TokenType::CONTINUE))
+    if (wakeup(TokenType::CONTINUE)) {
+      expectSemi(Statement);
       return Result::success(new Statement{ Statement::Type::CONTINUE });
+    }
 
     Result::inst<Scope> scope;
     if ((scope = processScope()).hasValue())
@@ -302,12 +291,13 @@ namespace Parser {
       returnIfError(Statement, scope);
     
     Result::inst<Expression> expr;
-    if ((expr = processExpression()).hasValue())
+    if ((expr = processExpression()).hasValue()) {
+      expectSemi(Statement);
       return Result::success(new Statement{ Statement::Type::EXPRESSION, { .expr = expr.value } });
-    else
+    } else
       returnIfError(Statement, expr);
 
-    return Result::error<Statement>(syntaxError("Invalid statement"));
+    return Result::ignore<Statement>(syntaxError("Invalid statement"));
   }
 
   Result::inst<Identifier> SyntaxChecker::processRawIdentifier() {
@@ -480,15 +470,6 @@ namespace Parser {
   }
 
 
-  #undef expectError
-  #undef expectIgnore
-  #undef expectErrorWithAlways
-  #undef expectErrorWithOnError
-  #undef returnIfError
-  #undef returnIfErrorPtr
-  #undef returnWithSemi
-
-
   void SyntaxChecker::process() {
     while (hasPeek()) {
       Token token = consume().value();
@@ -496,7 +477,7 @@ namespace Parser {
       if (semi(token))
         continue; //* Technically not needed (better than ';')
       else if (wakeup(token, TokenType::COLON))
-        addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemi(processVariables()).expectValue() } });
+        addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemiOnResult(processVariables()).expectValue() } });
       else if (wakeup(token, TokenType::FUNC))
         addToOutput({ GlobalNode::Type::FUNC, { .func = processFunction().expectValue() } });
       else
