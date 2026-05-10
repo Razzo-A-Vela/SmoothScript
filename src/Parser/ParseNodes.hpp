@@ -148,9 +148,18 @@ namespace Parser {
     void print(std::ostream& out);
   };
 
+  struct For {
+    Statement* initStatement;
+    nullable Expression* checkExpression;
+    nullable Expression* repeatExpression;
+    Statement* statement;
+
+    void print(std::ostream& out);
+  };
+
   struct Statement {
     enum class Type {
-      RETURN, IF, ELSE, WHILE, DO_WHILE, LOOP, BREAK, CONTINUE,
+      RETURN, IF, ELSE, WHILE, DO_WHILE, LOOP, BREAK, CONTINUE, FOR,
       
       VAR_DECL, SCOPE, EXPRESSION, NOTHING
     } type;
@@ -161,6 +170,7 @@ namespace Parser {
       StatementAndExpr* statementAndExpr;
       Statement* statement;
       DoWhile* doWhile;
+      For* for_;
     } u;
 
     void print(std::ostream& out);

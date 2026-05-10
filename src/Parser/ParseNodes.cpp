@@ -232,8 +232,25 @@ namespace Parser {
   void DoWhile::print(std::ostream& out) {
     out << "DO ";
     doStatement->print(out);
+    
     out << " WHILE ";
     whileStatementAndExpr->print(out);
+  }
+
+  void For::print(std::ostream& out) {
+    out << "FOR (";
+    initStatement->print(out);
+    out << " ";
+
+    if (checkExpression != NULL)
+      checkExpression->print(out);
+    out << "; ";
+    
+    if (repeatExpression != NULL)
+      repeatExpression->print(out);
+    out << ") ";
+    
+    statement->print(out);
   }
 
   void Statement::print(std::ostream& out) {
@@ -277,6 +294,10 @@ namespace Parser {
       
       case Type::CONTINUE :
         out << "CONTINUE;";
+        break;
+      
+      case Type::FOR :
+        u.for_->print(out);
         break;
       
 

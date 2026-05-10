@@ -38,6 +38,10 @@ namespace Tokenizer {
       case TokenType::CONTINUE :
         out << "CONTINUE";
         break;
+      
+      case TokenType::FOR :
+        out << "FOR";
+        break;
 
       
       case TokenType::INT :

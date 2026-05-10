@@ -132,6 +132,9 @@ namespace Tokenizer {
       else if (str == "continue")
         ret->type = TokenType::CONTINUE;
       
+      else if (str == "for")
+        ret->type = TokenType::FOR;
+      
       
       else if (str == "int")
         ret->type = TokenType::INT;

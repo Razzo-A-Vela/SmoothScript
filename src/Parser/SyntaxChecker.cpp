@@ -274,6 +274,32 @@ namespace Parser {
       return Result::success(new Statement{ Statement::Type::CONTINUE });
     }
 
+    if (wakeup(TokenType::FOR)) {
+      Statement* initStatement;
+      Expression* checkExpression = NULL;
+      Expression* repeatExpression = NULL;
+      Statement* statement;
+      
+      if (peekNotEqual({ TokenType::PARENTS }))
+        return Result::error<Statement>(parentsError());
+      Context previous = switchContextToParents();
+
+      expectErrorWithOnError(Statement, Statement, initStatement, processForCompatibleStatement(), switchContext(previous));
+      if (!semi()) {
+        expectErrorWithOnError(Statement, Expression, checkExpression, processExpression(), switchContext(previous));
+        expectSemi(Statement);
+      }
+
+      if (hasPeek()) {
+        expectErrorWithOnError(Statement, Expression, repeatExpression, processExpression(), switchContext(previous));
+        expectParentEnd(Statement, previous);
+      } else
+        switchContext(previous);
+      
+      expectError(Statement, Statement, statement, processStatement());
+      return Result::success(new Statement{ Statement::Type::FOR, { .for_ = new For{ initStatement, checkExpression, repeatExpression, statement } } });
+    }
+
     Result::inst<Scope> scope;
     if ((scope = processScope()).hasValue())
       return Result::success(new Statement{ Statement::Type::SCOPE, { .scope = scope.value } });

@@ -6,7 +6,7 @@
 
 namespace Tokenizer {
   enum class TokenType {
-    FUNC, RETURN, IF, ELSE, WHILE, DO, LOOP, BREAK, CONTINUE,
+    FUNC, RETURN, IF, ELSE, WHILE, DO, LOOP, BREAK, CONTINUE, FOR,
     
     INT, FLOAT, BOOL, CHAR, CSTR, SIZE_T, VOID,
     
