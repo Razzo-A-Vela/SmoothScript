@@ -214,16 +214,6 @@ namespace Parser {
   }
 
   Result::inst<Statement> SyntaxChecker::processStatement() {
-    if (semi())
-      return Result::success(new Statement{ Statement::Type::NOTHING });
-
-    if (wakeup(TokenType::COLON)) {
-      Variables* vars;
-      expectError(Statement, Variables, vars, processVariables());
-      expectSemi(Statement);
-      return Result::success(new Statement{ Statement::Type::VAR_DECL, { .vars = vars } });
-    }
-
     if (wakeup(TokenType::RETURN)) {
       Expression* expr = NULL;
       if (!semi()) {
@@ -290,14 +280,34 @@ namespace Parser {
     else
       returnIfError(Statement, scope);
     
+    Result::inst<Statement> forCompatible;
+    if ((forCompatible = processForCompatibleStatement()).hasValue())
+      return forCompatible;
+    else
+      returnIfError(Statement, forCompatible);
+
+    return Result::ignore<Statement>(syntaxError("Expected statement"));
+  }
+
+  Result::inst<Statement> SyntaxChecker::processForCompatibleStatement() {
+    if (semi())
+      return Result::success(new Statement{ Statement::Type::NOTHING });
+
+    if (wakeup(TokenType::COLON)) {
+      Variables* vars;
+      expectError(Statement, Variables, vars, processVariables());
+      expectSemi(Statement);
+      return Result::success(new Statement{ Statement::Type::VAR_DECL, { .vars = vars } });
+    }
+
     Result::inst<Expression> expr;
     if ((expr = processExpression()).hasValue()) {
       expectSemi(Statement);
       return Result::success(new Statement{ Statement::Type::EXPRESSION, { .expr = expr.value } });
     } else
       returnIfError(Statement, expr);
-
-    return Result::ignore<Statement>(syntaxError("Invalid statement"));
+    
+    return Result::ignore<Statement>(syntaxError("Expected statement"));
   }
 
   Result::inst<Identifier> SyntaxChecker::processRawIdentifier() {

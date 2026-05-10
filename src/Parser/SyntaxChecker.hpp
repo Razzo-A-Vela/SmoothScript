@@ -54,6 +54,7 @@ namespace Parser {
     Result::inst<ReturnType> ignores processReturnType();                                 // void | TYPE
     Result::inst<Scope> ignores processScope();                                           // { (STATEMENT;)... }
     Result::inst<Statement> ignores processStatement();                                   // ...
+    Result::inst<Statement> ignores childOf(processStatement) processForCompatibleStatement();
     Result::inst<Identifier> ignores processRawIdentifier();
     Result::inst<Identifier> ignores processIdentifier();                                 // RAW_IDENTIFIER
     Result::inst<Type> ignores processType();                                             // ...
