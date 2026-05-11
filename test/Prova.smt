@@ -1,10 +1,10 @@
 
 ;
 
-:int b = 2;
-:int c = b--;
-:int d, i = 3, j;
-:int e = d = 6;
+:unsigned int b = 2;
+:const float c = b--;
+:size_t d, i = 3, j;
+:const unsigned char e = d = 6;
 
 func h(:int a, b, c :int x) !;
 
@@ -60,7 +60,8 @@ func f() int {
   if (b != 1)
     return 2;
 
-  :int d = (b = h(10, 11, 12, 13));
+  :cstr str; // = "Ciao";
+  :const int d = (b = h(10, 11, 12, 13));
   (a = 2);
   return b = (22);
   return (10);
