@@ -437,17 +437,23 @@ namespace Parser {
       return Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
     }
 
-    if (wakeup({ TokenType::EXCLAMATION })) {
-      Expression* expr;
-      expectError(Expression, Expression, expr, processExpression());
-      return Result::success(new Expression{ Expression::Type::NOT, { .expr = expr }, ReturnType::unknown() });
-    }
 
-    if (wakeup({ TokenType::TILDE })) {
-      Expression* expr;
-      expectError(Expression, Expression, expr, processExpression());
-      return Result::success(new Expression{ Expression::Type::BIT_NOT, { .expr = expr }, ReturnType::unknown() });
-    }
+    #define unaryOperator(tokenType, exprType) \
+      if (wakeup(tokenType)) { \
+        Expression* expr; \
+        expectError(Expression, Expression, expr, processExpression()); \
+        return Result::success(new Expression{ exprType, { .expr = expr }, ReturnType::unknown() }); \
+      }
+
+    unaryOperator(TokenType::EXCLAMATION, Expression::Type::NOT);
+    unaryOperator(TokenType::TILDE, Expression::Type::BIT_NOT);
+    unaryOperator(TokenType::MINUS, Expression::Type::MINUS);
+    unaryOperator(TokenType::PLUS, Expression::Type::PLUS);
+    unaryOperator(TokenType::MINUSMINUS, Expression::Type::PRE_DECREMENT);
+    unaryOperator(TokenType::PLUSPLUS, Expression::Type::PRE_INCREMENT);
+
+    #undef unaryOperator
+    
     
     if ((identifier = processIdentifier()).hasValue()) {
       Identifier* name = identifier.value;

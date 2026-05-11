@@ -257,6 +257,26 @@ namespace Parser {
         out << "BIT NOT ";
         u.expr->print(out);
         break;
+      
+      case Type::MINUS :
+        out << "MINUS ";
+        u.expr->print(out);
+        break;
+      
+      case Type::PLUS :
+        out << "PLUS ";
+        u.expr->print(out);
+        break;
+      
+      case Type::PRE_DECREMENT :
+        out << "PRE_DECREMENT ";
+        u.expr->print(out);
+        break;
+      
+      case Type::PRE_INCREMENT :
+        out << "PRE_INCREMENT ";
+        u.expr->print(out);
+        break;
     }
 
     out << ") -> ";
