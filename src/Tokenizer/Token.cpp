@@ -68,6 +68,18 @@ namespace Tokenizer {
         out << "SIZE_T";
         break;
       
+      case TokenType::CONST :
+        out << "CONST";
+        break;
+      
+      case TokenType::SIGNED :
+        out << "SIGNED";
+        break;
+      
+      case TokenType::UNSIGNED :
+        out << "UNSIGNED";
+        break;
+      
       case TokenType::VOID :
         out << "VOID";
         break;

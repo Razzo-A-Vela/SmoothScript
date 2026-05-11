@@ -6,9 +6,35 @@ namespace Parser {
   }
 
   void Type::print(std::ostream& out) {
+    if (isConst)
+      out << "CONST ";
+
+    if (isUnsigned)
+      out << "UNSIGNED ";
+
     switch (type) {
       case TypeT::INT :
         out << "INT";
+        break;
+      
+      case TypeT::FLOAT :
+        out << "FLOAT";
+        break;
+      
+      case TypeT::BOOL :
+        out << "BOOL";
+        break;
+      
+      case TypeT::CSTR :
+        out << "CSTR";
+        break;
+      
+      case TypeT::CHAR :
+        out << "CHAR";
+        break;
+      
+      case TypeT::SIZE_T :
+        out << "SIZE_T";
         break;
     }
   }

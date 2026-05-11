@@ -347,8 +347,38 @@ namespace Parser {
   }
 
   Result::inst<Type> SyntaxChecker::processType() {
-    if (tryConsume({ TokenType::INT }))
-      return Result::success(new Type{ Type::TypeT::INT });
+    bool isUnsigned = false;
+    bool isConst = false;
+
+    if (wakeup(TokenType::CONST))
+      isConst = true;
+
+    if (wakeup(TokenType::UNSIGNED))
+      isUnsigned = true;
+    else if (wakeup(TokenType::SIGNED));
+
+    #define success(type) Result::success(new Type{ type, isConst, isUnsigned })
+
+    if (wakeup(TokenType::INT))
+      return success(Type::TypeT::INT);
+
+    if (wakeup(TokenType::FLOAT))
+      return success(Type::TypeT::FLOAT);
+
+    if (wakeup(TokenType::BOOL))
+      return success(Type::TypeT::BOOL);
+
+    if (wakeup(TokenType::CSTR))
+      return success(Type::TypeT::CSTR);
+
+    if (wakeup(TokenType::CHAR))
+      return success(Type::TypeT::CHAR);
+
+    if (wakeup(TokenType::SIZE_T))
+      return success(Type::TypeT::SIZE_T);
+    
+    #undef success
+    
     return Result::ignore<Type>(syntaxError("Expected type"));
   }
 

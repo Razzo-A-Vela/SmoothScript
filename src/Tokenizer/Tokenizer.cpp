@@ -154,6 +154,15 @@ namespace Tokenizer {
       else if (str == "size_t")
         ret->type = TokenType::SIZE_T;
 
+      else if (str == "const")
+        ret->type = TokenType::CONST;
+
+      else if (str == "signed")
+        ret->type = TokenType::SIGNED;
+
+      else if (str == "unsigned")
+        ret->type = TokenType::UNSIGNED;
+
       else if (str == "void")
         ret->type = TokenType::VOID;
 
