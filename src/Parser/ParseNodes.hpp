@@ -160,7 +160,7 @@ namespace Parser {
 
   struct Statement {
     enum class Type {
-      RETURN, IF, ELSE, WHILE, DO_WHILE, LOOP, BREAK, CONTINUE, FOR,
+      RETURN, IF, ELSE, WHILE, DO_WHILE, LOOP, BREAK, CONTINUE, FOR, LABEL, GOTO,
       
       VAR_DECL, SCOPE, EXPRESSION, NOTHING
     } type;
@@ -172,6 +172,7 @@ namespace Parser {
       Statement* statement;
       DoWhile* doWhile;
       For* for_;
+      Identifier* name;
     } u;
 
     void print(std::ostream& out);

@@ -300,6 +300,20 @@ namespace Parser {
       return Result::success(new Statement{ Statement::Type::FOR, { .for_ = new For{ initStatement, checkExpression, repeatExpression, statement } } });
     }
 
+    if (wakeup(TokenType::DOUBLE_COLON)) {
+      Identifier* name;
+      expectError(Statement, Identifier, name, processRawIdentifier());
+      expectSemi(Statement);
+      return Result::success(new Statement{ Statement::Type::LABEL, { .name = name } });
+    }
+
+    if (wakeup(TokenType::GOTO)) {
+      Identifier* name;
+      expectError(Statement, Identifier, name, processIdentifier());
+      expectSemi(Statement);
+      return Result::success(new Statement{ Statement::Type::GOTO, { .name = name } });
+    }
+
     Result::inst<Scope> scope;
     if ((scope = processScope()).hasValue())
       return Result::success(new Statement{ Statement::Type::SCOPE, { .scope = scope.value } });

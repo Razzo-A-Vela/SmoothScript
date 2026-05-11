@@ -326,6 +326,18 @@ namespace Parser {
         u.for_->print(out);
         break;
       
+      case Type::LABEL :
+        out << "::";
+        u.name->print(out);
+        out << ';';
+        break;
+      
+      case Type::GOTO :
+        out << "GOTO ";
+        u.name->print(out);
+        out << ';';
+        break;
+      
 
       case Type::VAR_DECL :
         out << "VAR_DECL (";

@@ -135,6 +135,9 @@ namespace Tokenizer {
       else if (str == "for")
         ret->type = TokenType::FOR;
       
+      else if (str == "goto")
+        ret->type = TokenType::GOTO;
+      
       
       else if (str == "int")
         ret->type = TokenType::INT;
@@ -217,7 +220,10 @@ namespace Tokenizer {
           break;
         
         case ':' :
-          ret->type = TokenType::COLON;
+          if (tryConsume({ PreTokenType::SYMBOL, { .character = ':' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::DOUBLE_COLON;
+          else
+            ret->type = TokenType::COLON;
           break;
         
         case '+' :

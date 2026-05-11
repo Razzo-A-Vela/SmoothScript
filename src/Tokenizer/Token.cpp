@@ -42,6 +42,10 @@ namespace Tokenizer {
       case TokenType::FOR :
         out << "FOR";
         break;
+      
+      case TokenType::GOTO :
+        out << "GOTO";
+        break;
 
       
       case TokenType::INT :
@@ -215,6 +219,10 @@ namespace Tokenizer {
       
       case TokenType::OR :
         out << "OR";
+        break;
+      
+      case TokenType::DOUBLE_COLON :
+        out << "DOUBLE_COLON";
         break;
       
       
