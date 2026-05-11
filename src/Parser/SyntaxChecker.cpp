@@ -501,9 +501,23 @@ namespace Parser {
     Token token = consume().value();
     Literal literal = token.u.literal;
 
-    if (literal.type != LiteralType::INTEGER)
-      return Result::error<Expression>(Parser::syntaxError("Invalid expression", token.line));
-    return Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal }, ReturnType::fromType(new Type{ Type::TypeT::INT }) });
+    #define success(type) return Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal }, ReturnType::fromType(new Type{ type }) });
+
+    if (literal.type == LiteralType::INTEGER)
+      success(Type::TypeT::INT_LIT);
+    
+    if (literal.type == LiteralType::FLOATING)
+      success(Type::TypeT::FLOAT_LIT);
+    
+    if (literal.type == LiteralType::STRING)
+      success(Type::TypeT::CSTR);
+    
+    if (literal.type == LiteralType::CHAR)
+      success(Type::TypeT::CHAR);
+
+    #undef success
+
+    return Result::error<Expression>(Parser::syntaxError("Invalid expression", token.line));
   }
 
   Result::inst<Operator> SyntaxChecker::processOperator() {

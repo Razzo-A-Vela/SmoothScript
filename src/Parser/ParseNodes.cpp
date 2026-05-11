@@ -21,6 +21,14 @@ namespace Parser {
         out << "FLOAT";
         break;
       
+      case TypeT::INT_LIT :
+        out << "INT_LIT";
+        break;
+      
+      case TypeT::FLOAT_LIT :
+        out << "FLOAT_LIT";
+        break;
+      
       case TypeT::BOOL :
         out << "BOOL";
         break;

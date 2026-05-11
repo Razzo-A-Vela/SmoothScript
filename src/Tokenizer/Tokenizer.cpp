@@ -1,16 +1,64 @@
 #include "Tokenizer.hpp"
 
 namespace Tokenizer {
+  
+  #define isDot(preToken) (preToken.type == PreTokenType::SYMBOL && preToken.u.character == '.')
+  #define isNextDot() tryConsume({ PreTokenType::SYMBOL, { .character = '.' } }, PreToken::typeCharEqual)
+
   Token* Tokenizer::processLiteral(PreToken preToken) {
     Token* ret = new Token();
     ret->type = TokenType::LITERAL;
     ret->line = preToken.line;
     Literal literal;
     
-    if (preToken.type == PreTokenType::NUMBER) {
+    if (isDot(preToken)) {
+      float x = (float) std::stoi(consume().value().u.string);
+      while (x >= 1)
+        x /= 10;
+      literal.u.floating = x;
+      
+    } else if (preToken.type == PreTokenType::NUMBER) {
       literal.type = LiteralType::INTEGER;
       literal.u.integer = std::stoi(std::string(preToken.u.string));
     
+      if (isNextDot()) {
+        literal.type = LiteralType::FLOATING;
+        int previousValue = literal.u.integer;
+        literal.u.floating = (float) previousValue;
+        
+        if (peekEqual({ PreTokenType::NUMBER })) {
+          float x = (float) std::stoi(consume().value().u.string);
+          while (x >= 1)
+            x /= 10;
+          literal.u.floating += x;
+        }
+      }
+
+      else if (literal.u.integer == 0 && peekEqual({ PreTokenType::IDENTIFIER })) {
+        const char* str = peekValue().u.string;
+        
+        bool hex = (str[0] == 'x' || str[0] == 'X');
+        bool oct = (str[0] == 'o' || str[0] == 'O');
+        bool bin = (str[0] == 'b' || str[0] == 'B');
+
+        if (hex || oct || bin) {
+          std::stringstream stream;
+          int len = strlen(str);
+          consume();
+          
+          for (int i = 1; i < len; i++) {
+            if ((hex && !isxdigit(str[i])) || 
+                (oct && (!isdigit(str[i]) || str[i] == '9')) || 
+                (bin && (str[i] != '0' && str[i] != '1')))
+              Utils::error("Syntax error", "Invalid literal", preToken.line);
+            stream << str[i];
+          }
+
+          int base = hex ? 16 : (oct ? 8 : 2);
+          literal.u.integer = std::stoi(stream.str(), NULL, base);
+        }
+      }
+      
     } else if (preToken.type == PreTokenType::STRING_LITERAL) {
       literal.type = LiteralType::STRING;
       std::string toCheck = std::string(preToken.u.string);
@@ -175,7 +223,12 @@ namespace Tokenizer {
         ret->u.string = preToken.u.string;
       }
     
-    } else if (preToken.type == PreTokenType::SYMBOL) {
+    }
+    
+    else if (preToken.type == PreTokenType::NUMBER || preToken.type == PreTokenType::STRING_LITERAL || preToken.type == PreTokenType::CHAR_LITERAL || (isDot(preToken) && peekEqual({ PreTokenType::NUMBER })))
+      return processLiteral(preToken);
+    
+    else if (preToken.type == PreTokenType::SYMBOL) {
       char c = preToken.u.character;
 
       if (c == '(') {
@@ -310,9 +363,7 @@ namespace Tokenizer {
           ret->u.character = c;
           break;
       }
-    
-    } else if (preToken.type == PreTokenType::NUMBER || preToken.type == PreTokenType::STRING_LITERAL || preToken.type == PreTokenType::CHAR_LITERAL)
-      return processLiteral(preToken);
+    }
     
     return ret;
   }

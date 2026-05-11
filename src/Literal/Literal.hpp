@@ -3,13 +3,14 @@
 
 
 enum class LiteralType {
-  INTEGER, STRING, CHAR
+  INTEGER, FLOATING, STRING, CHAR
 };
 
 struct Literal {
   LiteralType type;
   union {
     int integer;
+    float floating;
     const char* string;
     char character;
   } u;

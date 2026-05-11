@@ -5,6 +5,10 @@ void Literal::print(std::ostream& out) {
     case LiteralType::INTEGER :
       out << "INTEGER(" << u.integer << ')';
       break;
+
+    case LiteralType::FLOATING :
+      out << "FLOATING(" << u.floating << ")";
+      break;
     
     case LiteralType::STRING :
       out << "STRING(" << u.string << ')';
