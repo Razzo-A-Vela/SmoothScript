@@ -1,7 +1,7 @@
 
 ;
 
-:unsigned int b = 2;
+:unsigned int b = -2;
 :const float c = b-- + 3.2 - .1 + 2.;
 :size_t d, i = 3, j;
 :const unsigned char e = d = 6;
@@ -15,7 +15,7 @@ func g() void {
 
 func f() int {
   ;
-  { a = 0o12; }
+  { a = +0o12; }
 
   for (:int i = 0; i < 10; i++) {}
 
@@ -30,7 +30,7 @@ func f() int {
     p = 0xC;
 
   while (i > 10 >= 0)
-    i++;
+    ++i;
   
   do {
     i--;
@@ -41,7 +41,7 @@ func f() int {
   while (j < 0b11);
 
   do {
-    i++;
+    --i;
   } while (i <= 18) {
     i++;
   }
