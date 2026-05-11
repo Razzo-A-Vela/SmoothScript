@@ -45,6 +45,8 @@ func f() int {
     i++;
   }
 
+  ::label;
+
   loop;
   loop {
     if (0);
@@ -54,6 +56,8 @@ func f() int {
 
     continue;
   }
+
+  goto label;
 
   g();
 
