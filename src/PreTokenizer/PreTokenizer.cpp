@@ -98,7 +98,7 @@ namespace PreTokenizer {
         addToOutput({ quote == '\"' ? PreTokenType::STRING_LITERAL : PreTokenType::CHAR_LITERAL, { .string = Utils::stringToCString(stream.str()) }, line });
 
       } else 
-          addToOutput({ PreTokenType::SYMBOL, { .character = c }, line });
+        addToOutput({ PreTokenType::SYMBOL, { .character = c }, line });
     }
   }
 
