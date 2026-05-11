@@ -113,7 +113,7 @@ namespace Parser {
 
   struct Expression {
     enum class Type {
-      LITERAL, VAR_ASSIGN, VAR, EXPR, FUNC_CALL, INCREMENT, DECREMENT, BINARY_OP, NOT, BIT_NOT
+      LITERAL, VAR_ASSIGN, IDENTIFIER, EXPR, FUNC_CALL, INCREMENT, DECREMENT, BINARY_OP, NOT, BIT_NOT
     } type;
     union {
       Literal literal;

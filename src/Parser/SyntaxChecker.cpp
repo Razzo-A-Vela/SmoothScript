@@ -476,7 +476,7 @@ namespace Parser {
       if (wakeup(TokenType::MINUSMINUS))
         return Result::success(new Expression{ Expression::Type::DECREMENT, { .name = name }, ReturnType::unknown() });
 
-      return Result::success(new Expression{ Expression::Type::VAR, { .name = name }, ReturnType::unknown() });
+      return Result::success(new Expression{ Expression::Type::IDENTIFIER, { .name = name }, ReturnType::unknown() });
     } else
       returnIfError(Expression, identifier);
     

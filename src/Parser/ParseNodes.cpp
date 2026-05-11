@@ -210,7 +210,7 @@ namespace Parser {
         u.literal.print(out);   //TODO: CHANGE THIS PRINT WITH A CUSTOM PARSER PRINT
         break;
       
-      case Type::VAR :
+      case Type::IDENTIFIER :
         u.name->print(out);
         break;
 
