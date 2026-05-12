@@ -29,6 +29,12 @@ namespace Parser {
         out << "FLOAT_LIT";
         break;
       
+      case TypeT::CUSTOM :
+        out << "CUSTOM(";
+        identifier->print(out);
+        out << ')';
+        break;
+      
       case TypeT::BOOL :
         out << "BOOL";
         break;

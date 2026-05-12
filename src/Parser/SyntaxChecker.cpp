@@ -371,7 +371,7 @@ namespace Parser {
       isUnsigned = true;
     else if (wakeup(TokenType::SIGNED));
 
-    #define success(type) Result::success(new Type{ type, isConst, isUnsigned })
+    #define success(type) Result::success(new Type{ type, isConst, isUnsigned, NULL })
 
     if (wakeup(TokenType::INT))
       return success(Type::TypeT::INT);
@@ -392,6 +392,12 @@ namespace Parser {
       return success(Type::TypeT::SIZE_T);
     
     #undef success
+
+    Result::inst<Identifier> identifier;
+    if ((identifier = processIdentifier()).hasValue())
+      return Result::success(new Type{ Type::TypeT::CUSTOM, isConst, isUnsigned, identifier.value });
+    else
+      returnIfError(Type, identifier);
     
     return Result::ignore<Type>(syntaxError("Expected type"));
   }
@@ -507,19 +513,19 @@ namespace Parser {
     Token token = consume().value();
     Literal literal = token.u.literal;
 
-    #define success(type) return Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal }, ReturnType::fromType(new Type{ type }) });
+    #define success(type) Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal }, ReturnType::fromType(new Type{ type }) });
 
     if (literal.type == LiteralType::INTEGER)
-      success(Type::TypeT::INT_LIT);
+      return success(Type::TypeT::INT_LIT);
     
     if (literal.type == LiteralType::FLOATING)
-      success(Type::TypeT::FLOAT_LIT);
+      return success(Type::TypeT::FLOAT_LIT);
     
     if (literal.type == LiteralType::STRING)
-      success(Type::TypeT::CSTR);
+      return success(Type::TypeT::CSTR);
     
     if (literal.type == LiteralType::CHAR)
-      success(Type::TypeT::CHAR);
+      return success(Type::TypeT::CHAR);
 
     #undef success
 

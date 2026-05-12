@@ -17,12 +17,13 @@ namespace Parser {
 
   struct Type {
     enum class TypeT {
-      INT, FLOAT, INT_LIT, FLOAT_LIT, // CUSTOM,
+      INT, FLOAT, INT_LIT, FLOAT_LIT, CUSTOM,
       BOOL, CSTR, CHAR, SIZE_T,
       // STRUCT, UNION, BFIELD, ENUM
     } type;
     bool isConst;
     bool isUnsigned;
+    nullable Identifier* identifier;
 
     void print(std::ostream& out);
   };
