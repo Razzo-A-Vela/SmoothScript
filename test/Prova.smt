@@ -1,4 +1,7 @@
 
+:test_t test;
+:test2_t test2;
+
 ;
 
 :unsigned int b = -2;
