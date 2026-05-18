@@ -25,6 +25,9 @@ namespace Parser {
     bool isUnsigned;
     nullable Identifier* identifier;
 
+    static Type* of(TypeT type);
+    static Type* custom(Identifier* identifier);
+
     void print(std::ostream& out);
   };
 

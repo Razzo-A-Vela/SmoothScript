@@ -395,7 +395,7 @@ namespace Parser {
 
     Result::inst<Identifier> identifier;
     if ((identifier = processIdentifier()).hasValue())
-      return Result::success(new Type{ Type::TypeT::CUSTOM, isConst, isUnsigned, identifier.value });
+      return Result::success(Type::custom(identifier.value));
     else
       returnIfError(Type, identifier);
     
@@ -523,7 +523,7 @@ namespace Parser {
     Token token = consume().value();
     Literal literal = token.u.literal;
 
-    #define success(type) Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal }, ReturnType::fromType(new Type{ type }) });
+    #define success(type) Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal }, ReturnType::fromType(Type::of(type)) });
 
     if (literal.type == LiteralType::INTEGER)
       return success(Type::TypeT::INT_LIT);

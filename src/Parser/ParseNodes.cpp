@@ -5,6 +5,14 @@ namespace Parser {
     out << name;
   }
 
+  Type* Type::of(Type::TypeT type) {
+    return new Type{ type, false, false, NULL };
+  }
+
+  Type* Type::custom(Identifier* identifier) {
+    return new Type{ Type::TypeT::CUSTOM, false, false, identifier };
+  }
+
   void Type::print(std::ostream& out) {
     if (isConst)
       out << "CONST ";
