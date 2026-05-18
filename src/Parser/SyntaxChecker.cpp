@@ -371,7 +371,17 @@ namespace Parser {
       isUnsigned = true;
     else if (wakeup(TokenType::SIGNED));
 
-    #define success(type) Result::success(new Type{ type, isConst, isUnsigned, NULL })
+    Result::inst<Type> ret = processBaseType();
+    if (!ret.hasValue())
+      return ret;
+    
+    ret.value->isUnsigned = isUnsigned;
+    ret.value->isConst = isConst;
+    return ret;
+  }
+
+  Result::inst<Type> SyntaxChecker::processBaseType() {
+    #define success(type) Result::success(Type::of(type))
 
     if (wakeup(TokenType::INT))
       return success(Type::TypeT::INT);

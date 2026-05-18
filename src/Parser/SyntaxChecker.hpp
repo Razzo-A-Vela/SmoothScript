@@ -57,14 +57,15 @@ namespace Parser {
     Result::inst<Statement> ignores childOf(processStatement) processForCompatibleStatement();
     Result::inst<Identifier> ignores processRawIdentifier();
     Result::inst<Identifier> ignores processIdentifier();                                 // RAW_IDENTIFIER
-    Result::inst<Type> ignores processType();                                             // ...
+    Result::inst<Type> ignores processType();                                             // [const] [unsigned | signed] BASE_TYPE
+    Result::inst<Type> ignores childOf(processType) processBaseType();                    // int | float | bool | cstr | char | size_t | IDENTIFIER
     Result::inst<InitExpression> alwaysErrors processInitExpression();                    // INIT_SPECIFIC_EXPRESSION | EXPRESSION
     Result::inst<Expression> ignores processExpression();                                 // ...
     Result::inst<Expression> ignores childOf(processExpression) processBaseExpression();
     Result::inst<Expression> alwaysErrors childOf(processBaseExpression) processLiteralExpression();
     Result::inst<Operator> ignores processOperator();
     Result::inst<InitIdentifier> alwaysErrors processInitIdentifier();                    // NAME [= INIT_EXPRESSION]
-    Result::inst<StatementAndExpr> ignores processExprAndStatement();                     // (EXPRESSION) STATEMENT
+    Result::inst<StatementAndExpr> ignores processExprAndStatement();                     // \(EXPRESSION\) STATEMENT
 
     template <typename T>
     Result::inst<T> expectSemiOnResult(Result::inst<T> other) {
