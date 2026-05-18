@@ -442,6 +442,18 @@ namespace Parser {
       expectErrorWithAlways(Expression, Expression, expr, processExpression(), expectParentEnd(Expression, previous));
       return Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
     }
+    
+    if (wakeup(TokenType::MINUSMINUS)) {
+      Identifier* name;
+      expectError(Expression, Identifier, name, processIdentifier());
+      return Result::success(new Expression{ Expression::Type::PRE_DECREMENT, { .name = name }, ReturnType::unknown() });
+    }
+
+    if (wakeup(TokenType::PLUSPLUS)) {
+      Identifier* name;
+      expectError(Expression, Identifier, name, processIdentifier());
+      return Result::success(new Expression{ Expression::Type::PRE_INCREMENT, { .name = name }, ReturnType::unknown() });
+    }
 
 
     #define unaryOperator(tokenType, exprType) \
@@ -455,8 +467,6 @@ namespace Parser {
     unaryOperator(TokenType::TILDE, Expression::Type::BIT_NOT);
     unaryOperator(TokenType::MINUS, Expression::Type::MINUS);
     unaryOperator(TokenType::PLUS, Expression::Type::PLUS);
-    unaryOperator(TokenType::MINUSMINUS, Expression::Type::PRE_DECREMENT);
-    unaryOperator(TokenType::PLUSPLUS, Expression::Type::PRE_INCREMENT);
 
     #undef unaryOperator
     

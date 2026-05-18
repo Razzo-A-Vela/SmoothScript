@@ -276,12 +276,12 @@ namespace Parser {
       
       case Type::PRE_DECREMENT :
         out << "PRE_DECREMENT ";
-        u.expr->print(out);
+        u.name->print(out);
         break;
       
       case Type::PRE_INCREMENT :
         out << "PRE_INCREMENT ";
-        u.expr->print(out);
+        u.name->print(out);
         break;
     }
 
