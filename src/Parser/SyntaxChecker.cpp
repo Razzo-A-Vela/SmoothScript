@@ -361,20 +361,25 @@ namespace Parser {
   }
 
   Result::inst<Type> SyntaxChecker::processType() {
-    bool isUnsigned = false;
     bool isConst = false;
+    bool isUnsigned = false;
+    bool isSigned = false;
 
     if (wakeup(TokenType::CONST))
       isConst = true;
 
     if (wakeup(TokenType::UNSIGNED))
       isUnsigned = true;
-    else if (wakeup(TokenType::SIGNED));
+    else if (wakeup(TokenType::SIGNED))
+      isSigned = true;
+    
 
     Result::inst<Type> ret = processBaseType();
     if (!ret.hasValue())
       return ret;
     
+
+    ret.value->isSigned = isSigned;
     ret.value->isUnsigned = isUnsigned;
     ret.value->isConst = isConst;
     return ret;

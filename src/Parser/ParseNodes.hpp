@@ -21,12 +21,15 @@ namespace Parser {
       BOOL, CSTR, CHAR, SIZE_T,
       // STRUCT, UNION, BFIELD, ENUM
     } type;
+    union {
+      Identifier* identifier;
+    } u;
     bool isConst;
     bool isUnsigned;
-    nullable Identifier* identifier;
+    bool isSigned;
 
-    static Type* of(TypeT type);
-    static Type* custom(Identifier* identifier);
+    static Type* of(TypeT type, bool isConst = false, bool isUnsigned = false, bool isSigned = false);
+    static Type* custom(Identifier* identifier, bool isConst = false, bool isUnsigned = false, bool isSigned = false);
 
     void print(std::ostream& out);
   };

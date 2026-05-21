@@ -5,12 +5,12 @@ namespace Parser {
     out << name;
   }
 
-  Type* Type::of(Type::TypeT type) {
-    return new Type{ type, false, false, NULL };
+  Type* Type::of(Type::TypeT type, bool isConst, bool isUnsigned, bool isSigned) {
+    return new Type{ type, NULL, isConst, isUnsigned, isSigned };
   }
 
-  Type* Type::custom(Identifier* identifier) {
-    return new Type{ Type::TypeT::CUSTOM, false, false, identifier };
+  Type* Type::custom(Identifier* identifier, bool isConst, bool isUnsigned, bool isSigned) {
+    return new Type{ Type::TypeT::CUSTOM, { .identifier = identifier }, isConst, isUnsigned, isSigned };
   }
 
   void Type::print(std::ostream& out) {
@@ -19,6 +19,9 @@ namespace Parser {
 
     if (isUnsigned)
       out << "UNSIGNED ";
+
+    if (isSigned)
+      out << "SIGNED ";
 
     switch (type) {
       case TypeT::INT :
@@ -39,7 +42,7 @@ namespace Parser {
       
       case TypeT::CUSTOM :
         out << "CUSTOM(";
-        identifier->print(out);
+        u.identifier->print(out);
         out << ')';
         break;
       
