@@ -51,6 +51,8 @@ namespace Parser {
     Result::inst<Variables> alwaysErrors withWakeup(TokenType::COLON) processVariables(); // VARIABLE [(, INIT_IDENTIFIER)...]
     Result::inst<Variable> alwaysErrors processVariable();                                // TYPE INIT_IDENTIFIER
     Result::inst<Function> alwaysErrors withWakeup(TokenType::FUNC) processFunction();    // NAME() RETURN_TYPE SCOPE
+    Result::inst<Using> alwaysErrors withWakeup(TokenType::USING) processUsing();         // :TYPE BASE_TYPE [(, BASE_TYPE)...]
+    Result::inst<TypeDef> alwaysErrors childOf(processUsing) withWakeup(TokenType::COLON) processTypeDef();
     Result::inst<ReturnType> ignores processReturnType();                                 // void | ! | TYPE
     Result::inst<Scope> ignores processScope();                                           // { (STATEMENT;)... }
     Result::inst<Statement> ignores processStatement();                                   // ...

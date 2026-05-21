@@ -180,6 +180,57 @@ namespace Parser {
     return Result::success(new Function{ name, returnType, params, true, scope });
   }
 
+  Result::inst<Using> SyntaxChecker::processUsing() {
+    if (!wakeup(TokenType::COLON))
+      return Result::error<Using>(syntaxError("Expected ':'"));
+
+    TypeDef* typeDef;
+    expectError(Using, TypeDef, typeDef, processTypeDef());
+    return Result::success(new Using{ Using::Type::TYPE_DEF, { .typeDef = typeDef } });
+  }
+
+  Result::inst<TypeDef> SyntaxChecker::processTypeDef() {
+    std::vector<Type*>* other = NULL;
+    Type* from;
+    Type* to;
+
+    expectError(TypeDef, Type, from, processType());
+
+    bool isInt = from->type == Type::TypeT::INT;
+    bool isSpecialCase = (isInt || from->type == Type::TypeT::FLOAT) && wakeup(TokenType::LESS);
+    if (isSpecialCase) {
+      Expression* expr;
+      Literal literal;
+      int bitAmount;
+
+      expectError(TypeDef, Expression, expr, processBaseExpression());
+      if (expr->type != Expression::Type::LITERAL || (literal = expr->u.literal).type != LiteralType::INTEGER)
+        return Result::error<TypeDef>(syntaxError("Expected integer literal"));
+      bitAmount = literal.u.integer;
+
+      if (bitAmount <= 0)
+        return Result::error<TypeDef>(syntaxError("Bit amount must be greater than 0"));
+      if (!wakeup(TokenType::GREATER))
+        return Result::error<TypeDef>(syntaxError("Expected '>'"));
+      
+      from = Type::specialCase(isInt, bitAmount, from->isConst, from->isUnsigned);
+    }
+    
+    expectError(TypeDef, Type, to, processBaseType());
+
+    if (wakeup(TokenType::COMMA)) {
+      other = new std::vector<Type*>();
+      Type* type;
+      
+      do {
+        expectError(TypeDef, Type, type, processBaseType());
+        other->push_back(type);
+      } while (wakeup(TokenType::COMMA));
+    }
+
+    return Result::success(new TypeDef{ from, to, other });
+  }
+
   Result::inst<ReturnType> SyntaxChecker::processReturnType() {
     if (wakeup(TokenType::VOID))
       return Result::success(ReturnType::_void());
@@ -312,6 +363,12 @@ namespace Parser {
       expectError(Statement, Identifier, name, processIdentifier());
       expectSemi(Statement);
       return Result::success(new Statement{ Statement::Type::GOTO, { .name = name } });
+    }
+
+    if (wakeup(TokenType::USING)) {
+      Using* using_;
+      expectError(Statement, Using, using_, processUsing());
+      return Result::success(new Statement{ Statement::Type::USING, { .using_ = using_ } });
     }
 
     Result::inst<Scope> scope;
@@ -611,6 +668,8 @@ namespace Parser {
         addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemiOnResult(processVariables()).expectValue() } });
       else if (wakeup(token, TokenType::FUNC))
         addToOutput({ GlobalNode::Type::FUNC, { .func = processFunction().expectValue() } });
+      else if (wakeup(token, TokenType::USING))
+        addToOutput({ GlobalNode::Type::USING, { .using_ = expectSemiOnResult(processUsing()).expectValue() } });
       else
         Utils::error(syntaxError("Unexpected token"));
     }

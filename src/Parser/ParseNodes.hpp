@@ -168,9 +168,29 @@ namespace Parser {
     void print(std::ostream& out);
   };
 
+  struct TypeDef {
+    Type* from;
+    Type* to;
+    nullable std::vector<Type*>* other;
+
+    void print(std::ostream& out);
+  };
+
+  struct Using {
+    enum class Type {
+      TYPE_DEF
+    } type;
+    union {
+      TypeDef* typeDef;
+    } u; 
+    
+    void print(std::ostream& out);
+  };
+
   struct Statement {
     enum class Type {
-      RETURN, IF, ELSE, WHILE, DO_WHILE, LOOP, BREAK, CONTINUE, FOR, LABEL, GOTO,
+      RETURN, IF, ELSE, WHILE, DO_WHILE, LOOP, BREAK,
+      CONTINUE, FOR, LABEL, GOTO, USING,
       
       VAR_DECL, SCOPE, EXPRESSION, NOTHING
     } type;
@@ -183,6 +203,7 @@ namespace Parser {
       DoWhile* doWhile;
       For* for_;
       Identifier* name;
+      Using* using_;
     } u;
 
     void print(std::ostream& out);
@@ -201,11 +222,12 @@ namespace Parser {
 
   struct GlobalNode {
     enum class Type {
-      VAR_DECL, FUNC
+      VAR_DECL, FUNC, USING
     } type;
     union {
       Variables* vars;
       Function* func;
+      Using* using_;
     } u;
 
     void print(std::ostream& out);

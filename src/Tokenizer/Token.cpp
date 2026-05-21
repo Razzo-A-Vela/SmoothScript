@@ -46,6 +46,10 @@ namespace Tokenizer {
       case TokenType::GOTO :
         out << "GOTO";
         break;
+      
+      case TokenType::USING :
+        out << "USING";
+        break;
 
       
       case TokenType::INT :

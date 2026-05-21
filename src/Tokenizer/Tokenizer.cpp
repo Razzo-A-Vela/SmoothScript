@@ -186,6 +186,9 @@ namespace Tokenizer {
       else if (str == "goto")
         ret->type = TokenType::GOTO;
       
+      else if (str == "using")
+        ret->type = TokenType::USING;
+      
       
       else if (str == "int")
         ret->type = TokenType::INT;

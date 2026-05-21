@@ -336,6 +336,30 @@ namespace Parser {
     statement->print(out);
   }
 
+  void TypeDef::print(std::ostream& out) {
+    out << ':';
+    from->print(out);
+    out << ' ';
+    to->print(out);
+
+    if (other != NULL) {
+      for (int i = 0; i < other->size(); i++) {
+        out << ", ";
+        other->at(i)->print(out);
+      }
+    }
+  }
+
+  void Using::print(std::ostream& out) {
+    out << "USING ";
+    
+    switch (type) {
+      case Type::TYPE_DEF :
+        u.typeDef->print(out);
+        break;
+    }
+  }
+
   void Statement::print(std::ostream& out) {
     switch (type) {
       case Type::RETURN :
@@ -392,6 +416,11 @@ namespace Parser {
       case Type::GOTO :
         out << "GOTO ";
         u.name->print(out);
+        out << ';';
+        break;
+      
+      case Type::USING :
+        u.using_->print(out);
         out << ';';
         break;
       
@@ -471,6 +500,11 @@ namespace Parser {
       
       case Type::FUNC :
         u.func->print(out);
+        break;
+      
+      case Type::USING :
+        u.using_->print(out);
+        out << ';';
         break;
     }
   }
