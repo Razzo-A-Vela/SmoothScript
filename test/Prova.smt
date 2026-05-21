@@ -23,8 +23,11 @@ func g() void {
   return;
 }
 
-func ahOk() const float {
-  return 1.2;
+func ahOk(:float x, y :int m) const float {
+  :float ret = 0;
+  for (:int i = 0; i < m; i++)
+    ret = ret + (x - y + 1.2);
+  return ret;
 }
 
 func f() signed int {
