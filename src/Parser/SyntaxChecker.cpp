@@ -297,15 +297,9 @@ namespace Parser {
     }
 
     if (wakeup(TokenType::DO)) {
-      Statement* doStatement;
-      StatementAndExpr* whileStatementAndExpr;
-
-      expectError(Statement, Statement, doStatement, processStatement());
-      if (!wakeup(TokenType::WHILE))
-        return Result::error<Statement>(syntaxError("Expected 'while'"));
-      expectError(Statement, StatementAndExpr, whileStatementAndExpr, processExprAndStatement());
-      
-      return Result::success(new Statement{ Statement::Type::DO_WHILE, { .doWhile = new DoWhile{ doStatement, whileStatementAndExpr } } });
+      DoWhile* doWhile;
+      expectError(Statement, DoWhile, doWhile, processDoWhile());
+      return Result::success(new Statement{ Statement::Type::DO_WHILE, { .doWhile = doWhile } });
     }
 
     if (wakeup(TokenType::LOOP)) {
@@ -326,29 +320,9 @@ namespace Parser {
     }
 
     if (wakeup(TokenType::FOR)) {
-      Statement* initStatement;
-      Expression* checkExpression = NULL;
-      Expression* repeatExpression = NULL;
-      Statement* statement;
-      
-      if (peekNotEqual({ TokenType::PARENTS }))
-        return Result::error<Statement>(parentsError());
-      Context previous = switchContextToParents();
-
-      expectErrorWithOnError(Statement, Statement, initStatement, processForCompatibleStatement(), switchContext(previous));
-      if (!semi()) {
-        expectErrorWithOnError(Statement, Expression, checkExpression, processExpression(), switchContext(previous));
-        expectSemi(Statement);
-      }
-
-      if (hasPeek()) {
-        expectErrorWithOnError(Statement, Expression, repeatExpression, processExpression(), switchContext(previous));
-        expectParentEnd(Statement, previous);
-      } else
-        switchContext(previous);
-      
-      expectError(Statement, Statement, statement, processStatement());
-      return Result::success(new Statement{ Statement::Type::FOR, { .for_ = new For{ initStatement, checkExpression, repeatExpression, statement } } });
+      For* for_;
+      expectError(Statement, For, for_, processFor());
+      return Result::success(new Statement{ Statement::Type::FOR, { .for_ = for_ } });
     }
 
     if (wakeup(TokenType::DOUBLE_COLON)) {
@@ -405,6 +379,43 @@ namespace Parser {
       returnIfError(Statement, expr);
     
     return Result::ignore<Statement>(syntaxError("Expected statement"));
+  }
+
+  Result::inst<For> SyntaxChecker::processFor() {
+    Statement* initStatement;
+    Expression* checkExpression = NULL;
+    Expression* repeatExpression = NULL;
+    Statement* statement;
+    
+    if (peekNotEqual({ TokenType::PARENTS }))
+      return Result::error<For>(parentsError());
+    Context previous = switchContextToParents();
+
+    expectErrorWithOnError(For, Statement, initStatement, processForCompatibleStatement(), switchContext(previous));
+    if (!semi()) {
+      expectErrorWithOnError(For, Expression, checkExpression, processExpression(), switchContext(previous));
+      expectSemi(For);
+    }
+
+    if (hasPeek()) {
+      expectErrorWithOnError(For, Expression, repeatExpression, processExpression(), switchContext(previous));
+      expectParentEnd(For, previous);
+    } else
+      switchContext(previous);
+    
+    expectError(For, Statement, statement, processStatement());
+    return Result::success(new For{ initStatement, checkExpression, repeatExpression, statement });
+  }
+
+  Result::inst<DoWhile> SyntaxChecker::processDoWhile() {
+    Statement* doStatement;
+    StatementAndExpr* whileStatementAndExpr;
+
+    expectError(DoWhile, Statement, doStatement, processStatement());
+    if (!wakeup(TokenType::WHILE))
+      return Result::error<DoWhile>(syntaxError("Expected 'while'"));
+    expectError(DoWhile, StatementAndExpr, whileStatementAndExpr, processExprAndStatement());
+    return Result::success(new DoWhile{ doStatement, whileStatementAndExpr });
   }
 
   Result::inst<Identifier> SyntaxChecker::processRawIdentifier() {

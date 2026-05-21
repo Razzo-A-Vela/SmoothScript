@@ -57,6 +57,8 @@ namespace Parser {
     Result::inst<Scope> ignores processScope();                                           // { (STATEMENT;)... }
     Result::inst<Statement> ignores processStatement();                                   // ...
     Result::inst<Statement> ignores childOf(processStatement) processForCompatibleStatement();
+    Result::inst<For> alwaysErrors withWakeup(TokenType::FOR) processFor();               // \(FOR_COMPATIBLE_STATEMENT [EXPRESSION]; [EXPRESSION]\) STATEMENT
+    Result::inst<DoWhile> alwaysErrors withWakeup(TokenType::DO) processDoWhile();        // STATEMENT while EXPR_AND_STATEMENT
     Result::inst<Identifier> ignores processRawIdentifier();
     Result::inst<Identifier> ignores processIdentifier();                                 // RAW_IDENTIFIER
     Result::inst<Type> ignores processType();                                             // [const] [unsigned | signed] BASE_TYPE
