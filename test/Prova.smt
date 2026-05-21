@@ -1,4 +1,11 @@
 
+using :signed int<8> char;
+using :unsigned char byte;
+using :int<32> int, float;
+using :unsigned int<64> size_t;
+using :const unsigned int test_t, test2_t;
+using :const signed int cint;
+
 :test_t test;
 :test2_t test2;
 
@@ -7,7 +14,7 @@
 :unsigned int b = -2;
 :const float c = b-- + 3.2 - .1 + 2.;
 :size_t d, i = 3, j;
-:const unsigned char e = d = 6;
+:const byte e = d = 6;
 :char otherChar = 'A';
 
 func h(:int a, b, c :int x) !;
@@ -16,16 +23,23 @@ func g() void {
   return;
 }
 
-func f() int {
+func ahOk() const float {
+  return 1.2;
+}
+
+func f() signed int {
   ;
   { a = +0o12; }
 
-  for (:int i = 0; i < 10; i++) {}
+  using :int index_t;
+
+  for (:index_t i = 0; i < 10; i++) {}
 
   for (;;)
     break;
 
   :int b;
+  :float m = ahOk();
 
   if (1 || !4 && 2) {
     b = 1;
