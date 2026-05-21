@@ -17,12 +17,13 @@ namespace Parser {
 
   struct Type {
     enum class TypeT {
-      INT, FLOAT, INT_LIT, FLOAT_LIT, CUSTOM,
+      INT, FLOAT, INT_LIT, FLOAT_LIT, INT_SPECIAL, FLOAT_SPECIAL, CUSTOM,
       BOOL, CSTR, CHAR, SIZE_T,
       // STRUCT, UNION, BFIELD, ENUM
     } type;
     union {
       Identifier* identifier;
+      int bitAmount;
     } u;
     bool isConst;
     bool isUnsigned;
@@ -30,6 +31,7 @@ namespace Parser {
 
     static Type* of(TypeT type, bool isConst = false, bool isUnsigned = false, bool isSigned = false);
     static Type* custom(Identifier* identifier, bool isConst = false, bool isUnsigned = false, bool isSigned = false);
+    static Type* specialCase(bool isInt, int bitAmount, bool isConst = false, bool isUnsigned = false, bool isSigned = false);
 
     void print(std::ostream& out);
   };

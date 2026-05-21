@@ -13,6 +13,10 @@ namespace Parser {
     return new Type{ Type::TypeT::CUSTOM, { .identifier = identifier }, isConst, isUnsigned, isSigned };
   }
 
+  Type* Type::specialCase(bool isInt, int bitAmount, bool isConst, bool isUnsigned, bool isSigned) {
+    return new Type{ isInt ? Type::TypeT::INT_SPECIAL : Type::TypeT::FLOAT_SPECIAL, { .bitAmount = bitAmount }, isConst, isUnsigned, isSigned };
+  }
+
   void Type::print(std::ostream& out) {
     if (isConst)
       out << "CONST ";
@@ -38,6 +42,14 @@ namespace Parser {
       
       case TypeT::FLOAT_LIT :
         out << "FLOAT_LIT";
+        break;
+      
+      case TypeT::INT_SPECIAL :
+        out << "INT_SPECIAL<" << u.bitAmount << '>';
+        break;
+      
+      case TypeT::FLOAT_SPECIAL :
+        out << "FLOAT_SPECIAL<" << u.bitAmount << '>';
         break;
       
       case TypeT::CUSTOM :
