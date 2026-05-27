@@ -1,13 +1,13 @@
 
-using :signed int<8> char;
+using :mut signed int<8> char;
 using :unsigned char byte;
-using :int<32> int, float;
-using :unsigned int<64> size_t;
+using :mut int<32> int, float;
+using :mut unsigned int<64> size_t;
 using :const unsigned int test_t, test2_t;
 using :const signed int cint;
 
 :test_t test;
-:test2_t test2;
+:mut test2_t test2;
 
 ;
 
