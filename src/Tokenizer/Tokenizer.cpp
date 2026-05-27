@@ -211,6 +211,9 @@ namespace Tokenizer {
       else if (str == "const")
         ret->type = TokenType::CONST;
 
+      else if (str == "mut")
+        ret->type = TokenType::MUT;
+
       else if (str == "signed")
         ret->type = TokenType::SIGNED;
 

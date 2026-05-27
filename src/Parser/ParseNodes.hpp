@@ -26,6 +26,7 @@ namespace Parser {
       int bitAmount;
     } u;
     bool isConst;
+    bool isMut;
     bool isUnsigned;
     bool isSigned;
 

@@ -80,6 +80,10 @@ namespace Tokenizer {
         out << "CONST";
         break;
       
+      case TokenType::MUT :
+        out << "MUT";
+        break;
+      
       case TokenType::SIGNED :
         out << "SIGNED";
         break;

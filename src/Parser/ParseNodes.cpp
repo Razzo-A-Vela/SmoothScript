@@ -20,6 +20,9 @@ namespace Parser {
   void Type::print(std::ostream& out) {
     if (isConst)
       out << "CONST ";
+    
+    if (isMut)
+      out << "MUT ";
 
     if (isUnsigned)
       out << "UNSIGNED ";

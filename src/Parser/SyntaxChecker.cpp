@@ -430,11 +430,14 @@ namespace Parser {
 
   Result::inst<Type> SyntaxChecker::processType() {
     bool isConst = false;
+    bool isMut = false;
     bool isUnsigned = false;
     bool isSigned = false;
 
     if (wakeup(TokenType::CONST))
       isConst = true;
+    else if (wakeup(TokenType::MUT))
+      isMut = true;
 
     if (wakeup(TokenType::UNSIGNED))
       isUnsigned = true;
@@ -449,6 +452,7 @@ namespace Parser {
 
     ret.value->isSigned = isSigned;
     ret.value->isUnsigned = isUnsigned;
+    ret.value->isMut = isMut;
     ret.value->isConst = isConst;
     return ret;
   }
