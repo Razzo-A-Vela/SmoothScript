@@ -18,7 +18,7 @@ namespace Parser {
   struct Type {
     enum class TypeT {
       INT, FLOAT, INT_LIT, FLOAT_LIT, INT_SPECIAL, FLOAT_SPECIAL, CUSTOM,
-      BOOL, CSTR, CHAR, SIZE_T,
+      BOOL, CSTR, CHAR, SIZE_T
       // STRUCT, UNION, BFIELD, ENUM
     } type;
     union {
