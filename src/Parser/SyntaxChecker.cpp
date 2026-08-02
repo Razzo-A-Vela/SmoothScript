@@ -519,7 +519,7 @@ namespace Parser {
   Result::inst<Expression> SyntaxChecker::processBaseExpression() {
     Result::inst<Identifier> identifier;
 
-    if (peekEqual({ TokenType::LITERAL }))
+    if (peekEqual({ TokenType::LITERAL }) || (peekEqual({ TokenType::MINUS }) && peekEqual({ TokenType::LITERAL }, 1)))
       return processLiteralExpression();
     
     if (peekEqual({ TokenType::PARENTS })) {
@@ -607,22 +607,35 @@ namespace Parser {
   }
 
   Result::inst<Expression> SyntaxChecker::processLiteralExpression() {
+    bool isNegative = tryConsume({ TokenType::MINUS });
     Token token = consume().value();
     Literal literal = token.u.literal;
 
     #define success(type) Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal }, ReturnType::fromType(Type::of(type)) });
 
-    if (literal.type == LiteralType::INTEGER)
+    if (literal.type == LiteralType::INTEGER) {
+      if (isNegative)
+        literal.u.integer *= -1; 
       return success(Type::TypeT::INT_LIT);
+    }
     
-    if (literal.type == LiteralType::FLOATING)
+    else if (literal.type == LiteralType::FLOATING) {
+      if (isNegative)
+        literal.u.floating *= -1; 
       return success(Type::TypeT::FLOAT_LIT);
+    }
     
-    if (literal.type == LiteralType::STRING)
+    else if (literal.type == LiteralType::STRING) {
+      if (isNegative)
+        return Result::error<Expression>(syntaxError("Unexpected '-' before string literal"));
       return success(Type::TypeT::CSTR);
+    }
     
-    if (literal.type == LiteralType::CHAR)
+    else if (literal.type == LiteralType::CHAR) {
+      if (isNegative)
+        return Result::error<Expression>(syntaxError("Unexpected '-' before char literal"));
       return success(Type::TypeT::CHAR);
+    }
 
     #undef success
 
