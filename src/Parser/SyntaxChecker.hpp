@@ -64,8 +64,8 @@ namespace Parser {
     Result::inst<Type> ignores processType();                                             // [const] [unsigned | signed] BASE_TYPE
     Result::inst<Type> ignores childOf(processType) processBaseType();                    // int | float | bool | cstr | char | size_t | IDENTIFIER
     Result::inst<InitExpression> alwaysErrors processInitExpression();                    // INIT_SPECIFIC_EXPRESSION | EXPRESSION
-    Result::inst<Expression> ignores processExpression();                                 // ...
-    Result::inst<Expression> ignores childOf(processExpression) processBaseExpression();
+    Result::inst<Expression> ignores processExpression();                                 // BASE_EXPRESSION [(BINARY_OPERATOR BASE_EXPRESSION)...]
+    Result::inst<Expression> ignores processBaseExpression();                             // ...
     Result::inst<Expression> alwaysErrors childOf(processBaseExpression) processLiteralExpression();
     Result::inst<Operator> ignores processOperator();
     Result::inst<InitIdentifier> alwaysErrors processInitIdentifier();                    // NAME [= INIT_EXPRESSION]
