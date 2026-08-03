@@ -25,14 +25,12 @@ namespace Parser {
       Identifier* identifier;
       int bitAmount;
     } u;
-    bool isConst;
-    bool isMut;
     bool isUnsigned;
     bool isSigned;
 
-    static Type* of(TypeT type, bool isConst = false, bool isUnsigned = false, bool isSigned = false);
-    static Type* custom(Identifier* identifier, bool isConst = false, bool isUnsigned = false, bool isSigned = false);
-    static Type* specialCase(bool isInt, int bitAmount, bool isConst = false, bool isUnsigned = false, bool isSigned = false);
+    static Type* of(TypeT type, bool isUnsigned = false, bool isSigned = false);
+    static Type* custom(Identifier* identifier, bool isUnsigned = false, bool isSigned = false);
+    static Type* specialCase(bool isInt, int bitAmount, bool isUnsigned = false, bool isSigned = false);
 
     void print(std::ostream& out);
   };

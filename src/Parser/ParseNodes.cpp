@@ -5,25 +5,19 @@ namespace Parser {
     out << name;
   }
 
-  Type* Type::of(Type::TypeT type, bool isConst, bool isUnsigned, bool isSigned) {
-    return new Type{ type, NULL, isConst, isUnsigned, isSigned };
+  Type* Type::of(Type::TypeT type, bool isUnsigned, bool isSigned) {
+    return new Type{ type, NULL, isUnsigned, isSigned };
   }
 
-  Type* Type::custom(Identifier* identifier, bool isConst, bool isUnsigned, bool isSigned) {
-    return new Type{ Type::TypeT::CUSTOM, { .identifier = identifier }, isConst, isUnsigned, isSigned };
+  Type* Type::custom(Identifier* identifier, bool isUnsigned, bool isSigned) {
+    return new Type{ Type::TypeT::CUSTOM, { .identifier = identifier }, isUnsigned, isSigned };
   }
 
-  Type* Type::specialCase(bool isInt, int bitAmount, bool isConst, bool isUnsigned, bool isSigned) {
-    return new Type{ isInt ? Type::TypeT::INT_SPECIAL : Type::TypeT::FLOAT_SPECIAL, { .bitAmount = bitAmount }, isConst, isUnsigned, isSigned };
+  Type* Type::specialCase(bool isInt, int bitAmount, bool isUnsigned, bool isSigned) {
+    return new Type{ isInt ? Type::TypeT::INT_SPECIAL : Type::TypeT::FLOAT_SPECIAL, { .bitAmount = bitAmount }, isUnsigned, isSigned };
   }
 
   void Type::print(std::ostream& out) {
-    if (isConst)
-      out << "CONST ";
-    
-    if (isMut)
-      out << "MUT ";
-
     if (isUnsigned)
       out << "UNSIGNED ";
 

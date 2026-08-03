@@ -213,7 +213,7 @@ namespace Parser {
       if (!wakeup(TokenType::GREATER))
         return Result::error<TypeDef>(syntaxError("Expected '>'"));
       
-      from = Type::specialCase(isInt, bitAmount, from->isConst, from->isUnsigned);
+      from = Type::specialCase(isInt, bitAmount, from->isUnsigned, from->isSigned);
     }
     
     expectError(TypeDef, Type, to, processBaseType());
@@ -429,15 +429,8 @@ namespace Parser {
   }
 
   Result::inst<Type> SyntaxChecker::processType() {
-    bool isConst = false;
-    bool isMut = false;
     bool isUnsigned = false;
     bool isSigned = false;
-
-    if (wakeup(TokenType::CONST))
-      isConst = true;
-    else if (wakeup(TokenType::MUT))
-      isMut = true;
 
     if (wakeup(TokenType::UNSIGNED))
       isUnsigned = true;
@@ -452,8 +445,6 @@ namespace Parser {
 
     ret.value->isSigned = isSigned;
     ret.value->isUnsigned = isUnsigned;
-    ret.value->isMut = isMut;
-    ret.value->isConst = isConst;
     return ret;
   }
 
