@@ -559,7 +559,7 @@ namespace Parser {
       if (wakeup(TokenType::EQUALS)) {
         Expression* expr;
         expectError(Expression, Expression, expr, processExpression());
-        return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ name, expr } }, expr->returnType });
+        return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ name, expr } }, ReturnType::unknown() });
       }
 
       else if (peekEqual({ TokenType::PARENTS })) {
