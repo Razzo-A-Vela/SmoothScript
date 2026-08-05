@@ -454,19 +454,19 @@ namespace Parser {
     if (wakeup(TokenType::INT))
       return success(Type::TypeT::INT);
 
-    if (wakeup(TokenType::FLOAT))
+    else if (wakeup(TokenType::FLOAT))
       return success(Type::TypeT::FLOAT);
 
-    if (wakeup(TokenType::BOOL))
+    else if (wakeup(TokenType::BOOL))
       return success(Type::TypeT::BOOL);
 
-    if (wakeup(TokenType::CSTR))
+    else if (wakeup(TokenType::CSTR))
       return success(Type::TypeT::CSTR);
 
-    if (wakeup(TokenType::CHAR))
+    else if (wakeup(TokenType::CHAR))
       return success(Type::TypeT::CHAR);
 
-    if (wakeup(TokenType::SIZE_T))
+    else if (wakeup(TokenType::SIZE_T))
       return success(Type::TypeT::SIZE_T);
     
     #undef success
@@ -510,10 +510,14 @@ namespace Parser {
   Result::inst<Expression> SyntaxChecker::processBaseExpression() {
     Result::inst<Identifier> identifier;
 
-    if (peekEqual({ TokenType::LITERAL }) || (peekEqual({ TokenType::MINUS }) && peekEqual({ TokenType::LITERAL }, 1)))
+    #define nextLiteral() peekEqual({ TokenType::LITERAL }, 1)
+
+    if (peekEqual({ TokenType::LITERAL }) || (peekEqual({ TokenType::MINUS }) && nextLiteral()))
       return processLiteralExpression();
     
-    if (peekEqual({ TokenType::PARENTS })) {
+    #undef nextLiteral
+    
+    else if (peekEqual({ TokenType::PARENTS })) {
       Context previous = switchContextToParents();
       
       Expression* expr;
@@ -521,13 +525,13 @@ namespace Parser {
       return Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
     }
     
-    if (wakeup(TokenType::MINUSMINUS)) {
+    else if (wakeup(TokenType::MINUSMINUS)) {
       Identifier* name;
       expectError(Expression, Identifier, name, processIdentifier());
       return Result::success(new Expression{ Expression::Type::PRE_DECREMENT, { .name = name }, ReturnType::unknown() });
     }
 
-    if (wakeup(TokenType::PLUSPLUS)) {
+    else if (wakeup(TokenType::PLUSPLUS)) {
       Identifier* name;
       expectError(Expression, Identifier, name, processIdentifier());
       return Result::success(new Expression{ Expression::Type::PRE_INCREMENT, { .name = name }, ReturnType::unknown() });
@@ -539,7 +543,7 @@ namespace Parser {
         Expression* expr; \
         expectError(Expression, Expression, expr, processExpression()); \
         return Result::success(new Expression{ exprType, { .expr = expr }, ReturnType::unknown() }); \
-      }
+      } 0
 
     unaryOperator(TokenType::EXCLAMATION, Expression::Type::NOT);
     unaryOperator(TokenType::TILDE, Expression::Type::BIT_NOT);
@@ -558,7 +562,7 @@ namespace Parser {
         return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ name, expr } }, expr->returnType });
       }
 
-      if (peekEqual({ TokenType::PARENTS })) {
+      else if (peekEqual({ TokenType::PARENTS })) {
         Context previous = switchContextToParents();
         std::vector<Expression*>* params = NULL;
 
@@ -584,13 +588,14 @@ namespace Parser {
         return Result::success(new Expression{ Expression::Type::FUNC_CALL, { .funcCall = new FuncCall{ name, params } }, ReturnType::unknown() });
       }
 
-      if (wakeup(TokenType::PLUSPLUS))
+      else if (wakeup(TokenType::PLUSPLUS))
         return Result::success(new Expression{ Expression::Type::INCREMENT, { .name = name }, ReturnType::unknown() });
 
-      if (wakeup(TokenType::MINUSMINUS))
+      else if (wakeup(TokenType::MINUSMINUS))
         return Result::success(new Expression{ Expression::Type::DECREMENT, { .name = name }, ReturnType::unknown() });
 
-      return Result::success(new Expression{ Expression::Type::IDENTIFIER, { .name = name }, ReturnType::unknown() });
+      else
+        return Result::success(new Expression{ Expression::Type::IDENTIFIER, { .name = name }, ReturnType::unknown() });
     } else
       returnIfError(Expression, identifier);
     
