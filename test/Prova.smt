@@ -6,15 +6,15 @@ using :unsigned int<64> size_t;
 using :unsigned int test_t, test2_t;
 using :signed int cint;
 
-:test_t test;
+:test_t mut test;
 :test2_t test2;
 
 ;
 
 :unsigned int b = -2;
 :float c = b-- + 3.2 - .1 + 2.;
-:size_t d, i = 3, j;
-:byte e = d = 6;
+:size_t d, mut i = 3, j;
+:byte mut e = d = 6;
 :char otherChar = 'A';
 
 func h(:int a, b, c :int x) !;
@@ -41,7 +41,7 @@ func f() signed int {
   for (;;)
     break;
 
-  :int b;
+  :int mut b;
   :float m = ahOk();
 
   if (1 || !4 && 2) {
