@@ -110,6 +110,8 @@ namespace Parser {
   }
 
   void InitIdentifier::print(std::ostream& out) {
+    if (isMutable)
+      out << "MUT ";
     name->print(out);
     if (expr != NULL) {
       out << " = ";

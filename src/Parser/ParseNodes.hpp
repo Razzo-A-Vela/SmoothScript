@@ -64,6 +64,7 @@ namespace Parser {
   };
 
   struct InitIdentifier {
+    bool isMutable;
     Identifier* name;
     nullable InitExpression* expr;
 

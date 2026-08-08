@@ -664,6 +664,10 @@ namespace Parser {
   }
 
   Result::inst<InitIdentifier> SyntaxChecker::processInitIdentifier() {
+    bool isMutable = false;
+    if (tryConsume({ TokenType::MUT }))
+      isMutable = true;
+    
     Identifier* name;
     expectError(InitIdentifier, Identifier, name, processRawIdentifier());
     
@@ -671,7 +675,7 @@ namespace Parser {
     if (wakeup(TokenType::EQUALS))
       expectError(InitIdentifier, InitExpression, initExpr, processInitExpression());
     
-    return Result::success(new InitIdentifier{ name, initExpr });
+    return Result::success(new InitIdentifier{ isMutable, name, initExpr });
   }
 
   Result::inst<StatementAndExpr> SyntaxChecker::processExprAndStatement() {
