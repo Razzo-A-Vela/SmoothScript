@@ -36,7 +36,7 @@ func f() signed int {
 
   using :int index_t;
 
-  for (:index_t i = 0; i < 10; i++) {}
+  for (:index_t mut i = 0; i < 10; i++) {}
 
   for (;;)
     break;
