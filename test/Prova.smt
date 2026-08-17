@@ -13,9 +13,9 @@ using :signed int cint;
 
 :unsigned int b = -2;
 :float c = b-- + 3.2 - .1 + 2.;
-:size_t d, mut i = 3, j;
+:size_t d, mut i = 3, const j;  // for variables, const is optional
 :byte mut e = d = 6;
-:char otherChar = 'A';
+:char const otherChar = 'A';
 
 func h(:int a, b, c :int x) !;
 
@@ -42,7 +42,7 @@ func f() signed int {
     break;
 
   :int mut b;
-  :float m = ahOk();
+  :float const m = ahOk();
 
   if (1 || !4 && 2) {
     b = 1;
@@ -85,7 +85,7 @@ func f() signed int {
   if (b != 1)
     return 2;
 
-  :cstr str = "Ciao";
+  :cstr const str = "Ciao";
   :int d = (b = h(10, 11, 12, 13));
   (a = 2);
   return b = (22);
