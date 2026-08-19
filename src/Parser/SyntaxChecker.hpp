@@ -61,14 +61,14 @@ namespace Parser {
     Result::inst<DoWhile> alwaysErrors withWakeup(TokenType::DO) processDoWhile();        // STATEMENT while EXPR_AND_STATEMENT
     Result::inst<Identifier> ignores processRawIdentifier();
     Result::inst<Identifier> ignores processIdentifier();                                 // RAW_IDENTIFIER
-    Result::inst<Type> ignores processType();                                             // [const] [unsigned | signed] BASE_TYPE
+    Result::inst<Type> ignores processType();                                             // [unsigned | signed] BASE_TYPE
     Result::inst<Type> ignores childOf(processType) processBaseType();                    // int | float | bool | cstr | char | size_t | IDENTIFIER
     Result::inst<InitExpression> alwaysErrors processInitExpression();                    // INIT_SPECIFIC_EXPRESSION | EXPRESSION
     Result::inst<Expression> ignores processExpression();                                 // BASE_EXPRESSION [(BINARY_OPERATOR BASE_EXPRESSION)...]
     Result::inst<Expression> ignores processBaseExpression();                             // ...
     Result::inst<Expression> alwaysErrors childOf(processBaseExpression) processLiteralExpression();
     Result::inst<Operator> ignores processOperator();
-    Result::inst<InitIdentifier> alwaysErrors processInitIdentifier();                    // NAME [= INIT_EXPRESSION]
+    Result::inst<InitIdentifier> alwaysErrors processInitIdentifier();                    // [mut | const] NAME [= INIT_EXPRESSION]
     Result::inst<StatementAndExpr> ignores processExprAndStatement();                     // \(EXPRESSION\) STATEMENT
 
     template <typename T>
