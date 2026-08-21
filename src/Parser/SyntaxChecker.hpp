@@ -42,10 +42,8 @@ namespace Parser {
     Context switchContextToBrackets();
     int getErrorLine();
     //? A wakeup token is a disposable token that is used to indicate the start of a specific syntax
-    bool wakeup(Token token, TokenType tokenType);
     bool wakeup(TokenType tokenType);
     bool semi();
-    bool semi(Token token);
     Utils::Error semiError();
     Utils::Error parentsError();
     Result::inst<Variables> alwaysErrors withWakeup(TokenType::COLON) processVariables(); // VARIABLE [(, INIT_IDENTIFIER)...]

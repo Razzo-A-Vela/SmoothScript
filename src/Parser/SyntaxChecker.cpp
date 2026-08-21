@@ -45,20 +45,12 @@ namespace Parser {
       return -2; //* Technically it SHOULD be unreachable
   }
 
-  bool SyntaxChecker::wakeup(Token token, TokenType tokenType) {
-    return token == Token{ tokenType };
-  }
-
   bool SyntaxChecker::wakeup(TokenType tokenType) {
     return tryConsume({ tokenType });
   }
 
   bool SyntaxChecker::semi() {
     return wakeup(TokenType::SEMI);
-  }
-
-  bool SyntaxChecker::semi(Token token) {
-    return wakeup(token, TokenType::SEMI);
   }
 
   Utils::Error SyntaxChecker::semiError() {
@@ -696,15 +688,13 @@ namespace Parser {
 
   void SyntaxChecker::process() {
     while (hasPeek()) {
-      Token token = consume().value();
-      
-      if (semi(token))
+      if (semi())
         continue; //* Technically not needed (better than ';')
-      else if (wakeup(token, TokenType::COLON))
+      else if (wakeup(TokenType::COLON))
         addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemiOnResult(processVariables()).expectValue() } });
-      else if (wakeup(token, TokenType::FUNC))
+      else if (wakeup(TokenType::FUNC))
         addToOutput({ GlobalNode::Type::FUNC, { .func = processFunction().expectValue() } });
-      else if (wakeup(token, TokenType::USING))
+      else if (wakeup(TokenType::USING))
         addToOutput({ GlobalNode::Type::USING, { .using_ = expectSemiOnResult(processUsing()).expectValue() } });
       else
         Utils::error(syntaxError("Unexpected token"));
