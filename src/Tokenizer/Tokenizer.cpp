@@ -15,6 +15,7 @@ namespace Tokenizer {
       float x = (float) std::stoi(consume().value().u.string);
       while (x >= 1)
         x /= 10;
+      literal.type = LiteralType::FLOATING;
       literal.u.floating = x;
       
     } else if (preToken.type == PreTokenType::NUMBER) {
