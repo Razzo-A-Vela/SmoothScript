@@ -1,3 +1,4 @@
+#pragma once
 #include <ostream>
 #include <vector>
 
@@ -41,39 +42,57 @@ namespace Parser {
     Context switchContextToParents();
     Context switchContextToBrackets();
     int getErrorLine();
-    //? A wakeup token is a disposable token that is used to indicate the start of a specific syntax
-    bool wakeup(TokenType tokenType);
-    bool semi();
+    bool wakeup(TokenType tokenType, bool consume);
     Utils::Error semiError();
     Utils::Error parentsError();
-    Result::inst<Variables> alwaysErrors withWakeup(TokenType::COLON) processVariables(); // VARIABLE [(, INIT_IDENTIFIER)...]
-    Result::inst<Variable> alwaysErrors processVariable();                                // TYPE INIT_IDENTIFIER
-    Result::inst<Function> alwaysErrors withWakeup(TokenType::FUNC) processFunction();    // NAME() RETURN_TYPE SCOPE
-    Result::inst<Using> alwaysErrors withWakeup(TokenType::USING) processUsing();         // :TYPE BASE_TYPE [(, BASE_TYPE)...]
-    Result::inst<TypeDef> alwaysErrors childOf(processUsing) withWakeup(TokenType::COLON) processTypeDef();
-    Result::inst<ReturnType> ignores processReturnType();                                 // void | ! | TYPE
-    Result::inst<Scope> ignores processScope();                                           // { (STATEMENT;)... }
-    Result::inst<Statement> ignores processStatement();                                   // ...
-    Result::inst<Statement> ignores childOf(processStatement) processForCompatibleStatement();
-    Result::inst<For> alwaysErrors withWakeup(TokenType::FOR) processFor();               // \(FOR_COMPATIBLE_STATEMENT [EXPRESSION]; [EXPRESSION]\) STATEMENT
-    Result::inst<DoWhile> alwaysErrors withWakeup(TokenType::DO) processDoWhile();        // STATEMENT while EXPR_AND_STATEMENT
-    Result::inst<Identifier> ignores processRawIdentifier();
-    Result::inst<Identifier> ignores processIdentifier();                                 // RAW_IDENTIFIER
-    Result::inst<Type> ignores processType();                                             // [unsigned | signed] BASE_TYPE
-    Result::inst<Type> ignores childOf(processType) processBaseType();                    // int | float | bool | cstr | char | size_t | IDENTIFIER
-    Result::inst<InitExpression> alwaysErrors processInitExpression();                    // INIT_SPECIFIC_EXPRESSION | EXPRESSION
-    Result::inst<Expression> ignores processExpression();                                 // BASE_EXPRESSION [(BINARY_OPERATOR BASE_EXPRESSION)...]
-    Result::inst<Expression> ignores processBaseExpression();                             // ...
-    Result::inst<Expression> alwaysErrors childOf(processBaseExpression) processLiteralExpression();
-    Result::inst<Operator> ignores processOperator();
-    Result::inst<InitIdentifier> alwaysErrors processInitIdentifier();                    // [mut | const] NAME [= INIT_EXPRESSION]
-    Result::inst<StatementAndExpr> ignores processExprAndStatement();                     // \(EXPRESSION\) STATEMENT
+
+
+    //* Rules: If there is a wakeup ALWAYS CALL IT BEFORE THE PROCESS, if there is no wakeup then the process is required
+    //* Using "_" because you cannot use namespaces inside classes in C++
+
+    bool variables_wakeup();
+    Result::inst<Variables> variables_process();
+
+    bool function_wakeup();
+    Result::inst<Function> function_process();
+    bool scope_wakeup();
+    Result::inst<Scope> scope_process();
+
+    Result::inst<Statement> statement_process();
+    Result::inst<Statement> forCompatibleStatement_process();
+    Result::inst<StatementAndExpr> exprAndStatement_process();  //? first expression then statement
+    Result::inst<DoWhile> doWhile_process();
+    Result::inst<For> for_process();
+
+    bool using_wakeup();
+    Result::inst<Using> using_process();
+    bool typeDef_wakeup();
+    Result::inst<TypeDef> typeDef_process();
+
+    Result::inst<Type> type_process();
+    Result::inst<Type> baseType_process();
+    Result::inst<ReturnType> returnType_process();
+    
+    Result::inst<Identifier> identifier_process();
+    Result::inst<Identifier> rawIdentifier_process();
+
+    Result::inst<InitIdentifier> initIdentifier_process();
+    Result::inst<InitExpression> initExpression_process();
+    
+    Result::inst<Expression> expression_process();
+    Result::inst<Expression> baseExpression_process();
+
+    index_t operator_wakeup_index();             //* SPECIAL CASE: For optimization we return the index directly (if found)
+    Operator* operatorFromIndex(index_t index);  //* There is no process, we use the index to get the operator directly
+    bool literalExpression_wakeup();
+    Result::inst<Expression> literalExpression_process();
+
 
     template <typename T>
-    Result::inst<T> expectSemiOnResult(Result::inst<T> other) {
-      if (other.hasValue() && !semi())
-        return Result::error<T>(semiError());
-      return other;
+    Result::inst<T> expectSemiOnResult(Result::inst<T> result) {
+      if (result.isError() || wakeup(TokenType::SEMI, true))
+        return result;
+      return Result::error<T>(semiError());
     }
 
   private:

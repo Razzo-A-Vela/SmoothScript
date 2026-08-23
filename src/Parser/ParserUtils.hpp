@@ -5,6 +5,9 @@
 #include <util/ErrorUtils.hpp>
 
 namespace Parser {
+  using index_t = int;  //* Represents an index; if the value is -1 then it means "not found" or "invalid"
+  const index_t INDEX_T_NOT_FOUND = -1;
+
   class IntStack {
   public:
     void push(int i);
@@ -24,36 +27,24 @@ namespace Parser {
     template <typename T>
     struct inst {
       T* value;
-      bool _isError;
       Error error;
 
       bool hasValue() { return value != NULL; }
-      bool isError() { return !hasValue() && _isError; }
-      bool isIgnored() { return !hasValue() && !_isError; }
+      bool isError() { return value == NULL; }
 
       T* expectValue() {
-        if (!hasValue())
-          Utils::error(error);
-        return value;
-      }
-
-      inst<T> throwErr() {
         if (isError())
           Utils::error(error);
-        return *this;
+        return value;
       }
     };
 
     template <typename T>
-    inst<T> success(T* value) { return { value, false, {} }; }
+    inst<T> success(T* value) { return { value, {} }; }
     inst<None> success();
 
     template <typename T>
-    inst<T> ignore(Error err) { return { NULL, false, err }; }
-    inst<None> ignore(Error err);
-
-    template <typename T>
-    inst<T> error(Error err) { return { NULL, true, err }; }
+    inst<T> error(Error err) { return { NULL, err }; }
     inst<None> error(Error err);
   }
 }

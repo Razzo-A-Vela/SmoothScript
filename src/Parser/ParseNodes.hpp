@@ -12,6 +12,8 @@ namespace Parser {
   struct Identifier {
     const char* name;
 
+    static Identifier* simple(const char* name);
+
     void print(std::ostream& out);
   };
 
@@ -43,7 +45,7 @@ namespace Parser {
 
     static ReturnType* noReturn();
     static ReturnType* unknown();
-    static ReturnType* _void();
+    static ReturnType* void_();
     static ReturnType* fromType(Type* type);
 
     void print(std::ostream& out);
@@ -60,6 +62,8 @@ namespace Parser {
       Expression* expr;
     } u;
 
+    static InitExpression* expression(Expression* expr);
+
     void print(std::ostream& out);
   };
 
@@ -72,15 +76,9 @@ namespace Parser {
     void print(std::ostream& out);
   };
 
-  struct Variable {
+  struct Variables {
     Type* type;
     InitIdentifier* init;
-
-    void print(std::ostream& out);
-  };
-
-  struct Variables {
-    Variable* var;
     nullable std::vector<InitIdentifier*>* other;
 
     void print(std::ostream& out);
@@ -136,6 +134,13 @@ namespace Parser {
     } u;
     ReturnType* returnType;
 
+    static Expression* binaryOp(Expression* left, Operator* op, Expression* right);
+    static Expression* withExpr(Type type, Expression* expr);
+    static Expression* withName(Type type, Identifier* name);
+    static Expression* literal(Literal literal, ReturnType* returnType);
+    static Expression* varAssign(Identifier* name, Expression* expr);
+    static Expression* funcCall(Identifier* name, std::vector<Expression*>* params);
+
     void print(std::ostream& out);
   };
 
@@ -183,7 +188,9 @@ namespace Parser {
     } type;
     union {
       TypeDef* typeDef;
-    } u; 
+    } u;
+
+    static Using* typeDef(TypeDef* typeDef);
     
     void print(std::ostream& out);
   };
@@ -207,6 +214,18 @@ namespace Parser {
       Using* using_;
     } u;
 
+    static Statement* simple(Type type);
+    static Statement* withName(Type type, Identifier* name);
+    static Statement* withExpr(Type type, Expression* expr);
+    static Statement* withStatement(Type type, Statement* statement);
+    static Statement* withStatementAndExpr(Type type, StatementAndExpr* statementAndExpr);
+    static Statement* return_(nullable Expression* expr);
+    static Statement* doWhile(DoWhile* doWhile);
+    static Statement* varDecl(Variables* vars);
+    static Statement* using_(Using* using_);
+    static Statement* scope(Scope* scope);
+    static Statement* for_(For* for_);
+
     void print(std::ostream& out);
   };
 
@@ -217,6 +236,9 @@ namespace Parser {
     nullable std::vector<Variables*>* params;
     bool defined;
     nullable Scope* scope;
+
+    static Function* declaration(Identifier* name, ReturnType* returnType, nullable std::vector<Variables*>* params);
+    static Function* definition(Identifier* name, ReturnType* returnType, nullable std::vector<Variables*>* params, Scope* scope);
 
     void print(std::ostream& out);
   };

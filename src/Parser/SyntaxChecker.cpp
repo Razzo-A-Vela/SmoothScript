@@ -10,10 +10,6 @@ namespace Parser {
     return Parser::syntaxError(msg, getErrorLine());
   }
 
-  Utils::Error SyntaxChecker::parentsError() {
-    return syntaxError("Expected '('");
-  }
-
   Context SyntaxChecker::switchContext(Context newContext) {
     Context previous = { tokens, index };
     tokens = newContext.tokens;
@@ -42,104 +38,102 @@ namespace Parser {
     else if (hasPeek(-1))
       return peekValue(-1).line;
     else
-      return -2; //* Technically it SHOULD be unreachable
+      return -2; // Technically it SHOULD be unreachable
   }
 
-  bool SyntaxChecker::wakeup(TokenType tokenType) {
-    return tryConsume({ tokenType });
-  }
-
-  bool SyntaxChecker::semi() {
-    return wakeup(TokenType::SEMI);
+  bool SyntaxChecker::wakeup(TokenType tokenType, bool consume) {
+    return (consume && tryConsume({ tokenType })) || (!consume && peekEqual({ tokenType }));
   }
 
   Utils::Error SyntaxChecker::semiError() {
     return syntaxError("Expected ';'");
   }
-
   
-  #define expectSemi(retType) \
-    { if (!semi()) \
-        return Result::error<retType>(semiError()); } 0
-
-  #define returnIfError(retType, ret) \
-    { if (ret.isError()) \
-        return Result::error<retType>(ret.error); } 0
-
-  #define returnIfErrorPtr(retType, ret) \
-    { if (ret->isError()) \
-        return Result::error<retType>(ret->error); } 0
+  Utils::Error SyntaxChecker::parentsError() {
+    return syntaxError("Expected '('");
+  }
 
 
-  #define expectError(retType, type, result, function) \
-    { Result::inst<type> result##_result = function; \
-    if (!result##_result.hasValue()) \
-      return Result::error<retType>(result##_result.error); \
-    result = result##_result.value; } 0
-  
-  #define expectErrorWithAlways(retType, type, result, function, alwaysFunction) \
-    { Result::inst<type> result##_result = function; \
-    alwaysFunction; \
-    if (!result##_result.hasValue()) \
-      return Result::error<retType>(result##_result.error); \
-    result = result##_result.value; } 0
-  
-  #define expectErrorWithOnError(retType, type, result, function, onErrorFunction) \
-    { Result::inst<type> result##_result = function; \
-    if (!result##_result.hasValue()) {\
-      onErrorFunction; \
-      return Result::error<retType>(result##_result.error); \
-    } \
-    result = result##_result.value; } 0
-  
-  #define expectIgnore(retType, type, result, function) \
-    { Result::inst<type> result##_result = function; \
-    if (!result##_result.hasValue()) \
-      return Result::ignore<retType>(result##_result.error); \
-    result = result##_result.value; } 0
-  
-  #define expectParentEnd(retType, previous) \
-    { if (hasPeek()) { \
-      switchContext(previous); \
-      return Result::error<retType>(syntaxError("Expected ')'")); \
-    } \
-    switchContext(previous); } 0
+
+  #define expect(errType, type, result, function) do {       \
+    Result::inst<type> result##_result = function;           \
+    if (result##_result.isError())                           \
+      return Result::error<errType>(result##_result.error);  \
+    result = result##_result.value;                          \
+  } while (0)
+
+  #define expectWithAlways(errType, type, result, function, alwaysFunction) do {  \
+    Result::inst<type> result##_result = function;                                \
+    alwaysFunction;                                                               \
+    if (result##_result.isError())                                                \
+      return Result::error<errType>(result##_result.error);                       \
+    result = result##_result.value;                                               \
+  } while(0);
+
+  #define expectWithOnError(errType, type, result, function, errorFunction) do {  \
+    Result::inst<type> result##_result = function;                                \
+    if (result##_result.isError()) {                                              \
+      errorFunction;                                                              \
+      return Result::error<errType>(result##_result.error);                       \
+    }                                                                             \
+    result = result##_result.value;                                               \
+  } while (0)
+
+  #define expectParentEnd(errType, previous) do {                 \
+    if (hasPeek()) {                                              \
+      switchContext(previous);                                    \
+      return Result::error<errType>(syntaxError("Expected ')"));  \
+    }                                                             \
+    switchContext(previous);                                      \
+  } while (0)
+
+  #define expectSemi(errType) do {                 \
+    if (!wakeup(TokenType::SEMI, true))            \
+      return Result::error<errType>(semiError());  \
+  } while (0)
 
 
-  Result::inst<Variables> SyntaxChecker::processVariables() {
-    Variable* var;
-    expectError(Variables, Variable, var, processVariable());
+  bool SyntaxChecker::variables_wakeup() {
+    return wakeup({ TokenType::COLON }, true);
+  }
+
+  Result::inst<Variables> SyntaxChecker::variables_process() {
+    Type* type;
+    InitIdentifier* init;
+    expect(Variables, Type, type, type_process());
+    expect(Variables, InitIdentifier, init, initIdentifier_process());
 
     std::vector<InitIdentifier*>* other = NULL;
-    if (wakeup(TokenType::COMMA)) {
+    if (wakeup(TokenType::COMMA, true)) {
       other = new std::vector<InitIdentifier*>();
-      InitIdentifier* init;
+      InitIdentifier* other_init;
       
       do {
-        expectError(Variables, InitIdentifier, init, processInitIdentifier());
-        other->push_back(init);
-      } while(wakeup(TokenType::COMMA));
+        expect(Variables, InitIdentifier, other_init, initIdentifier_process());
+        other->push_back(other_init);
+      } while(wakeup(TokenType::COMMA, true));
     }
 
-    return Result::success(new Variables{ var, other });
+    return Result::success(
+      new Variables {
+        .type = type, 
+        .init = init,
+        .other = other,
+      }
+    );
   }
 
-  Result::inst<Variable> SyntaxChecker::processVariable() {
-    Type* type;
-    expectError(Variable, Type, type, processType());
-    
-    InitIdentifier* init;
-    expectError(Variable, InitIdentifier, init, processInitIdentifier());
-    
-    return Result::success(new Variable{ type, init });
+
+  bool SyntaxChecker::function_wakeup() {
+    return wakeup(TokenType::FUNC, true);
   }
 
-  Result::inst<Function> SyntaxChecker::processFunction() {
+  Result::inst<Function> SyntaxChecker::function_process() {
     Identifier* name;
-    expectError(Function, Identifier, name, processRawIdentifier());
+    expect(Function, Identifier, name, rawIdentifier_process());
 
     std::vector<Variables*>* params = NULL;
-    if (peekNotEqual({ TokenType::PARENTS }))
+    if (!wakeup(TokenType::PARENTS, false))
       return Result::error<Function>(parentsError());
     Context previous = switchContextToParents();
     
@@ -148,12 +142,12 @@ namespace Parser {
       Variables* param;
 
       do {
-        if (!wakeup(TokenType::COLON)) {
+        if (!variables_wakeup()) {
           switchContext(previous);
           return Result::error<Function>(syntaxError("Expected ':'"));
         }
 
-        expectErrorWithOnError(Function, Variables, param, processVariables(), switchContext(previous));
+        expectWithOnError(Function, Variables, param, variables_process(), switchContext(previous));
         params->push_back(param);
       } while (hasPeek());
     }
@@ -161,381 +155,431 @@ namespace Parser {
     switchContext(previous);
 
     ReturnType* returnType;
-    expectError(Function, ReturnType, returnType, processReturnType());
+    expect(Function, ReturnType, returnType, returnType_process());
 
-    if (semi())
-      return Result::success(new Function{ name, returnType, params, false, NULL });
+    if (wakeup(TokenType::SEMI, true))
+      return Result::success(Function::declaration(name, returnType, params));
 
     Scope* scope;
-    expectError(Function, Scope, scope, processScope());
+    if (!scope_wakeup())
+      return Result::error<Function>(syntaxError("Expected '{'"));
+    expect(Function, Scope, scope, scope_process());
 
-    return Result::success(new Function{ name, returnType, params, true, scope });
+    return Result::success(Function::definition(name, returnType, params, scope));
   }
 
-  Result::inst<Using> SyntaxChecker::processUsing() {
-    if (!wakeup(TokenType::COLON))
-      return Result::error<Using>(syntaxError("Expected ':'"));
+  bool SyntaxChecker::scope_wakeup() {
+    return wakeup(TokenType::BRACKETS, false);
+  }
+
+  Result::inst<Scope> SyntaxChecker::scope_process() {
+    Context previous = switchContextToBrackets();
+
+    std::vector<Statement*>* statements = new std::vector<Statement*>();
+    Statement* statement;
+    
+    scopeDepth++;
+    while (hasPeek()) {
+      expectWithOnError(Scope, Statement, statement, statement_process(), switchContext(previous));
+      statements->push_back(statement);
+    }
+
+    switchContext(previous);
+    return Result::success(new Scope{ statements, scopeDepth-- });
+  }
+  
+
+  Result::inst<Statement> SyntaxChecker::statement_process() {
+    Expression* expr;
+    Identifier* name;
+    StatementAndExpr* statementAndExpr;
+    Statement* statement;
+
+    if (wakeup(TokenType::RETURN, true)) {
+      expr = NULL;
+      if (!wakeup(TokenType::SEMI, true)) {
+        expect(Statement, Expression, expr, expression_process());
+        expectSemi(Statement);
+      }
+ 
+      return Result::success(Statement::return_(expr));
+    }
+
+    if (wakeup(TokenType::IF, true)) {
+      expect(Statement, StatementAndExpr, statementAndExpr, exprAndStatement_process());
+      return Result::success(Statement::withStatementAndExpr(Statement::Type::IF, statementAndExpr));
+    }
+
+    if (wakeup(TokenType::ELSE, true)) {
+      expect(Statement, Statement, statement, statement_process());
+      return Result::success(Statement::withStatement(Statement::Type::ELSE, statement));
+    }
+
+    if (wakeup(TokenType::WHILE, true)) {
+      expect(Statement, StatementAndExpr, statementAndExpr, exprAndStatement_process());
+      return Result::success(Statement::withStatementAndExpr(Statement::Type::WHILE, statementAndExpr));
+    }
+
+    if (wakeup(TokenType::DO, true)) {
+      DoWhile* doWhile;
+      expect(Statement, DoWhile, doWhile, doWhile_process());
+      return Result::success(Statement::doWhile(doWhile));
+    }
+
+    if (wakeup(TokenType::LOOP, true)) {
+      expect(Statement, Statement, statement, statement_process());
+      return Result::success(Statement::withStatement(Statement::Type::LOOP, statement));
+    }
+
+    if (wakeup(TokenType::BREAK, true)) {
+      expectSemi(Statement);
+      return Result::success(Statement::simple(Statement::Type::BREAK));
+    }
+
+    if (wakeup(TokenType::CONTINUE, true)) {
+      expectSemi(Statement);
+      return Result::success(Statement::simple(Statement::Type::CONTINUE));
+    }
+
+    if (wakeup(TokenType::FOR, true)) {
+      For* for_;
+      expect(Statement, For, for_, for_process());
+      return Result::success(Statement::for_(for_));
+    }
+
+    if (wakeup(TokenType::DOUBLE_COLON, true)) {
+      expect(Statement, Identifier, name, rawIdentifier_process());
+      expectSemi(Statement);
+      return Result::success(Statement::withName(Statement::Type::LABEL, name));
+    }
+
+    if (wakeup(TokenType::GOTO, true)) {
+      expect(Statement, Identifier, name, identifier_process());
+      expectSemi(Statement);
+      return Result::success(Statement::withName(Statement::Type::GOTO, name));
+    }
+
+    if (using_wakeup()) {
+      Using* using_;
+      expect(Statement, Using, using_, using_process());
+      expectSemi(Statement);
+      return Result::success(Statement::using_(using_));
+    }
+
+    if (scope_wakeup()) {
+      Scope* scope;
+      expect(Statement, Scope, scope, scope_process());
+      return Result::success(Statement::scope(scope));
+    }
+
+    return forCompatibleStatement_process();
+  }
+
+  Result::inst<Statement> SyntaxChecker::forCompatibleStatement_process() {
+    if (wakeup(TokenType::SEMI, true))
+      return Result::success(Statement::simple(Statement::Type::NOTHING));
+
+    if (variables_wakeup()) {
+      Variables* vars;
+      expect(Statement, Variables, vars, variables_process());
+      expectSemi(Statement);
+      return Result::success(Statement::varDecl(vars));
+    }
+
+    Expression* expr;
+    expect(Statement, Expression, expr, expression_process());
+    expectSemi(Statement);
+    return Result::success(Statement::withExpr(Statement::Type::EXPRESSION, expr));
+  }
+
+  Result::inst<StatementAndExpr> SyntaxChecker::exprAndStatement_process() {
+    if (!wakeup(TokenType::PARENTS, false))
+      return Result::error<StatementAndExpr>(parentsError());
+    Context previous = switchContextToParents();
+    Expression* expr;
+    Statement* statement;
+
+    expectWithAlways(StatementAndExpr, Expression, expr, expression_process(), expectParentEnd(StatementAndExpr, previous));
+    expect(StatementAndExpr, Statement, statement, statement_process());
+    
+    return Result::success(
+      new StatementAndExpr {
+        .statement = statement,
+        .expr = expr,
+      }
+    );
+  }
+  
+  Result::inst<DoWhile> SyntaxChecker::doWhile_process() {
+    Statement* doStatement;
+    StatementAndExpr* whileStatementAndExpr;
+
+    expect(DoWhile, Statement, doStatement, statement_process());
+    if (!wakeup(TokenType::WHILE, true))
+      return Result::error<DoWhile>(syntaxError("Expected 'while'"));
+    expect(DoWhile, StatementAndExpr, whileStatementAndExpr, exprAndStatement_process());
+    
+    return Result::success(
+      new DoWhile{
+        .doStatement = doStatement,
+        .whileStatementAndExpr = whileStatementAndExpr,
+      }
+    );
+  }
+
+  Result::inst<For> SyntaxChecker::for_process() {
+    Statement* initStatement;
+    Expression* checkExpression = NULL;
+    Expression* repeatExpression = NULL;
+    Statement* statement;
+    
+    if (!wakeup(TokenType::PARENTS, false))
+      return Result::error<For>(parentsError());
+    Context previous = switchContextToParents();
+
+    expectWithOnError(For, Statement, initStatement, forCompatibleStatement_process(), switchContext(previous));
+    if (!wakeup(TokenType::SEMI, true)) {
+      expectWithOnError(For, Expression, checkExpression, expression_process(), switchContext(previous));
+      expectSemi(For);
+    }
+
+    if (hasPeek())
+      expectWithOnError(For, Expression, repeatExpression, expression_process(), switchContext(previous));
+    expectParentEnd(For, previous);
+    expect(For, Statement, statement, statement_process());
+    
+    return Result::success(
+      new For {
+        .initStatement = initStatement,
+        .checkExpression = checkExpression,
+        .repeatExpression = repeatExpression,
+        .statement = statement
+      }
+    );
+  }
+
+  
+  bool SyntaxChecker::using_wakeup() {
+    return wakeup(TokenType::USING, true);
+  }
+  
+  Result::inst<Using> SyntaxChecker::using_process() {
+    if (!typeDef_wakeup())
+      return Result::error<Using>(syntaxError("Expected ':'"));  //TODO: Other using types
 
     TypeDef* typeDef;
-    expectError(Using, TypeDef, typeDef, processTypeDef());
-    return Result::success(new Using{ Using::Type::TYPE_DEF, { .typeDef = typeDef } });
+    expect(Using, TypeDef, typeDef, typeDef_process());
+    return Result::success(Using::typeDef(typeDef));
   }
 
-  Result::inst<TypeDef> SyntaxChecker::processTypeDef() {
-    std::vector<Type*>* other = NULL;
+  bool SyntaxChecker::typeDef_wakeup() {
+    return wakeup(TokenType::COLON, true);
+  }
+
+  Result::inst<TypeDef> SyntaxChecker::typeDef_process() {
     Type* from;
     Type* to;
+    std::vector<Type*>* other = NULL;
 
-    expectError(TypeDef, Type, from, processType());
+    expect(TypeDef, Type, from, type_process());
 
     bool isInt = from->type == Type::TypeT::INT;
-    bool isSpecialCase = (isInt || from->type == Type::TypeT::FLOAT) && wakeup(TokenType::LESS);
+    bool isSpecialCase = (isInt || from->type == Type::TypeT::FLOAT) && wakeup(TokenType::LESS, true);
     if (isSpecialCase) {
       Expression* expr;
       Literal literal;
       int bitAmount;
 
-      expectError(TypeDef, Expression, expr, processBaseExpression());
+      expect(TypeDef, Expression, expr, baseExpression_process());
       if (expr->type != Expression::Type::LITERAL || (literal = expr->u.literal).type != LiteralType::INTEGER)
         return Result::error<TypeDef>(syntaxError("Expected integer literal"));
       bitAmount = literal.u.integer;
 
       if (bitAmount <= 0)
         return Result::error<TypeDef>(syntaxError("Bit amount must be greater than 0"));
-      if (!wakeup(TokenType::GREATER))
+      if (!wakeup(TokenType::GREATER, true))
         return Result::error<TypeDef>(syntaxError("Expected '>'"));
       
       from = Type::specialCase(isInt, bitAmount, from->isUnsigned, from->isSigned);
     }
     
-    expectError(TypeDef, Type, to, processBaseType());
+    expect(TypeDef, Type, to, baseType_process());
 
-    if (wakeup(TokenType::COMMA)) {
+    if (wakeup(TokenType::COMMA, true)) {
       other = new std::vector<Type*>();
       Type* type;
       
       do {
-        expectError(TypeDef, Type, type, processBaseType());
+        expect(TypeDef, Type, type, baseType_process());
         other->push_back(type);
-      } while (wakeup(TokenType::COMMA));
+      } while (wakeup(TokenType::COMMA, true));
     }
 
-    return Result::success(new TypeDef{ from, to, other });
-  }
-
-  Result::inst<ReturnType> SyntaxChecker::processReturnType() {
-    if (wakeup(TokenType::VOID))
-      return Result::success(ReturnType::_void());
-
-    if (wakeup(TokenType::EXCLAMATION))
-      return Result::success(ReturnType::noReturn());
-    
-    
-    Result::inst<Type> type = processType();
-    if (type.isIgnored())
-      return Result::ignore<ReturnType>(syntaxError("Expected return type"));
-    returnIfError(ReturnType, type);
-    
-    return Result::success(ReturnType::fromType(type.value));
-  }
-
-  Result::inst<Scope> SyntaxChecker::processScope() {
-    if (peekNotEqual({ TokenType::BRACKETS }))
-      return Result::ignore<Scope>(syntaxError("Expected '{'"));
-    Context previous = switchContextToBrackets();
-
-    std::vector<Statement*>* statements = new std::vector<Statement*>();
-    Result::inst<Statement> statement;
-    
-    scopeDepth++;
-    while ((statement = processStatement()).hasValue())
-      statements->push_back(statement.value);
-
-    switchContext(previous);
-    returnIfError(Scope, statement);
-    return Result::success(new Scope{ statements, scopeDepth-- });
-  }
-
-  Result::inst<Statement> SyntaxChecker::processStatement() {
-    if (wakeup(TokenType::RETURN)) {
-      Expression* expr = NULL;
-      if (!semi()) {
-        expectError(Statement, Expression, expr, processExpression());
-        expectSemi(Statement);
+    return Result::success(
+      new TypeDef {
+        .from = from,
+        .to = to,
+        .other = other,
       }
- 
-      return Result::success(new Statement{ Statement::Type::RETURN, { .expr = expr } });
-    }
-
-    if (wakeup(TokenType::IF)) {
-      StatementAndExpr* statementAndExpr;
-      expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
-      
-      return Result::success(new Statement{ Statement::Type::IF, { .statementAndExpr = statementAndExpr } });
-    }
-
-    if (wakeup(TokenType::ELSE)) {
-      Statement* statement;
-      expectError(Statement, Statement, statement, processStatement());
-      
-      return Result::success(new Statement{ Statement::Type::ELSE, { .statement = statement } });
-    }
-
-    if (wakeup(TokenType::WHILE)) {
-      StatementAndExpr* statementAndExpr;
-      expectError(Statement, StatementAndExpr, statementAndExpr, processExprAndStatement());
-      
-      return Result::success(new Statement{ Statement::Type::WHILE, { .statementAndExpr = statementAndExpr } });
-    }
-
-    if (wakeup(TokenType::DO)) {
-      DoWhile* doWhile;
-      expectError(Statement, DoWhile, doWhile, processDoWhile());
-      return Result::success(new Statement{ Statement::Type::DO_WHILE, { .doWhile = doWhile } });
-    }
-
-    if (wakeup(TokenType::LOOP)) {
-      Statement* statement;
-      expectError(Statement, Statement, statement, processStatement());
-
-      return Result::success(new Statement{ Statement::Type::LOOP, { .statement = statement } });
-    }
-
-    if (wakeup(TokenType::BREAK)) {
-      expectSemi(Statement);
-      return Result::success(new Statement{ Statement::Type::BREAK });
-    }
-
-    if (wakeup(TokenType::CONTINUE)) {
-      expectSemi(Statement);
-      return Result::success(new Statement{ Statement::Type::CONTINUE });
-    }
-
-    if (wakeup(TokenType::FOR)) {
-      For* for_;
-      expectError(Statement, For, for_, processFor());
-      return Result::success(new Statement{ Statement::Type::FOR, { .for_ = for_ } });
-    }
-
-    if (wakeup(TokenType::DOUBLE_COLON)) {
-      Identifier* name;
-      expectError(Statement, Identifier, name, processRawIdentifier());
-      expectSemi(Statement);
-      return Result::success(new Statement{ Statement::Type::LABEL, { .name = name } });
-    }
-
-    if (wakeup(TokenType::GOTO)) {
-      Identifier* name;
-      expectError(Statement, Identifier, name, processIdentifier());
-      expectSemi(Statement);
-      return Result::success(new Statement{ Statement::Type::GOTO, { .name = name } });
-    }
-
-    if (wakeup(TokenType::USING)) {
-      Using* using_;
-      expectError(Statement, Using, using_, processUsing());
-      return Result::success(new Statement{ Statement::Type::USING, { .using_ = using_ } });
-    }
-
-    Result::inst<Scope> scope;
-    if ((scope = processScope()).hasValue())
-      return Result::success(new Statement{ Statement::Type::SCOPE, { .scope = scope.value } });
-    else
-      returnIfError(Statement, scope);
-    
-    Result::inst<Statement> forCompatible;
-    if ((forCompatible = processForCompatibleStatement()).hasValue())
-      return forCompatible;
-    else
-      returnIfError(Statement, forCompatible);
-
-    return Result::ignore<Statement>(syntaxError("Expected statement"));
+    );
   }
 
-  Result::inst<Statement> SyntaxChecker::processForCompatibleStatement() {
-    if (semi())
-      return Result::success(new Statement{ Statement::Type::NOTHING });
 
-    if (wakeup(TokenType::COLON)) {
-      Variables* vars;
-      expectError(Statement, Variables, vars, processVariables());
-      expectSemi(Statement);
-      return Result::success(new Statement{ Statement::Type::VAR_DECL, { .vars = vars } });
-    }
-
-    Result::inst<Expression> expr;
-    if ((expr = processExpression()).hasValue()) {
-      expectSemi(Statement);
-      return Result::success(new Statement{ Statement::Type::EXPRESSION, { .expr = expr.value } });
-    } else
-      returnIfError(Statement, expr);
-    
-    return Result::ignore<Statement>(syntaxError("Expected statement"));
-  }
-
-  Result::inst<For> SyntaxChecker::processFor() {
-    Statement* initStatement;
-    Expression* checkExpression = NULL;
-    Expression* repeatExpression = NULL;
-    Statement* statement;
-    
-    if (peekNotEqual({ TokenType::PARENTS }))
-      return Result::error<For>(parentsError());
-    Context previous = switchContextToParents();
-
-    expectErrorWithOnError(For, Statement, initStatement, processForCompatibleStatement(), switchContext(previous));
-    if (!semi()) {
-      expectErrorWithOnError(For, Expression, checkExpression, processExpression(), switchContext(previous));
-      expectSemi(For);
-    }
-
-    if (hasPeek()) {
-      expectErrorWithOnError(For, Expression, repeatExpression, processExpression(), switchContext(previous));
-      expectParentEnd(For, previous);
-    } else
-      switchContext(previous);
-    
-    expectError(For, Statement, statement, processStatement());
-    return Result::success(new For{ initStatement, checkExpression, repeatExpression, statement });
-  }
-
-  Result::inst<DoWhile> SyntaxChecker::processDoWhile() {
-    Statement* doStatement;
-    StatementAndExpr* whileStatementAndExpr;
-
-    expectError(DoWhile, Statement, doStatement, processStatement());
-    if (!wakeup(TokenType::WHILE))
-      return Result::error<DoWhile>(syntaxError("Expected 'while'"));
-    expectError(DoWhile, StatementAndExpr, whileStatementAndExpr, processExprAndStatement());
-    return Result::success(new DoWhile{ doStatement, whileStatementAndExpr });
-  }
-
-  Result::inst<Identifier> SyntaxChecker::processRawIdentifier() {
-    if (peekEqual({ TokenType::IDENTIFIER }))
-      return Result::success(new Identifier{ consume().value().u.string });
-    return Result::ignore<Identifier>(syntaxError("Expected identifier"));
-  }
-
-  Result::inst<Identifier> SyntaxChecker::processIdentifier() {
-    return processRawIdentifier();
-  }
-
-  Result::inst<Type> SyntaxChecker::processType() {
+  Result::inst<Type> SyntaxChecker::type_process() {
     bool isUnsigned = false;
     bool isSigned = false;
 
-    if (wakeup(TokenType::UNSIGNED))
+    if (wakeup(TokenType::UNSIGNED, true))
       isUnsigned = true;
-    else if (wakeup(TokenType::SIGNED))
+    else if (wakeup(TokenType::SIGNED, true))
       isSigned = true;
-    
 
-    Result::inst<Type> ret = processBaseType();
-    if (!ret.hasValue())
+    Result::inst<Type> ret = baseType_process();
+    if (ret.isError())
       return ret;
-    
 
     ret.value->isSigned = isSigned;
     ret.value->isUnsigned = isUnsigned;
     return ret;
   }
 
-  Result::inst<Type> SyntaxChecker::processBaseType() {
+  Result::inst<Type> SyntaxChecker::baseType_process() {
     #define success(type) Result::success(Type::of(type))
 
-    if (wakeup(TokenType::INT))
+    if (wakeup(TokenType::INT, true))
       return success(Type::TypeT::INT);
 
-    else if (wakeup(TokenType::FLOAT))
+    else if (wakeup(TokenType::FLOAT, true))
       return success(Type::TypeT::FLOAT);
 
-    else if (wakeup(TokenType::BOOL))
+    else if (wakeup(TokenType::BOOL, true))
       return success(Type::TypeT::BOOL);
 
-    else if (wakeup(TokenType::CSTR))
+    else if (wakeup(TokenType::CSTR, true))
       return success(Type::TypeT::CSTR);
 
-    else if (wakeup(TokenType::CHAR))
+    else if (wakeup(TokenType::CHAR, true))
       return success(Type::TypeT::CHAR);
 
-    else if (wakeup(TokenType::SIZE_T))
+    else if (wakeup(TokenType::SIZE_T, true))
       return success(Type::TypeT::SIZE_T);
     
     #undef success
 
-    Result::inst<Identifier> identifier;
-    if ((identifier = processIdentifier()).hasValue())
-      return Result::success(Type::custom(identifier.value));
-    else
-      returnIfError(Type, identifier);
+    Identifier* identifier;
+    expect(Type, Identifier, identifier, identifier_process());
+    return Result::success(Type::custom(identifier));
+  }
+
+  Result::inst<ReturnType> SyntaxChecker::returnType_process() {
+    if (wakeup(TokenType::VOID, true))
+      return Result::success(ReturnType::void_());
+
+    else if (wakeup(TokenType::EXCLAMATION, true))
+      return Result::success(ReturnType::noReturn());
     
-    return Result::ignore<Type>(syntaxError("Expected type"));
+    Type* type;
+    expect(ReturnType, Type, type, type_process());
+    return Result::success(ReturnType::fromType(type));
   }
 
-  Result::inst<InitExpression> SyntaxChecker::processInitExpression() {
+
+  Result::inst<Identifier> SyntaxChecker::identifier_process() {
+    return rawIdentifier_process();
+  }
+
+  Result::inst<Identifier> SyntaxChecker::rawIdentifier_process() {
+    if (peekEqual({ TokenType::IDENTIFIER }))
+      return Result::success(Identifier::simple(consume().value().u.string));
+    return Result::error<Identifier>(syntaxError("Expected identifier"));
+  }
+
+  
+  Result::inst<InitIdentifier> SyntaxChecker::initIdentifier_process() {
+    bool isMutable = false;
+    bool isConst = false;
+    if (wakeup(TokenType::MUT, true))
+      isMutable = true;
+    else if (wakeup(TokenType::CONST, true))
+      isConst = true;
+    
+    Identifier* name;
+    expect(InitIdentifier, Identifier, name, rawIdentifier_process());
+    
+    InitExpression* initExpr = NULL;
+    if (wakeup(TokenType::EQUALS, true))
+      expect(InitIdentifier, InitExpression, initExpr, initExpression_process());
+    
+    return Result::success(
+      new InitIdentifier{ 
+        .isMutable = isMutable,
+        .isConst = isConst,
+        .name = name,
+        .expr = initExpr,
+      }
+    );
+  }
+
+  Result::inst<InitExpression> SyntaxChecker::initExpression_process() {
     Expression* expr;
-    expectError(InitExpression, Expression, expr, processExpression());
-    return Result::success(new InitExpression{ InitExpression::Type::EXPRESSION, { .expr = expr } });
+    expect(InitExpression, Expression, expr, expression_process());
+    return Result::success(InitExpression::expression(expr));
   }
 
-  Result::inst<Expression> SyntaxChecker::processExpression() {
-    Result::inst<Expression> ret = processBaseExpression();
-    if (!ret.hasValue())
+
+  Result::inst<Expression> SyntaxChecker::expression_process() {
+    Result::inst<Expression> ret = baseExpression_process();
+    if (ret.isError())
       return ret;
 
-    Result::inst<Operator> opResult;
+    index_t opIndex;
     Expression* left;
     Operator* op;
     Expression* right;
-    while ((opResult = processOperator()).hasValue()) {
-      left = ret.value;
-      op = opResult.value;
-      expectError(Expression, Expression, right, processBaseExpression());
+    while ((opIndex = operator_wakeup_index()) != INDEX_T_NOT_FOUND) {
+      op = operatorFromIndex(opIndex);
 
-      ret = Result::success(new Expression{ Expression::Type::BINARY_OP, { .binaryOp = new BinaryOp{ left, op, right } }, ReturnType::unknown() });
+      left = ret.value;
+      expect(Expression, Expression, right, baseExpression_process());
+
+      ret = Result::success(Expression::binaryOp(left, op, right));
     }
     
-    returnIfError(Expression, opResult);
     return ret;
   }
 
-  Result::inst<Expression> SyntaxChecker::processBaseExpression() {
-    Result::inst<Identifier> identifier;
+  Result::inst<Expression> SyntaxChecker::baseExpression_process() {
+    Identifier* name;
+    Expression* expr;
 
-    #define nextLiteral() peekEqual({ TokenType::LITERAL }, 1)
+    if (literalExpression_wakeup())
+      return literalExpression_process();
 
-    if (peekEqual({ TokenType::LITERAL }) || (peekEqual({ TokenType::MINUS }) && nextLiteral()) || (peekEqual({ TokenType::PLUS }) && nextLiteral()))
-      return processLiteralExpression();
-    
-    #undef nextLiteral
-    
-    else if (peekEqual({ TokenType::PARENTS })) {
+    else if (wakeup(TokenType::PARENTS, false)) {
       Context previous = switchContextToParents();
       
-      Expression* expr;
-      expectErrorWithAlways(Expression, Expression, expr, processExpression(), expectParentEnd(Expression, previous));
-      return Result::success(new Expression{ Expression::Type::EXPR, { .expr = expr }, expr->returnType });
+      expectWithAlways(Expression, Expression, expr, expression_process(), expectParentEnd(Expression, previous));
+      return Result::success(Expression::withExpr(Expression::Type::EXPR, expr));
     }
     
-    else if (wakeup(TokenType::MINUSMINUS)) {
-      Identifier* name;
-      expectError(Expression, Identifier, name, processIdentifier());
-      return Result::success(new Expression{ Expression::Type::PRE_DECREMENT, { .name = name }, ReturnType::unknown() });
+    else if (wakeup(TokenType::MINUSMINUS, true)) {
+      expect(Expression, Identifier, name, identifier_process());
+      return Result::success(Expression::withName(Expression::Type::PRE_DECREMENT, name));
     }
 
-    else if (wakeup(TokenType::PLUSPLUS)) {
-      Identifier* name;
-      expectError(Expression, Identifier, name, processIdentifier());
-      return Result::success(new Expression{ Expression::Type::PRE_INCREMENT, { .name = name }, ReturnType::unknown() });
+    else if (wakeup(TokenType::PLUSPLUS, true)) {
+      expect(Expression, Identifier, name, identifier_process());
+      return Result::success(Expression::withName(Expression::Type::PRE_INCREMENT, name));
     }
 
 
-    #define unaryOperator(tokenType, exprType) \
-      if (wakeup(tokenType)) { \
-        Expression* expr; \
-        expectError(Expression, Expression, expr, processExpression()); \
-        return Result::success(new Expression{ exprType, { .expr = expr }, ReturnType::unknown() }); \
-      } 0
+    //? Calling baseExpresion_process ensures that unary operators are ALWAYS before binary operators
+    #define unaryOperator(tokenType, exprType) do {                        \
+        if (wakeup(tokenType, true)) {                                     \
+          expect(Expression, Expression, expr, baseExpression_process());  \
+          return Result::success(Expression::withExpr(exprType, expr));    \
+        }                                                                  \
+      } while(0)
 
     unaryOperator(TokenType::EXCLAMATION, Expression::Type::NOT);
     unaryOperator(TokenType::TILDE, Expression::Type::BIT_NOT);
@@ -545,62 +589,109 @@ namespace Parser {
     #undef unaryOperator
     
     
-    if ((identifier = processIdentifier()).hasValue()) {
-      Identifier* name = identifier.value;
-
-      if (wakeup(TokenType::EQUALS)) {
-        Expression* expr;
-        expectError(Expression, Expression, expr, processExpression());
-        return Result::success(new Expression{ Expression::Type::VAR_ASSIGN, { .varAssign = new VarAssign{ name, expr } }, ReturnType::unknown() });
-      }
-
-      else if (peekEqual({ TokenType::PARENTS })) {
-        Context previous = switchContextToParents();
-        std::vector<Expression*>* params = NULL;
-
-        if (hasPeek()) {
-          params = new std::vector<Expression*>();
-          Expression* expr;
-        
-          while (true) {
-            expectErrorWithOnError(Expression, Expression, expr, processExpression(), switchContext(previous));
-            params->push_back(expr);
-
-            if (!wakeup(TokenType::COMMA)) {
-              if (!hasPeek())
-                break;
-              
-              switchContext(previous);
-              return Result::error<Expression>(syntaxError("Expected ','"));
-            }
-          };
-        }
-
-        switchContext(previous);
-        return Result::success(new Expression{ Expression::Type::FUNC_CALL, { .funcCall = new FuncCall{ name, params } }, ReturnType::unknown() });
-      }
-
-      else if (wakeup(TokenType::PLUSPLUS))
-        return Result::success(new Expression{ Expression::Type::INCREMENT, { .name = name }, ReturnType::unknown() });
-
-      else if (wakeup(TokenType::MINUSMINUS))
-        return Result::success(new Expression{ Expression::Type::DECREMENT, { .name = name }, ReturnType::unknown() });
-
-      else
-        return Result::success(new Expression{ Expression::Type::IDENTIFIER, { .name = name }, ReturnType::unknown() });
-    } else
-      returnIfError(Expression, identifier);
+    expect(Expression, Identifier, name, identifier_process());
     
-    return Result::ignore<Expression>(syntaxError("Expected expression"));
+    if (wakeup(TokenType::EQUALS, true)) {
+      expect(Expression, Expression, expr, expression_process());
+      return Result::success(Expression::varAssign(name, expr));
+    }
+
+    else if (wakeup(TokenType::PARENTS, false)) {
+      Context previous = switchContextToParents();
+      std::vector<Expression*>* params = NULL;
+
+      if (hasPeek()) {
+        params = new std::vector<Expression*>();
+      
+        while (true) {
+          expectWithOnError(Expression, Expression, expr, expression_process(), switchContext(previous));
+          params->push_back(expr);
+
+          if (!wakeup(TokenType::COMMA, true)) {
+            if (!hasPeek())
+              break;
+            
+            switchContext(previous);
+            return Result::error<Expression>(syntaxError("Expected ','"));
+          }
+        };
+      }
+
+      switchContext(previous);
+      return Result::success(Expression::funcCall(name, params));
+    }
+
+    else if (wakeup(TokenType::PLUSPLUS, true))
+      return Result::success(Expression::withName(Expression::Type::INCREMENT, name));
+
+    else if (wakeup(TokenType::MINUSMINUS, true))
+      return Result::success(Expression::withName(Expression::Type::DECREMENT, name));
+
+    else
+      return Result::success(Expression::withName(Expression::Type::IDENTIFIER, name));
   }
 
-  Result::inst<Expression> SyntaxChecker::processLiteralExpression() {
-    bool isPositive = tryConsume({ TokenType::PLUS });
-    bool isNegative = tryConsume({ TokenType::MINUS });
+
+  const TokenType operatorTokens[] = { 
+    TokenType::ASTERISK, TokenType::SLASH,
+
+    TokenType::PLUS, TokenType::MINUS,
+    
+    TokenType::DOUBLE_EQUALS, TokenType::NOT_EQUAL, TokenType::LESS,
+    TokenType::LESS_EQ, TokenType::GREATER, TokenType::GREATER_EQ,
+    
+    TokenType::AND,
+    
+    TokenType::OR,
+
+    TokenType::SHIFT_RIGHT, TokenType::SHIFT_LEFT,
+    
+    TokenType::AMPERSAND, TokenType::PIPE
+  };
+  const Operator operators[] = {  //? Unary operators are ALWAYS before binary operators
+    { Operator::Type::MULT, 2 }, { Operator::Type::DIV, 2 },
+    
+    { Operator::Type::ADD, 1 }, { Operator::Type::SUB, 1 },
+    
+    { Operator::Type::EQUALS, 0 }, { Operator::Type::NOT_EQUALS, 0 }, { Operator::Type::LESS, 0 },
+    { Operator::Type::LESS_EQ, 0 }, { Operator::Type::GREATER, 0 }, { Operator::Type::GREATER_EQ, 0 },
+    
+    { Operator::Type::AND, -1 },
+
+    { Operator::Type::OR, -2 },
+    
+    { Operator::Type::SHIFT_RIGHT, -3 }, { Operator::Type::SHIFT_LEFT, -3 },
+    
+    { Operator::Type::BIT_AND, -4 }, { Operator::Type::BIT_OR, -4 }
+  };
+  const int OP_AMOUNT = sizeof(operators) / sizeof(operators[0]);
+
+  index_t SyntaxChecker::operator_wakeup_index() {
+    for (int i = 0; i < OP_AMOUNT; i++) {
+      if (wakeup(operatorTokens[i], true))
+        return i;
+    }
+
+    return INDEX_T_NOT_FOUND;
+  }
+
+  Operator* SyntaxChecker::operatorFromIndex(index_t index) {
+    return new Operator(operators[index]);
+  }
+
+  bool SyntaxChecker::literalExpression_wakeup() {
+    #define nextLiteral() peekEqual({ TokenType::LITERAL }, 1)
+    return wakeup(TokenType::LITERAL, false) || (wakeup(TokenType::MINUS, false) && nextLiteral()) || (wakeup(TokenType::PLUS, false) && nextLiteral());
+    #undef nextLiteral
+  }
+
+  Result::inst<Expression> SyntaxChecker::literalExpression_process() {
+    bool isPositive = wakeup(TokenType::PLUS, true);
+    bool isNegative = wakeup(TokenType::MINUS, true);
     Token token = consume().value();
     Literal literal = token.u.literal;
 
-    #define success(type) Result::success(new Expression{ Expression::Type::LITERAL, { .literal = literal }, ReturnType::fromType(Type::of(type)) });
+    #define success(type) Result::success(Expression::literal(literal, ReturnType::fromType(Type::of(type))));
 
     if (literal.type == LiteralType::INTEGER) {
       if (isNegative)
@@ -635,67 +726,25 @@ namespace Parser {
     return Result::error<Expression>(Parser::syntaxError("Invalid expression", token.line));
   }
 
-  Result::inst<Operator> SyntaxChecker::processOperator() {
-    const TokenType tokens[] = { TokenType::PLUS, TokenType::MINUS, TokenType::ASTERISK, TokenType::SLASH,
-                                  TokenType::LESS, TokenType::LESS_EQ, TokenType::SHIFT_LEFT,
-                                  TokenType::GREATER, TokenType::GREATER_EQ, TokenType::SHIFT_RIGHT,
-                                  TokenType::AND, TokenType::AMPERSAND, TokenType::OR, TokenType::PIPE,
-                                  TokenType::DOUBLE_EQUALS, TokenType::NOT_EQUAL };
-    const Operator operators[] = { { Operator::Type::ADD, 1 }, { Operator::Type::SUB, 1 }, { Operator::Type::MULT, 2 }, { Operator::Type::DIV, 2 },
-                                    { Operator::Type::LESS, 0 }, { Operator::Type::LESS_EQ, 0 }, { Operator::Type::SHIFT_LEFT, -2 },
-                                    { Operator::Type::GREATER, 0 }, { Operator::Type::GREATER_EQ, 0 }, { Operator::Type::SHIFT_RIGHT, -2 }, 
-                                    { Operator::Type::AND, -1 }, { Operator::Type::BIT_AND, -3 }, { Operator::Type::OR, -1 }, { Operator::Type::BIT_OR, -3 },
-                                    { Operator::Type::EQUALS, 0 }, { Operator::Type::NOT_EQUALS, 0 } };
-    const int OP_AMOUNT = sizeof(tokens) / sizeof(tokens[0]);
 
-    for (int i = 0; i < OP_AMOUNT; i++) {
-      if (wakeup(tokens[i]))
-        return Result::success(new Operator(operators[i]));
-    }
-    return Result::ignore<Operator>(syntaxError("Expected operator"));
-  }
+  #undef expect
+  #undef expectWithAlways
+  #undef expectWithOnError
+  #undef expectParentEnd
+  #undef expectSemi
 
-  Result::inst<InitIdentifier> SyntaxChecker::processInitIdentifier() {
-    bool isMutable = false;
-    bool isConst = false;
-    if (tryConsume({ TokenType::MUT }))
-      isMutable = true;
-    else if (tryConsume({ TokenType::CONST }))
-      isConst = true;
-    
-    Identifier* name;
-    expectError(InitIdentifier, Identifier, name, processRawIdentifier());
-    
-    InitExpression* initExpr = NULL;
-    if (wakeup(TokenType::EQUALS))
-      expectError(InitIdentifier, InitExpression, initExpr, processInitExpression());
-    
-    return Result::success(new InitIdentifier{ isMutable, isConst, name, initExpr });
-  }
-
-  Result::inst<StatementAndExpr> SyntaxChecker::processExprAndStatement() {
-    if (peekNotEqual({ TokenType::PARENTS }))
-      return Result::ignore<StatementAndExpr>(parentsError());
-    Context previous = switchContextToParents();
-    Expression* expr;
-    Statement* statement;
-
-    expectErrorWithAlways(StatementAndExpr, Expression, expr, processExpression(), expectParentEnd(StatementAndExpr, previous));
-    expectError(StatementAndExpr, Statement, statement, processStatement());
-    return Result::success(new StatementAndExpr{ statement, expr });
-  }
 
 
   void SyntaxChecker::process() {
     while (hasPeek()) {
-      if (semi())
-        continue; //* Technically not needed (better than ';')
-      else if (wakeup(TokenType::COLON))
-        addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemiOnResult(processVariables()).expectValue() } });
-      else if (wakeup(TokenType::FUNC))
-        addToOutput({ GlobalNode::Type::FUNC, { .func = processFunction().expectValue() } });
-      else if (wakeup(TokenType::USING))
-        addToOutput({ GlobalNode::Type::USING, { .using_ = expectSemiOnResult(processUsing()).expectValue() } });
+      if (wakeup(TokenType::SEMI, true))
+        continue; // Technically not needed (better than ';')
+      else if (variables_wakeup())
+        addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemiOnResult(variables_process()).expectValue() } });
+      else if (function_wakeup())
+        addToOutput({ GlobalNode::Type::FUNC, { .func = function_process().expectValue() } });
+      else if (using_wakeup())
+        addToOutput({ GlobalNode::Type::USING, { .using_ = expectSemiOnResult(using_process()).expectValue() } });
       else
         Utils::error(syntaxError("Unexpected token"));
     }

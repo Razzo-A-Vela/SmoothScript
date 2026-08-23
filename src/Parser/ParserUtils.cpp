@@ -19,7 +19,6 @@ namespace Parser {
     None* const NONE = new None(0);
     
     inst<None> success() { return success<None>(NONE); }
-    inst<None> ignore(Error err) { return ignore<None>(err); }
     inst<None> error(Error err) { return error<None>(err); }
   }
 }

@@ -1,9 +1,16 @@
 #include "ParseNodes.hpp"
 
 namespace Parser {
+  Identifier* Identifier::simple(const char* name) {
+    return new Identifier {
+      .name = name
+    };
+  }
+
   void Identifier::print(std::ostream& out) {
     out << name;
   }
+
 
   Type* Type::of(Type::TypeT type, bool isUnsigned, bool isSigned) {
     return new Type{ type, NULL, isUnsigned, isSigned };
@@ -73,6 +80,7 @@ namespace Parser {
     }
   }
 
+
   ReturnType* ReturnType::noReturn() {
     return new ReturnType{ false, false, false, NULL };
   }
@@ -81,7 +89,7 @@ namespace Parser {
     return new ReturnType{ true, true, false, NULL };
   }
 
-  ReturnType* ReturnType::_void() {
+  ReturnType* ReturnType::void_() {
     return new ReturnType{ true, false, true, NULL };
   }
 
@@ -100,6 +108,14 @@ namespace Parser {
       type->print(out);
   }
 
+
+  InitExpression* InitExpression::expression(Expression* expr) {
+    return new InitExpression {
+      .type = InitExpression::Type::EXPRESSION,
+      .u = { .expr = expr }
+    };
+  }
+
   void InitExpression::print(std::ostream& out) {
     switch (type) {
       case Type::EXPRESSION :
@@ -108,6 +124,7 @@ namespace Parser {
         break;
     }
   }
+
 
   void InitIdentifier::print(std::ostream& out) {
     if (isMutable)
@@ -122,15 +139,13 @@ namespace Parser {
     }
   }
 
-  void Variable::print(std::ostream& out) {
-    type->print(out);
-    out << ' ';
-    init->print(out);
-  }
 
   void Variables::print(std::ostream& out) {
     out << ':';
-    var->print(out);
+    type->print(out);
+    out << ' ';
+    init->print(out);
+
     if (other != NULL) {
       for (int i = 0; i < other->size(); i++) {
         out << ", ";
@@ -139,11 +154,13 @@ namespace Parser {
     }
   }
 
+
   void VarAssign::print(std::ostream& out) {
     name->print(out);
     out << " = ";
     expr->print(out);
   }
+
 
   void FuncCall::print(std::ostream& out) {
     name->print(out);
@@ -160,6 +177,7 @@ namespace Parser {
 
     out << ')';
   }
+
 
   void Operator::print(std::ostream& out) {
     out << " (";
@@ -236,10 +254,60 @@ namespace Parser {
     out << " {" << precedence << "}) ";
   }
 
+
   void BinaryOp::print(std::ostream& out) {
     left->print(out);
     op->print(out);
     right->print(out);
+  }
+
+
+  Expression* Expression::binaryOp(Expression* left, Operator* op, Expression* right) {
+    return new Expression {
+      .type = Expression::Type::BINARY_OP,
+      .u = { .binaryOp = new BinaryOp{ left, op, right } },
+      .returnType = ReturnType::unknown(),
+    };
+  }
+
+  Expression* Expression::withExpr(Expression::Type type, Expression* expr) {
+    return new Expression {
+      .type = type,
+      .u = { .expr = expr },
+      .returnType = ReturnType::unknown(),
+    };
+  }
+
+  Expression* Expression::withName(Expression::Type type, Identifier* name) {
+    return new Expression {
+      .type = type,
+      .u = { .name = name },
+      .returnType = ReturnType::unknown(),
+    };
+  }
+
+  Expression* Expression::literal(Literal literal, ReturnType* returnType) {
+    return new Expression {
+      .type = Expression::Type::LITERAL,
+      .u = { .literal = literal },
+      .returnType = returnType,
+    };
+  }
+
+  Expression* Expression::varAssign(Identifier* name, Expression* expr) {
+    return new Expression {
+      .type = Expression::Type::VAR_ASSIGN,
+      .u = { .varAssign = new VarAssign{ name, expr } },
+      .returnType = ReturnType::unknown(),
+    };
+  }
+
+  Expression* Expression::funcCall(Identifier* name, std::vector<Expression*>* params) {
+    return new Expression {
+      .type = Expression::Type::FUNC_CALL,
+      .u = { .funcCall = new FuncCall{ name, params } },
+      .returnType = ReturnType::unknown(),
+    };
   }
 
   void Expression::print(std::ostream& out) {
@@ -314,6 +382,7 @@ namespace Parser {
     returnType->print(out);
   }
 
+
   void DoWhile::print(std::ostream& out) {
     out << "DO ";
     doStatement->print(out);
@@ -321,6 +390,7 @@ namespace Parser {
     out << " WHILE ";
     whileStatementAndExpr->print(out);
   }
+
 
   void For::print(std::ostream& out) {
     out << "FOR (";
@@ -338,6 +408,7 @@ namespace Parser {
     statement->print(out);
   }
 
+
   void TypeDef::print(std::ostream& out) {
     out << ':';
     from->print(out);
@@ -352,6 +423,14 @@ namespace Parser {
     }
   }
 
+
+  Using* Using::typeDef(TypeDef* typeDef) {
+    return new Using {
+      .type = Using::Type::TYPE_DEF,
+      .u = { .typeDef = typeDef },
+    };
+  }
+
   void Using::print(std::ostream& out) {
     out << "USING ";
     
@@ -361,6 +440,84 @@ namespace Parser {
         break;
     }
   }
+
+
+  Statement* Statement::simple(Type type) {
+    return new Statement {
+      .type = type,
+    };
+  }
+
+  Statement* Statement::withName(Type type, Identifier* name) {
+    return new Statement {
+      .type = type,
+      .u = { .name = name },
+    };
+  }
+
+  Statement* Statement::withExpr(Type type, Expression* expr) {
+    return new Statement {
+      .type = type,
+      .u = { .expr = expr },
+    };
+  }
+
+  Statement* Statement::withStatement(Type type, Statement* statement) {
+    return new Statement {
+      .type = type,
+      .u = { .statement = statement },
+    };
+  }
+
+  Statement* Statement::withStatementAndExpr(Type type, StatementAndExpr* statementAndExpr) {
+    return new Statement {
+      .type = type,
+      .u = { .statementAndExpr = statementAndExpr },
+    };
+  }
+
+  Statement* Statement::return_(nullable Expression* expr) {
+    return new Statement {
+      .type = Statement::Type::RETURN,
+      .u = { .expr = expr },
+    };
+  }
+
+  Statement* Statement::doWhile(DoWhile* doWhile) {
+    return new Statement {
+      .type = Statement::Type::DO_WHILE,
+      .u = { .doWhile = doWhile },
+    };
+  }
+
+  Statement* Statement::varDecl(Variables* vars) {
+    return new Statement {
+      .type = Statement::Type::VAR_DECL,
+      .u = { .vars = vars },
+    };
+  }
+
+  Statement* Statement::using_(Using* using_) {
+    return new Statement {
+      .type = Statement::Type::USING,
+      .u = { .using_ = using_ },
+    };
+  }
+
+  Statement* Statement::scope(Scope* scope) {
+    return new Statement {
+      .type = Statement::Type::SCOPE,
+      .u = { .scope = scope },
+    };
+  }
+
+  Statement* Statement::for_(For* for_) {
+    return new Statement {
+      .type = Statement::Type::FOR,
+      .u = { .for_ = for_ },
+    };
+  }
+
 
   void Statement::print(std::ostream& out) {
     switch (type) {
@@ -463,11 +620,33 @@ namespace Parser {
     out << '}';
   }
 
+
   void StatementAndExpr::print(std::ostream& out) {
     out << '(';
     expr->print(out);
     out << ") ";
     statement->print(out);
+  }
+
+
+  Function* Function::declaration(Identifier* name, ReturnType* returnType, nullable std::vector<Variables*>* params) {
+    return new Function {
+      .name = name,
+      .returnType = returnType,
+      .params = params,
+      .defined = false,
+      .scope = NULL,
+    };
+  }
+
+  Function* Function::definition(Identifier* name, ReturnType* returnType, nullable std::vector<Variables*>* params, Scope* scope) {
+    return new Function {
+      .name = name,
+      .returnType = returnType,
+      .params = params,
+      .defined = true,
+      .scope = scope,
+    };
   }
 
   void Function::print(std::ostream& out) {
@@ -492,6 +671,7 @@ namespace Parser {
     } else
       out << ';';
   }
+
 
   void GlobalNode::print(std::ostream& out) {
     switch (type) {
