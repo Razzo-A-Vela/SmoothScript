@@ -1,7 +1,7 @@
 #include "SyntaxChecker.hpp"
 
 namespace Parser {
-  Context Context::fromTokens(std::vector<Token>* tokens)  {
+  SyntaxChecker::Context SyntaxChecker::Context::fromTokens(std::vector<Token>* tokens)  {
     return { tokens, 0 };
   }
 
@@ -10,7 +10,7 @@ namespace Parser {
     return Parser::syntaxError(msg, getErrorLine());
   }
 
-  Context SyntaxChecker::switchContext(Context newContext) {
+  SyntaxChecker::Context SyntaxChecker::switchContextRaw(Context newContext) {
     Context previous = { tokens, index };
     tokens = newContext.tokens;
     setMaxIndex(tokens->size());
@@ -18,17 +18,21 @@ namespace Parser {
     return previous;
   }
 
-  Context SyntaxChecker::switchContextTo(TokenType type, Utils::Error err) {
-    if (peekNotEqual({ type }))
+  SyntaxChecker::ContextSwitcher SyntaxChecker::switchContext(Context newContext) {
+    return ContextSwitcher(this, switchContextRaw(newContext));
+  }
+
+  SyntaxChecker::ContextSwitcher SyntaxChecker::switchContextTo(TokenType type, Utils::Error err) {
+    if (!wakeup(type, false))
       Utils::error(err);
     return switchContext(Context::fromTokens(consume().value().u.tokens));
   }
 
-  Context SyntaxChecker::switchContextToParents() {
+  SyntaxChecker::ContextSwitcher SyntaxChecker::switchContextToParents() {
     return switchContextTo(TokenType::PARENTS, parentsError());
   }
 
-  Context SyntaxChecker::switchContextToBrackets() {
+  SyntaxChecker::ContextSwitcher SyntaxChecker::switchContextToBrackets() {
     return switchContextTo(TokenType::BRACKETS, syntaxError("Expected '{'"));
   }
 
@@ -62,29 +66,10 @@ namespace Parser {
     result = result##_result.value;                          \
   } while (0)
 
-  #define expectWithAlways(errType, type, result, function, alwaysFunction) do {  \
-    Result::inst<type> result##_result = function;                                \
-    alwaysFunction;                                                               \
-    if (result##_result.isError())                                                \
-      return Result::error<errType>(result##_result.error);                       \
-    result = result##_result.value;                                               \
-  } while(0);
-
-  #define expectWithOnError(errType, type, result, function, errorFunction) do {  \
-    Result::inst<type> result##_result = function;                                \
-    if (result##_result.isError()) {                                              \
-      errorFunction;                                                              \
-      return Result::error<errType>(result##_result.error);                       \
-    }                                                                             \
-    result = result##_result.value;                                               \
-  } while (0)
-
-  #define expectParentEnd(errType, previous) do {                 \
-    if (hasPeek()) {                                              \
-      switchContext(previous);                                    \
+  #define expectParentEnd(errType, switcher) do {                 \
+    if (hasPeek())                                                \
       return Result::error<errType>(syntaxError("Expected ')"));  \
-    }                                                             \
-    switchContext(previous);                                      \
+    switcher.switchContextToPrevious();                           \
   } while (0)
 
   #define expectSemi(errType) do {                 \
@@ -135,25 +120,22 @@ namespace Parser {
     std::vector<Variables*>* params = NULL;
     if (!wakeup(TokenType::PARENTS, false))
       return Result::error<Function>(parentsError());
-    Context previous = switchContextToParents();
+    ContextSwitcher switcher = switchContextToParents();
     
     if (hasPeek()) {
       params = new std::vector<Variables*>();
       Variables* param;
 
       do {
-        if (!variables_wakeup()) {
-          switchContext(previous);
+        if (!variables_wakeup())
           return Result::error<Function>(syntaxError("Expected ':'"));
-        }
 
-        expectWithOnError(Function, Variables, param, variables_process(), switchContext(previous));
+        expect(Function, Variables, param, variables_process());
         params->push_back(param);
       } while (hasPeek());
     }
-
-    switchContext(previous);
-
+    switcher.switchContextToPrevious();
+    
     ReturnType* returnType;
     expect(Function, ReturnType, returnType, returnType_process());
 
@@ -173,18 +155,17 @@ namespace Parser {
   }
 
   Result::inst<Scope> SyntaxChecker::scope_process() {
-    Context previous = switchContextToBrackets();
+    ContextSwitcher switcher = switchContextToBrackets();
 
     std::vector<Statement*>* statements = new std::vector<Statement*>();
     Statement* statement;
     
     scopeDepth++;
     while (hasPeek()) {
-      expectWithOnError(Scope, Statement, statement, statement_process(), switchContext(previous));
+      expect(Scope, Statement, statement, statement_process());
       statements->push_back(statement);
     }
 
-    switchContext(previous);
     return Result::success(new Scope{ statements, scopeDepth-- });
   }
   
@@ -295,11 +276,12 @@ namespace Parser {
   Result::inst<StatementAndExpr> SyntaxChecker::exprAndStatement_process() {
     if (!wakeup(TokenType::PARENTS, false))
       return Result::error<StatementAndExpr>(parentsError());
-    Context previous = switchContextToParents();
+    ContextSwitcher switcher = switchContextToParents();
     Expression* expr;
     Statement* statement;
 
-    expectWithAlways(StatementAndExpr, Expression, expr, expression_process(), expectParentEnd(StatementAndExpr, previous));
+    expect(StatementAndExpr, Expression, expr, expression_process());
+    expectParentEnd(StatementAndExpr, switcher);
     expect(StatementAndExpr, Statement, statement, statement_process());
     
     return Result::success(
@@ -335,17 +317,17 @@ namespace Parser {
     
     if (!wakeup(TokenType::PARENTS, false))
       return Result::error<For>(parentsError());
-    Context previous = switchContextToParents();
+    ContextSwitcher switcher = switchContextToParents();
 
-    expectWithOnError(For, Statement, initStatement, forCompatibleStatement_process(), switchContext(previous));
+    expect(For, Statement, initStatement, forCompatibleStatement_process());
     if (!wakeup(TokenType::SEMI, true)) {
-      expectWithOnError(For, Expression, checkExpression, expression_process(), switchContext(previous));
+      expect(For, Expression, checkExpression, expression_process());
       expectSemi(For);
     }
 
     if (hasPeek())
-      expectWithOnError(For, Expression, repeatExpression, expression_process(), switchContext(previous));
-    expectParentEnd(For, previous);
+      expect(For, Expression, repeatExpression, expression_process());
+    expectParentEnd(For, switcher);
     expect(For, Statement, statement, statement_process());
     
     return Result::success(
@@ -556,9 +538,10 @@ namespace Parser {
       return literalExpression_process();
 
     else if (wakeup(TokenType::PARENTS, false)) {
-      Context previous = switchContextToParents();
+      ContextSwitcher switcher = switchContextToParents();
       
-      expectWithAlways(Expression, Expression, expr, expression_process(), expectParentEnd(Expression, previous));
+      expect(Expression, Expression, expr, expression_process());
+      expectParentEnd(Expression, switcher);
       return Result::success(Expression::withExpr(Expression::Type::EXPR, expr));
     }
     
@@ -597,27 +580,25 @@ namespace Parser {
     }
 
     else if (wakeup(TokenType::PARENTS, false)) {
-      Context previous = switchContextToParents();
+      ContextSwitcher switcher = switchContextToParents();
       std::vector<Expression*>* params = NULL;
 
       if (hasPeek()) {
         params = new std::vector<Expression*>();
       
         while (true) {
-          expectWithOnError(Expression, Expression, expr, expression_process(), switchContext(previous));
+          expect(Expression, Expression, expr, expression_process());
           params->push_back(expr);
 
           if (!wakeup(TokenType::COMMA, true)) {
             if (!hasPeek())
               break;
             
-            switchContext(previous);
             return Result::error<Expression>(syntaxError("Expected ','"));
           }
         };
       }
 
-      switchContext(previous);
       return Result::success(Expression::funcCall(name, params));
     }
 

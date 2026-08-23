@@ -13,13 +13,6 @@ namespace Parser {
   using Tokenizer::Token;
   using Tokenizer::TokenType;
 
-  struct Context {
-    std::vector<Token>* tokens;
-    int index;
-
-    static Context fromTokens(std::vector<Token>* tokens);
-  };
-
   #define ignores
   #define alwaysErrors
   #define childOf(parent)
@@ -29,6 +22,36 @@ namespace Parser {
   protected:
     int scopeDepth = 0;
 
+
+    struct Context {
+      std::vector<Token>* tokens;
+      int index;
+
+      static Context fromTokens(std::vector<Token>* tokens);
+    };
+
+    class ContextSwitcher {
+      SyntaxChecker* checker;
+      Context previous;
+      bool isDone;
+
+    public:
+      ContextSwitcher(SyntaxChecker* checker, Context previous) : checker(checker), previous(previous), isDone(false) {}
+
+      ~ContextSwitcher() {
+        switchContextToPrevious();
+      }
+
+      void switchContextToPrevious() {
+        if (isDone)
+          return;
+        
+        checker->switchContextRaw(previous);
+        isDone = true;
+      }
+    };
+
+
   public:
     SyntaxChecker(std::vector<Token> tokens) : Processor(tokens.size()), tokens(new std::vector<Token>(tokens)) {}
     virtual void process();
@@ -37,10 +60,11 @@ namespace Parser {
 
   protected:
     virtual Token get(int index) { return tokens->at(index); }
-    Context switchContext(Context newContext);
-    Context switchContextTo(TokenType type, Utils::Error err);
-    Context switchContextToParents();
-    Context switchContextToBrackets();
+    Context switchContextRaw(Context newContext);
+    ContextSwitcher switchContext(Context newContext);
+    ContextSwitcher switchContextTo(TokenType type, Utils::Error err);
+    ContextSwitcher switchContextToParents();
+    ContextSwitcher switchContextToBrackets();
     int getErrorLine();
     bool wakeup(TokenType tokenType, bool consume);
     Utils::Error semiError();
