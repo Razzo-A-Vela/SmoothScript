@@ -1,22 +1,20 @@
 
 VERSION = 0.6.2
 MAIN_FILE = Smooth.cpp
-DEFAULT_CONFIG = src\defaultConfig.toml
 FLAGS = -g3 -std=c++20 -I src
-CPP_FILES = src\TOML\\*.cpp src\util\\*.cpp src\PreTokenizer\\*.cpp src\Tokenizer\\*.cpp src\Literal\\*.cpp src\Parser\\*.cpp
+CPP_FILES = src\util\\*.cpp src\PreTokenizer\\*.cpp src\Tokenizer\\*.cpp src\Literal\\*.cpp src\Parser\\*.cpp
 
 default: build
 
 preprocess:
 	copy src\$(MAIN_FILE) generated\$(MAIN_FILE)
 	powershell -Command "(gc generated\$(MAIN_FILE)) -replace '{version}', '$(VERSION)' | Out-File -encoding ASCII generated\$(MAIN_FILE)"
-	powershell -Command "(gc generated\$(MAIN_FILE)) -replace '{defaultConfig}', ((gc $(DEFAULT_CONFIG) -Raw) -replace '\r\n', '\n' -replace '\"', '\\"') | Out-File -encoding ASCII generated\$(MAIN_FILE)"
 
 build: preprocess
 	g++ generated\$(MAIN_FILE) $(FLAGS) $(CPP_FILES) -o test\smooth.exe
 
 run: build
-	cd test && smooth.exe && cd ..
+	cd test && smooth.exe Prova.smt && cd ..
 
 legacyBuild:
 	g++ -g3 -std=c++20 legacy\src\smooth.cpp -o legacy\test\smooth.exe

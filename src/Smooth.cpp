@@ -1,16 +1,17 @@
 #include <iostream>
 #include <fstream>
+#include <string>
 
 #include <util/ErrorUtils.hpp>
 #include <util/StringUtils.hpp>
-#include <TOML/TOML.hpp>
+#include <util/FileUtils.hpp>
+#include <util/Argumentator.hpp>
+
 #include <PreTokenizer/PreTokenizer.hpp>
 #include <Tokenizer/Tokenizer.hpp>
 #include <Parser/Parser.hpp>
 
 const std::string version = "{version}";
-const std::string defaultConfigTOMLName = "smoothConfig.toml";
-const std::string defaultConfigTOML = "{defaultConfig}";
 
 //TODO: add consts in all the needed code
 //TODO: make use of size_t instead of int when necessary
@@ -23,43 +24,25 @@ const std::string defaultConfigTOML = "{defaultConfig}";
 
 
 int main(int argc, char* argv[]) {
-  std::string configTOMLName;
-  std::cout << "SmoothScript v" << version << '\n';
+  char* mainFileParam;
+  bool showHelp = false;
 
-  if (argc == 1)
-    configTOMLName = std::string(defaultConfigTOMLName);
-  else if (argc == 2) 
-    configTOMLName = std::string(argv[1]);
-  else
-    Utils::error("Usage Error", "Expected only one argument.\n Usage: smooth [configTOMLName]");
+  Utils::Argumentator argumentator(argc, argv, "smooth");
+  argumentator
+    .requiredValue(mainFileParam, "mainFile")
+    ->optionalFlag(showHelp, "-h")
+    ->optionalFlag(showHelp, "--help")
+    ->process();
+  
+  if (showHelp) {
+    argumentator.printUsage();
+    return 0;
+  }
 
-  std::cout << "\nReading config...\n";
-  Utils::setErrorFileName(configTOMLName);
-  //! TOML DEBUG CODE
-  // TOML::Tokenizer tomlTokenizer = TOML::Tokenizer(Utils::readEntireFile(configTOMLName));
-  // tomlTokenizer.process();
-  // std::cout << "TOML TOKENS:\n";
-  // tomlTokenizer.print(std::cout);
-  // std::cout << '\n';
+  argumentator.checkRequiredParams();
+  std::string mainFile = std::string(mainFileParam);
 
-  // TOML::Parser tomlParser = TOML::Parser(tomlTokenizer.getOutput());
-  // tomlParser.process();
-  // TOML::Table* config = tomlParser.getSingleOutput();
-  TOML::Parser* tomlParser = TOML::Parser::readOrCreate(configTOMLName, defaultConfigTOML);
-  TOML::Table* config = tomlParser->getSingleOutput();
-  std::cout << "\nPrinting config...\n";
-  config->print(std::cout);
-  std::cout << '\n';
-
-  config->setCheckType(TOML::ContentType::TABLE);
-  TOML::Table* files = config->getContentOrError("files")->u.table;
-
-  files->setCheckType(TOML::ContentType::STRING);
-  std::string mainFile = std::string(files->getContentOrError("mainFile")->u.string);
-
-  if (mainFile == "")
-    Utils::error("Config Error", "mainFile must not be empty");
-  Utils::resetErrorFileName();
+  std::cout << "SmoothScript v" << version << "\n\n";
 
   if (!Utils::fileExists(mainFile))
     Utils::error("File error", std::string("File: \"") + mainFile + std::string("\" does not exist"));

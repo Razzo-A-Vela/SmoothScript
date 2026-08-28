@@ -5,7 +5,9 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}\\test\\smooth.exe",
-      "args": [],
+      "args": [
+        "Prova.smt"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}\\test",
       "environment": [],
