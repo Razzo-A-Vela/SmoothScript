@@ -4,8 +4,8 @@
 #include <sstream>
 
 #include <util/Processor.hpp>
-#include <Tokenizer/Token.hpp>
 #include <util/ErrorUtils.hpp>
+#include <Tokenizer/Token.hpp>
 
 #include "ParseNodes.hpp"
 #include "ParserUtils.hpp"
@@ -21,9 +21,6 @@ namespace Parser {
 
   class SyntaxChecker : public Utils::Processor<Token, GlobalNode> {
   protected:
-    int scopeDepth = 0;
-
-
     struct Context {
       std::vector<Token>* tokens;
       int index;
@@ -52,6 +49,7 @@ namespace Parser {
       }
     };
 
+    int scopeDepth = 0;
 
   public:
     SyntaxChecker(std::vector<Token> tokens) : Processor(tokens.size()), tokens(new std::vector<Token>(tokens)) {}
