@@ -78,38 +78,32 @@ namespace Parser {
     [[nodiscard]] Utils::Error expectedExpressionError();
 
 
-    //* Rules: If there is a wakeup ALWAYS CALL IT BEFORE THE PROCESS, if there is no wakeup then the process is required
-    //*        If a wakeup function is required for the syntax, call the wakeupError function in case the wakeup failed
+    //* Rules:  If there is a wakeup and the syntax is NOT REQUIRED CALL THE WAKEUP FIRST AND THEN THE PROCESS PASSING FALSE.
+    //*         If there is a wakeup and the syntax is REQUIRED CALL THE PROCESS PASSING TRUE.
+    //*         If there is no wakeup then the syntax is ALWAYS REQUIRED.
     
     //* Using "_" because you cannot use namespaces inside classes in C++
 
     bool variables_wakeup();
-    Utils::Error variables_wakeupError();
-    Result::inst<Variables> variables_process();
+    Result::inst<Variables> variables_process(bool required);
 
     bool function_wakeup();
-    Utils::Error function_wakeupError();
-    Result::inst<Function> function_process();
+    Result::inst<Function> function_process(bool required);
     bool scope_wakeup();
-    Utils::Error scope_wakeupError();
-    Result::inst<Scope> scope_process();
+    Result::inst<Scope> scope_process(bool required);
 
     Result::inst<Statement> statement_process();
     Result::inst<Statement> forCompatibleStatement_process();
     Result::inst<StatementAndExpr> exprAndStatement_process();  //? first expression then statement
     bool doWhile_wakeup();
-    Utils::Error doWhile_wakeupError();
-    Result::inst<DoWhile> doWhile_process();
+    Result::inst<DoWhile> doWhile_process(bool required);
     bool for_wakeup();
-    Utils::Error for_wakeupError();
-    Result::inst<For> for_process();
+    Result::inst<For> for_process(bool required);
 
     bool using_wakeup();
-    Utils::Error using_wakeupError();
-    Result::inst<Using> using_process();
+    Result::inst<Using> using_process(bool required);
     bool typeDef_wakeup();
-    Utils::Error typeDef_wakeupError();
-    Result::inst<TypeDef> typeDef_process();
+    Result::inst<TypeDef> typeDef_process(bool required);
 
     Result::inst<Type> type_process();
     Result::inst<Type> baseType_process();
@@ -127,8 +121,7 @@ namespace Parser {
     index_t operator_wakeup_index();             //* SPECIAL CASE: For optimization we return the index directly (if found)
     Operator* operatorFromIndex(index_t index);  //* There is no process, we use the index to get the operator directly
     bool literalExpression_wakeup();
-    Utils::Error literalExpression_wakeupError();
-    Result::inst<Expression> literalExpression_process();
+    Result::inst<Expression> literalExpression_process(bool required);
 
 
     template <typename T>

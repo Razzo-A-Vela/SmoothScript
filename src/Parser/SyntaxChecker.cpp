@@ -122,11 +122,10 @@ namespace Parser {
     return wakeup({ TokenType::COLON }, true);
   }
 
-  Utils::Error SyntaxChecker::variables_wakeupError() {
-    return expectedColonError();
-  }
+  Result::inst<Variables> SyntaxChecker::variables_process(bool required) {
+    if (required && !variables_wakeup())
+      return Result::error<Variables>(expectedColonError());
 
-  Result::inst<Variables> SyntaxChecker::variables_process() {
     Type* type;
     InitIdentifier* init;
     expect(Variables, Type, type, type_process());
@@ -157,11 +156,10 @@ namespace Parser {
     return wakeup(TokenType::FUNC, true);
   }
 
-  Utils::Error SyntaxChecker::function_wakeupError() {
-    return expectedError("'func'");
-  }
+  Result::inst<Function> SyntaxChecker::function_process(bool required) {
+    if (required && !function_wakeup())
+      return Result::error<Function>(expectedError("'func'"));
 
-  Result::inst<Function> SyntaxChecker::function_process() {
     Identifier* name;
     expectWithMessage(Function, Identifier, name, rawIdentifier_process(), expectedError("function name"));
 
@@ -175,9 +173,7 @@ namespace Parser {
       Variables* param;
 
       do {
-        if (!variables_wakeup())
-          return Result::error<Function>(variables_wakeupError());
-        expect(Function, Variables, param, variables_process());
+        expect(Function, Variables, param, variables_process(true));
 
         params->push_back(param);
       } while (hasPeek());
@@ -191,9 +187,7 @@ namespace Parser {
       return Result::success(Function::declaration(name, returnType, params));
 
     Scope* scope;
-    if (!scope_wakeup())
-      return Result::error<Function>(scope_wakeupError());
-    expect(Function, Scope, scope, scope_process());
+    expect(Function, Scope, scope, scope_process(true));
 
     return Result::success(Function::definition(name, returnType, params, scope));
   }
@@ -202,11 +196,10 @@ namespace Parser {
     return wakeup(TokenType::BRACKETS, false);
   }
 
-  Utils::Error SyntaxChecker::scope_wakeupError() {
-    return expectedOpenBracketError();
-  }
+  Result::inst<Scope> SyntaxChecker::scope_process(bool required) {
+    if (required && !scope_wakeup())
+      return Result::error<Scope>(expectedError("scope"));
 
-  Result::inst<Scope> SyntaxChecker::scope_process() {
     ContextSwitcher switcher = switchContextToBrackets();
 
     std::vector<Statement*>* statements = new std::vector<Statement*>();
@@ -255,7 +248,7 @@ namespace Parser {
 
     if (doWhile_wakeup()) {
       DoWhile* doWhile;
-      expect(Statement, DoWhile, doWhile, doWhile_process());
+      expect(Statement, DoWhile, doWhile, doWhile_process(false));
       return Result::success(Statement::doWhile(doWhile));
     }
 
@@ -276,7 +269,7 @@ namespace Parser {
 
     if (for_wakeup()) {
       For* for_;
-      expect(Statement, For, for_, for_process());
+      expect(Statement, For, for_, for_process(false));
       return Result::success(Statement::for_(for_));
     }
 
@@ -294,14 +287,14 @@ namespace Parser {
 
     if (using_wakeup()) {
       Using* using_;
-      expect(Statement, Using, using_, using_process());
+      expect(Statement, Using, using_, using_process(false));
       expectSemi(Statement);
       return Result::success(Statement::using_(using_));
     }
 
     if (scope_wakeup()) {
       Scope* scope;
-      expect(Statement, Scope, scope, scope_process());
+      expect(Statement, Scope, scope, scope_process(false));
       return Result::success(Statement::scope(scope));
     }
 
@@ -314,7 +307,7 @@ namespace Parser {
 
     if (variables_wakeup()) {
       Variables* vars;
-      expect(Statement, Variables, vars, variables_process());
+      expect(Statement, Variables, vars, variables_process(false));
       expectSemi(Statement);
       return Result::success(Statement::varDecl(vars));
     }
@@ -348,11 +341,10 @@ namespace Parser {
     return wakeup(TokenType::DO, true);
   }
 
-  Utils::Error SyntaxChecker::doWhile_wakeupError() {
-    return expectedError("'do'");
-  }
+  Result::inst<DoWhile> SyntaxChecker::doWhile_process(bool required) {
+    if (required && !doWhile_wakeup())
+      return Result::error<DoWhile>(expectedError("'do'"));
 
-  Result::inst<DoWhile> SyntaxChecker::doWhile_process() {
     Statement* doStatement;
     StatementAndExpr* whileStatementAndExpr;
 
@@ -373,11 +365,10 @@ namespace Parser {
     return wakeup(TokenType::FOR, true);
   }
 
-  Utils::Error SyntaxChecker::for_wakeupError() {
-    return expectedError("'for'");
-  }
+  Result::inst<For> SyntaxChecker::for_process(bool required) {
+    if (required && !for_wakeup())
+      return Result::error<For>(expectedError("'for'"));
 
-  Result::inst<For> SyntaxChecker::for_process() {
     Statement* initStatement;
     Expression* checkExpression = NULL;
     Expression* repeatExpression = NULL;
@@ -413,16 +404,12 @@ namespace Parser {
     return wakeup(TokenType::USING, true);
   }
   
-  Utils::Error SyntaxChecker::using_wakeupError() {
-    return expectedError("'using'");
-  }
-  
-  Result::inst<Using> SyntaxChecker::using_process() {
-    if (!typeDef_wakeup())
-      return Result::error<Using>(typeDef_wakeupError());  //TODO: Other using types
+  Result::inst<Using> SyntaxChecker::using_process(bool required) {
+    if (required && !using_wakeup())
+      return Result::error<Using>(expectedError("'using'"));
 
-    TypeDef* typeDef;
-    expect(Using, TypeDef, typeDef, typeDef_process());
+    TypeDef* typeDef;  //TODO: Other using types
+    expect(Using, TypeDef, typeDef, typeDef_process(true));
     return Result::success(Using::typeDef(typeDef));
   }
 
@@ -430,11 +417,10 @@ namespace Parser {
     return wakeup(TokenType::COLON, true);
   }
 
-  Utils::Error SyntaxChecker::typeDef_wakeupError() {
-    return expectedColonError();
-  }
+  Result::inst<TypeDef> SyntaxChecker::typeDef_process(bool required) {
+    if (required && !typeDef_wakeup())
+      return Result::error<TypeDef>(expectedColonError());
 
-  Result::inst<TypeDef> SyntaxChecker::typeDef_process() {
     Type* from;
     Type* to;
     std::vector<Type*>* other = NULL;
@@ -611,7 +597,7 @@ namespace Parser {
     Expression* expr;
 
     if (literalExpression_wakeup())
-      return literalExpression_process();
+      return literalExpression_process(false);
 
     else if (wakeup(TokenType::PARENTS, false)) {
       ContextSwitcher switcher = switchContextToParents();
@@ -743,11 +729,10 @@ namespace Parser {
     #undef nextLiteral
   }
 
-  Utils::Error SyntaxChecker::literalExpression_wakeupError() {
-    return expectedExpressionError();
-  }
+  Result::inst<Expression> SyntaxChecker::literalExpression_process(bool required) {
+    if (required && !literalExpression_wakeup())
+      return Result::error<Expression>(expectedExpressionError());
 
-  Result::inst<Expression> SyntaxChecker::literalExpression_process() {
     bool isPositive = wakeup(TokenType::PLUS, true);
     bool isNegative = wakeup(TokenType::MINUS, true);
     Token token = consume().value();
@@ -803,11 +788,11 @@ namespace Parser {
       if (wakeup(TokenType::SEMI, true))
         continue; // Technically not needed (better than ';')
       else if (variables_wakeup())
-        addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemiOnResult(variables_process()).expectValue() } });
+        addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemiOnResult(variables_process(false)).expectValue() } });
       else if (function_wakeup())
-        addToOutput({ GlobalNode::Type::FUNC, { .func = function_process().expectValue() } });
+        addToOutput({ GlobalNode::Type::FUNC, { .func = function_process(false).expectValue() } });
       else if (using_wakeup())
-        addToOutput({ GlobalNode::Type::USING, { .using_ = expectSemiOnResult(using_process()).expectValue() } });
+        addToOutput({ GlobalNode::Type::USING, { .using_ = expectSemiOnResult(using_process(false)).expectValue() } });
       else
         Utils::error(syntaxError("Unexpected token"));
     }
