@@ -64,7 +64,6 @@ namespace Parser {
     ContextSwitcher switchContextToParents();
     ContextSwitcher switchContextToBrackets();
     int getErrorLine();
-    bool wakeup(TokenType tokenType, bool consume);
     
     [[nodiscard]] Utils::Error syntaxError(const char* msg);
     [[nodiscard]] Utils::Error expectedError(const char* expected);
@@ -126,7 +125,7 @@ namespace Parser {
 
     template <typename T>
     Result::inst<T> expectSemiOnResult(Result::inst<T> result) {
-      if (result.isError() || wakeup(TokenType::SEMI, true))
+      if (result.isError() || tryConsume({ TokenType::SEMI }))
         return result;
       return Result::error<T>(expectedSemiError());
     }

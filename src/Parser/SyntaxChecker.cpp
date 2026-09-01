@@ -20,7 +20,7 @@ namespace Parser {
   }
 
   SyntaxChecker::ContextSwitcher SyntaxChecker::switchContextTo(TokenType type, Utils::Error err) {
-    if (!wakeup(type, false))
+    if (peekNotEqual({ type }))
       Utils::error(err);
     return switchContext(Context::fromTokens(consume().value().u.tokens));
   }
@@ -40,10 +40,6 @@ namespace Parser {
       return peekValue(-1).line;
     else
       return -2; // Technically it SHOULD be unreachable
-  }
-
-  bool SyntaxChecker::wakeup(TokenType tokenType, bool consume) {
-    return (consume && tryConsume({ tokenType })) || (!consume && peekEqual({ tokenType }));
   }
 
 
@@ -113,13 +109,13 @@ namespace Parser {
   } while (0)
 
   #define expectSemi(errType) do {                         \
-    if (!wakeup(TokenType::SEMI, true))                    \
+    if (!tryConsume({ TokenType::SEMI }))                  \
       return Result::error<errType>(expectedSemiError());  \
   } while (0)
 
 
   bool SyntaxChecker::variables_wakeup() {
-    return wakeup({ TokenType::COLON }, true);
+    return tryConsume({ TokenType::COLON });
   }
 
   Result::inst<Variables> SyntaxChecker::variables_process(bool required) {
@@ -132,14 +128,14 @@ namespace Parser {
     expect(Variables, InitIdentifier, init, initIdentifier_process());
 
     std::vector<InitIdentifier*>* other = NULL;
-    if (wakeup(TokenType::COMMA, true)) {
+    if (tryConsume({ TokenType::COMMA })) {
       other = new std::vector<InitIdentifier*>();
       InitIdentifier* other_init;
       
       do {
         expect(Variables, InitIdentifier, other_init, initIdentifier_process());
         other->push_back(other_init);
-      } while(wakeup(TokenType::COMMA, true));
+      } while(tryConsume({ TokenType::COMMA }));
     }
 
     return Result::success(
@@ -153,7 +149,7 @@ namespace Parser {
 
 
   bool SyntaxChecker::function_wakeup() {
-    return wakeup(TokenType::FUNC, true);
+    return tryConsume({ TokenType::FUNC });
   }
 
   Result::inst<Function> SyntaxChecker::function_process(bool required) {
@@ -164,7 +160,7 @@ namespace Parser {
     expectWithMessage(Function, Identifier, name, rawIdentifier_process(), expectedError("function name"));
 
     std::vector<Variables*>* params = NULL;
-    if (!wakeup(TokenType::PARENTS, false))
+    if (peekNotEqual({ TokenType::PARENTS }))
       return Result::error<Function>(expectedOpenParentError());
     ContextSwitcher switcher = switchContextToParents();
 
@@ -183,7 +179,7 @@ namespace Parser {
     ReturnType* returnType;
     expect(Function, ReturnType, returnType, returnType_process());
 
-    if (wakeup(TokenType::SEMI, true))
+    if (tryConsume({ TokenType::SEMI }))
       return Result::success(Function::declaration(name, returnType, params));
 
     Scope* scope;
@@ -193,7 +189,7 @@ namespace Parser {
   }
 
   bool SyntaxChecker::scope_wakeup() {
-    return wakeup(TokenType::BRACKETS, false);
+    return peekEqual({ TokenType::BRACKETS });
   }
 
   Result::inst<Scope> SyntaxChecker::scope_process(bool required) {
@@ -221,9 +217,9 @@ namespace Parser {
     StatementAndExpr* statementAndExpr;
     Statement* statement;
 
-    if (wakeup(TokenType::RETURN, true)) {
+    if (tryConsume({ TokenType::RETURN })) {
       expr = NULL;
-      if (!wakeup(TokenType::SEMI, true)) {
+      if (!tryConsume({ TokenType::SEMI })) {
         expect(Statement, Expression, expr, expression_process(expectedExpressionError()));
         expectSemi(Statement);
       }
@@ -231,17 +227,17 @@ namespace Parser {
       return Result::success(Statement::return_(expr));
     }
 
-    if (wakeup(TokenType::IF, true)) {
+    if (tryConsume({ TokenType::IF })) {
       expect(Statement, StatementAndExpr, statementAndExpr, exprAndStatement_process());
       return Result::success(Statement::withStatementAndExpr(Statement::Type::IF, statementAndExpr));
     }
 
-    if (wakeup(TokenType::ELSE, true)) {
+    if (tryConsume({ TokenType::ELSE })) {
       expect(Statement, Statement, statement, statement_process());
       return Result::success(Statement::withStatement(Statement::Type::ELSE, statement));
     }
 
-    if (wakeup(TokenType::WHILE, true)) {
+    if (tryConsume({ TokenType::WHILE })) {
       expect(Statement, StatementAndExpr, statementAndExpr, exprAndStatement_process());
       return Result::success(Statement::withStatementAndExpr(Statement::Type::WHILE, statementAndExpr));
     }
@@ -252,17 +248,17 @@ namespace Parser {
       return Result::success(Statement::doWhile(doWhile));
     }
 
-    if (wakeup(TokenType::LOOP, true)) {
+    if (tryConsume({ TokenType::LOOP })) {
       expect(Statement, Statement, statement, statement_process());
       return Result::success(Statement::withStatement(Statement::Type::LOOP, statement));
     }
 
-    if (wakeup(TokenType::BREAK, true)) {
+    if (tryConsume({ TokenType::BREAK })) {
       expectSemi(Statement);
       return Result::success(Statement::simple(Statement::Type::BREAK));
     }
 
-    if (wakeup(TokenType::CONTINUE, true)) {
+    if (tryConsume({ TokenType::CONTINUE })) {
       expectSemi(Statement);
       return Result::success(Statement::simple(Statement::Type::CONTINUE));
     }
@@ -273,13 +269,13 @@ namespace Parser {
       return Result::success(Statement::for_(for_));
     }
 
-    if (wakeup(TokenType::DOUBLE_COLON, true)) {
+    if (tryConsume({ TokenType::DOUBLE_COLON })) {
       expectWithMessage(Statement, Identifier, name, rawIdentifier_process(), expectedError("label name"));
       expectSemi(Statement);
       return Result::success(Statement::withName(Statement::Type::LABEL, name));
     }
 
-    if (wakeup(TokenType::GOTO, true)) {
+    if (tryConsume({ TokenType::GOTO })) {
       expectWithMessage(Statement, Identifier, name, identifier_process(), expectedError("label name"));
       expectSemi(Statement);
       return Result::success(Statement::withName(Statement::Type::GOTO, name));
@@ -302,7 +298,7 @@ namespace Parser {
   }
 
   Result::inst<Statement> SyntaxChecker::forCompatibleStatement_process() {
-    if (wakeup(TokenType::SEMI, true))
+    if (tryConsume({ TokenType::SEMI }))
       return Result::success(Statement::simple(Statement::Type::NOTHING));
 
     if (variables_wakeup()) {
@@ -319,7 +315,7 @@ namespace Parser {
   }
 
   Result::inst<StatementAndExpr> SyntaxChecker::exprAndStatement_process() {
-    if (!wakeup(TokenType::PARENTS, false))
+    if (peekNotEqual({ TokenType::PARENTS }))
       return Result::error<StatementAndExpr>(expectedOpenParentError());
     ContextSwitcher switcher = switchContextToParents();
     Expression* expr;
@@ -338,7 +334,7 @@ namespace Parser {
   }
   
   bool SyntaxChecker::doWhile_wakeup() {
-    return wakeup(TokenType::DO, true);
+    return tryConsume({ TokenType::DO });
   }
 
   Result::inst<DoWhile> SyntaxChecker::doWhile_process(bool required) {
@@ -349,7 +345,7 @@ namespace Parser {
     StatementAndExpr* whileStatementAndExpr;
 
     expect(DoWhile, Statement, doStatement, statement_process());
-    if (!wakeup(TokenType::WHILE, true))
+    if (!tryConsume({ TokenType::WHILE }))
       return Result::error<DoWhile>(expectedError("'while'"));
     expect(DoWhile, StatementAndExpr, whileStatementAndExpr, exprAndStatement_process());
     
@@ -362,7 +358,7 @@ namespace Parser {
   }
 
   bool SyntaxChecker::for_wakeup() {
-    return wakeup(TokenType::FOR, true);
+    return tryConsume({ TokenType::FOR });
   }
 
   Result::inst<For> SyntaxChecker::for_process(bool required) {
@@ -374,12 +370,12 @@ namespace Parser {
     Expression* repeatExpression = NULL;
     Statement* statement;
     
-    if (!wakeup(TokenType::PARENTS, false))
+    if (peekNotEqual({ TokenType::PARENTS }))
       return Result::error<For>(expectedOpenParentError());
     ContextSwitcher switcher = switchContextToParents();
 
     expect(For, Statement, initStatement, forCompatibleStatement_process());
-    if (!wakeup(TokenType::SEMI, true)) {
+    if (!tryConsume({ TokenType::SEMI })) {
       expect(For, Expression, checkExpression, expression_process(expectedExpressionError()));
       expectSemi(For);
     }
@@ -401,7 +397,7 @@ namespace Parser {
 
   
   bool SyntaxChecker::using_wakeup() {
-    return wakeup(TokenType::USING, true);
+    return tryConsume({ TokenType::USING });
   }
   
   Result::inst<Using> SyntaxChecker::using_process(bool required) {
@@ -414,7 +410,7 @@ namespace Parser {
   }
 
   bool SyntaxChecker::typeDef_wakeup() {
-    return wakeup(TokenType::COLON, true);
+    return tryConsume({ TokenType::COLON });
   }
 
   Result::inst<TypeDef> SyntaxChecker::typeDef_process(bool required) {
@@ -428,7 +424,7 @@ namespace Parser {
     expect(TypeDef, Type, from, type_process());
 
     bool isInt = from->type == Type::TypeT::INT;
-    bool isSpecialCase = (isInt || from->type == Type::TypeT::FLOAT) && wakeup(TokenType::LESS, true);
+    bool isSpecialCase = (isInt || from->type == Type::TypeT::FLOAT) && tryConsume({ TokenType::LESS });
     if (isSpecialCase) {
       Expression* expr;
       Literal literal;
@@ -441,7 +437,7 @@ namespace Parser {
 
       if (bitAmount <= 0)
         return Result::error<TypeDef>(syntaxError("Bit amount must be greater than 0"));
-      if (!wakeup(TokenType::GREATER, true))
+      if (!tryConsume({ TokenType::GREATER }))
         return Result::error<TypeDef>(expectedError("'>'"));
       
       from = Type::specialCase(isInt, bitAmount, from->isUnsigned, from->isSigned);
@@ -449,14 +445,14 @@ namespace Parser {
     
     expectWithMessage(TypeDef, Type, to, baseType_process(), expectedError("type name"));
 
-    if (wakeup(TokenType::COMMA, true)) {
+    if (tryConsume({ TokenType::COMMA })) {
       other = new std::vector<Type*>();
       Type* type;
       
       do {
         expectWithMessage(TypeDef, Type, type, baseType_process(), expectedError("type name"));
         other->push_back(type);
-      } while (wakeup(TokenType::COMMA, true));
+      } while (tryConsume({ TokenType::COMMA }));
     }
 
     return Result::success(
@@ -473,9 +469,9 @@ namespace Parser {
     bool isUnsigned = false;
     bool isSigned = false;
 
-    if (wakeup(TokenType::UNSIGNED, true))
+    if (tryConsume({ TokenType::UNSIGNED }))
       isUnsigned = true;
-    else if (wakeup(TokenType::SIGNED, true))
+    else if (tryConsume({ TokenType::SIGNED }))
       isSigned = true;
 
     Result::inst<Type> ret = baseType_process();
@@ -490,22 +486,22 @@ namespace Parser {
   Result::inst<Type> SyntaxChecker::baseType_process() {
     #define success(type) Result::success(Type::of(type))
 
-    if (wakeup(TokenType::INT, true))
+    if (tryConsume({ TokenType::INT }))
       return success(Type::TypeT::INT);
 
-    else if (wakeup(TokenType::FLOAT, true))
+    else if (tryConsume({ TokenType::FLOAT }))
       return success(Type::TypeT::FLOAT);
 
-    else if (wakeup(TokenType::BOOL, true))
+    else if (tryConsume({ TokenType::BOOL }))
       return success(Type::TypeT::BOOL);
 
-    else if (wakeup(TokenType::CSTR, true))
+    else if (tryConsume({ TokenType::CSTR }))
       return success(Type::TypeT::CSTR);
 
-    else if (wakeup(TokenType::CHAR, true))
+    else if (tryConsume({ TokenType::CHAR }))
       return success(Type::TypeT::CHAR);
 
-    else if (wakeup(TokenType::SIZE_T, true))
+    else if (tryConsume({ TokenType::SIZE_T }))
       return success(Type::TypeT::SIZE_T);
     
     #undef success
@@ -516,10 +512,10 @@ namespace Parser {
   }
 
   Result::inst<ReturnType> SyntaxChecker::returnType_process() {
-    if (wakeup(TokenType::VOID, true))
+    if (tryConsume({ TokenType::VOID }))
       return Result::success(ReturnType::void_());
 
-    else if (wakeup(TokenType::EXCLAMATION, true))
+    else if (tryConsume({ TokenType::EXCLAMATION }))
       return Result::success(ReturnType::noReturn());
     
     Type* type;
@@ -542,16 +538,16 @@ namespace Parser {
   Result::inst<InitIdentifier> SyntaxChecker::initIdentifier_process() {
     bool isMutable = false;
     bool isConst = false;
-    if (wakeup(TokenType::MUT, true))
+    if (tryConsume({ TokenType::MUT }))
       isMutable = true;
-    else if (wakeup(TokenType::CONST, true))
+    else if (tryConsume({ TokenType::CONST }))
       isConst = true;
     
     Identifier* name;
     expectWithMessage(InitIdentifier, Identifier, name, rawIdentifier_process(), expectedError("variable name"));
     
     InitExpression* initExpr = NULL;
-    if (wakeup(TokenType::EQUALS, true))
+    if (tryConsume({ TokenType::EQUALS }))
       expect(InitIdentifier, InitExpression, initExpr, initExpression_process());
     
     return Result::success(
@@ -599,7 +595,7 @@ namespace Parser {
     if (literalExpression_wakeup())
       return literalExpression_process(false);
 
-    else if (wakeup(TokenType::PARENTS, false)) {
+    else if (peekEqual({ TokenType::PARENTS })) {
       ContextSwitcher switcher = switchContextToParents();
       
       expect(Expression, Expression, expr, expression_process(expectedExpressionError()));
@@ -607,12 +603,12 @@ namespace Parser {
       return Result::success(Expression::withExpr(Expression::Type::EXPR, expr));
     }
     
-    else if (wakeup(TokenType::MINUSMINUS, true)) {
+    else if (tryConsume({ TokenType::MINUSMINUS })) {
       expect(Expression, Identifier, name, identifier_process());
       return Result::success(Expression::withName(Expression::Type::PRE_DECREMENT, name));
     }
 
-    else if (wakeup(TokenType::PLUSPLUS, true)) {
+    else if (tryConsume({ TokenType::PLUSPLUS })) {
       expect(Expression, Identifier, name, identifier_process());
       return Result::success(Expression::withName(Expression::Type::PRE_INCREMENT, name));
     }
@@ -620,7 +616,7 @@ namespace Parser {
 
     //? Calling baseExpresion_process ensures that unary operators are ALWAYS before binary operators
     #define unaryOperator(tokenType, exprType) do {                                                 \
-        if (wakeup(tokenType, true)) {                                                              \
+        if (tryConsume({ tokenType })) {                                                            \
           expect(Expression, Expression, expr, baseExpression_process(expectedExpressionError()));  \
           return Result::success(Expression::withExpr(exprType, expr));                             \
         }                                                                                           \
@@ -636,12 +632,12 @@ namespace Parser {
     
     expectWithMessage(Expression, Identifier, name, identifier_process(), identifierError);
     
-    if (wakeup(TokenType::EQUALS, true)) {
+    if (tryConsume({ TokenType::EQUALS })) {
       expect(Expression, Expression, expr, expression_process(expectedExpressionError()));
       return Result::success(Expression::varAssign(name, expr));
     }
 
-    else if (wakeup(TokenType::PARENTS, false)) {
+    else if (peekEqual({ TokenType::PARENTS })) {
       ContextSwitcher switcher = switchContextToParents();
       std::vector<Expression*>* params = NULL;
 
@@ -652,7 +648,7 @@ namespace Parser {
           expect(Expression, Expression, expr, expression_process(expectedExpressionError()));
           params->push_back(expr);
 
-          if (!wakeup(TokenType::COMMA, true)) {
+          if (!tryConsume({ TokenType::COMMA })) {
             if (!hasPeek())
               break;
             
@@ -664,10 +660,10 @@ namespace Parser {
       return Result::success(Expression::funcCall(name, params));
     }
 
-    else if (wakeup(TokenType::PLUSPLUS, true))
+    else if (tryConsume({ TokenType::PLUSPLUS }))
       return Result::success(Expression::withName(Expression::Type::INCREMENT, name));
 
-    else if (wakeup(TokenType::MINUSMINUS, true))
+    else if (tryConsume({ TokenType::MINUSMINUS }))
       return Result::success(Expression::withName(Expression::Type::DECREMENT, name));
 
     return Result::success(Expression::withName(Expression::Type::IDENTIFIER, name));
@@ -710,7 +706,7 @@ namespace Parser {
 
   index_t SyntaxChecker::operator_wakeup_index() {
     for (int i = 0; i < OP_AMOUNT; i++) {
-      if (wakeup(operatorTokens[i], true))
+      if (tryConsume({ operatorTokens[i] }))
         return i;
     }
 
@@ -724,7 +720,7 @@ namespace Parser {
   bool SyntaxChecker::literalExpression_wakeup() {
     #define nextLiteral() peekEqual({ TokenType::LITERAL }, 1)
 
-    return wakeup(TokenType::LITERAL, false) || (wakeup(TokenType::MINUS, false) && nextLiteral()) || (wakeup(TokenType::PLUS, false) && nextLiteral());
+    return peekEqual({ TokenType::LITERAL }) || (peekEqual({ TokenType::MINUS }) && nextLiteral()) || (peekEqual({ TokenType::PLUS }) && nextLiteral());
     
     #undef nextLiteral
   }
@@ -733,8 +729,8 @@ namespace Parser {
     if (required && !literalExpression_wakeup())
       return Result::error<Expression>(expectedExpressionError());
 
-    bool isPositive = wakeup(TokenType::PLUS, true);
-    bool isNegative = wakeup(TokenType::MINUS, true);
+    bool isPositive = tryConsume({ TokenType::PLUS });
+    bool isNegative = tryConsume({ TokenType::MINUS });
     Token token = consume().value();
     Literal literal = token.u.literal;
 
@@ -785,7 +781,7 @@ namespace Parser {
 
   void SyntaxChecker::process() {
     while (hasPeek()) {
-      if (wakeup(TokenType::SEMI, true))
+      if (tryConsume({ TokenType::SEMI }))
         continue; // Technically not needed (better than ';')
       else if (variables_wakeup())
         addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemiOnResult(variables_process(false)).expectValue() } });
