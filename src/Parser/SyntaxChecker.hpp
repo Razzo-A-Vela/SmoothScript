@@ -78,34 +78,34 @@ namespace Parser {
 
 
     /*
-    * Rules:  If there is a peek and the syntax is NOT REQUIRED CALL THE PEEK FIRST AND THEN THE PROCESS PASSING FALSE.
-    *         If there is a peek and the syntax is REQUIRED CALL THE PROCESS PASSING TRUE.
+    * Rules:  If there is a peek and the syntax is NOT REQUIRED CALL THE PEEK FIRST AND THEN THE PROCESS.
+    *         If there is a peek and the syntax is REQUIRED JUST CALL THE PROCESS.
     *         If there is no peek then the syntax is ALWAYS REQUIRED.
     *
-    *         Note: The peek function only uses peeks, so in the process you MUST consume the tokens in the peek
-    *         Note: Using "_" because you cannot use namespaces inside classes in C++
+    * Note: The peek function only uses peeks, so in the process you MUST consume the tokens in the peek.
+    * Note: Using "_" because you cannot use namespaces inside classes in C++.
     */
 
     bool variables_peek(int offset = 0);
-    Result::inst<Variables> variables_process(bool required);
+    Result::inst<Variables> variables_process();
 
     bool function_peek(int offset = 0);
-    Result::inst<Function> function_process(bool required);
+    Result::inst<Function> function_process();
     bool scope_peek(int offset = 0);
-    Result::inst<Scope> scope_process(bool required);
+    Result::inst<Scope> scope_process();
 
     Result::inst<Statement> statement_process();
     Result::inst<Statement> forCompatibleStatement_process();
     Result::inst<StatementAndExpr> exprAndStatement_process();  //? first expression then statement
     bool doWhile_peek(int offset = 0);
-    Result::inst<DoWhile> doWhile_process(bool required);
+    Result::inst<DoWhile> doWhile_process();
     bool for_peek(int offset = 0);
-    Result::inst<For> for_process(bool required);
+    Result::inst<For> for_process();
 
     bool using_peek(int offset = 0);
-    Result::inst<Using> using_process(bool required);
+    Result::inst<Using> using_process();
     bool typeDef_peek(int offset = 0);
-    Result::inst<TypeDef> typeDef_process(bool required);
+    Result::inst<TypeDef> typeDef_process();
 
     Result::inst<Type> type_process();
     Result::inst<Type> baseType_process();
@@ -120,10 +120,10 @@ namespace Parser {
     Result::inst<Expression> expression_process(Utils::Error identifierError);  //* SPECIAL CASE: Passing in the error in case the expression is not found
     Result::inst<Expression> baseExpression_process(Utils::Error identifierError);
 
-    index_t operator_peek_index();             //* SPECIAL CASE: For optimization we return the index directly (if found)
+    index_t operator_tryConsume_index();         //* SPECIAL CASE: For optimization we return the index directly (if found)
     Operator* operatorFromIndex(index_t index);  //* There is no process, we use the index to get the operator directly
     bool literalExpression_peek(int offset = 0);
-    Result::inst<Expression> literalExpression_process(bool required);
+    Result::inst<Expression> literalExpression_process();
 
 
     template <typename T>

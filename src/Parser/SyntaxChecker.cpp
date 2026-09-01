@@ -118,8 +118,8 @@ namespace Parser {
     return peekEqual({ TokenType::COLON }, offset);
   }
 
-  Result::inst<Variables> SyntaxChecker::variables_process(bool required) {
-    if (required && !variables_peek())
+  Result::inst<Variables> SyntaxChecker::variables_process() {
+    if (!variables_peek())
       return Result::error<Variables>(expectedColonError());
     consume();  // ':'
 
@@ -153,8 +153,8 @@ namespace Parser {
     return peekEqual({ TokenType::FUNC }, offset);
   }
 
-  Result::inst<Function> SyntaxChecker::function_process(bool required) {
-    if (required && !function_peek())
+  Result::inst<Function> SyntaxChecker::function_process() {
+    if (!function_peek())
       return Result::error<Function>(expectedError("'func'"));
     consume();  // 'func'
 
@@ -171,7 +171,7 @@ namespace Parser {
       Variables* param;
 
       do {
-        expect(Function, Variables, param, variables_process(true));
+        expect(Function, Variables, param, variables_process());
 
         params->push_back(param);
       } while (hasPeek());
@@ -185,7 +185,7 @@ namespace Parser {
       return Result::success(Function::declaration(name, returnType, params));
 
     Scope* scope;
-    expect(Function, Scope, scope, scope_process(true));
+    expect(Function, Scope, scope, scope_process());
 
     return Result::success(Function::definition(name, returnType, params, scope));
   }
@@ -194,8 +194,8 @@ namespace Parser {
     return peekEqual({ TokenType::BRACKETS }, offset);
   }
 
-  Result::inst<Scope> SyntaxChecker::scope_process(bool required) {
-    if (required && !scope_peek())
+  Result::inst<Scope> SyntaxChecker::scope_process() {
+    if (!scope_peek())
       return Result::error<Scope>(expectedError("scope"));
     ContextSwitcher switcher = switchContextToBrackets();
 
@@ -245,7 +245,7 @@ namespace Parser {
 
     if (doWhile_peek()) {
       DoWhile* doWhile;
-      expect(Statement, DoWhile, doWhile, doWhile_process(false));
+      expect(Statement, DoWhile, doWhile, doWhile_process());
       return Result::success(Statement::doWhile(doWhile));
     }
 
@@ -266,7 +266,7 @@ namespace Parser {
 
     if (for_peek()) {
       For* for_;
-      expect(Statement, For, for_, for_process(false));
+      expect(Statement, For, for_, for_process());
       return Result::success(Statement::for_(for_));
     }
 
@@ -284,14 +284,14 @@ namespace Parser {
 
     if (using_peek()) {
       Using* using_;
-      expect(Statement, Using, using_, using_process(false));
+      expect(Statement, Using, using_, using_process());
       expectSemi(Statement);
       return Result::success(Statement::using_(using_));
     }
 
     if (scope_peek()) {
       Scope* scope;
-      expect(Statement, Scope, scope, scope_process(false));
+      expect(Statement, Scope, scope, scope_process());
       return Result::success(Statement::scope(scope));
     }
 
@@ -304,7 +304,7 @@ namespace Parser {
 
     if (variables_peek()) {
       Variables* vars;
-      expect(Statement, Variables, vars, variables_process(false));
+      expect(Statement, Variables, vars, variables_process());
       expectSemi(Statement);
       return Result::success(Statement::varDecl(vars));
     }
@@ -338,8 +338,8 @@ namespace Parser {
     return peekEqual({ TokenType::DO }, offset);
   }
 
-  Result::inst<DoWhile> SyntaxChecker::doWhile_process(bool required) {
-    if (required && !doWhile_peek())
+  Result::inst<DoWhile> SyntaxChecker::doWhile_process() {
+    if (!doWhile_peek())
       return Result::error<DoWhile>(expectedError("'do'"));
     consume();  // 'do'
 
@@ -363,8 +363,8 @@ namespace Parser {
     return peekEqual({ TokenType::FOR }, offset);
   }
 
-  Result::inst<For> SyntaxChecker::for_process(bool required) {
-    if (required && !for_peek())
+  Result::inst<For> SyntaxChecker::for_process() {
+    if (!for_peek())
       return Result::error<For>(expectedError("'for'"));
     consume();  // 'for'
 
@@ -403,13 +403,13 @@ namespace Parser {
     return peekEqual({ TokenType::USING }, offset);
   }
   
-  Result::inst<Using> SyntaxChecker::using_process(bool required) {
-    if (required && !using_peek())
+  Result::inst<Using> SyntaxChecker::using_process() {
+    if (!using_peek())
       return Result::error<Using>(expectedError("'using'"));
     consume();  // 'using'
 
     TypeDef* typeDef;  //TODO: Other using types
-    expect(Using, TypeDef, typeDef, typeDef_process(true));
+    expect(Using, TypeDef, typeDef, typeDef_process());
     return Result::success(Using::typeDef(typeDef));
   }
 
@@ -417,8 +417,8 @@ namespace Parser {
     return peekEqual({ TokenType::COLON }, offset);
   }
 
-  Result::inst<TypeDef> SyntaxChecker::typeDef_process(bool required) {
-    if (required && !typeDef_peek())
+  Result::inst<TypeDef> SyntaxChecker::typeDef_process() {
+    if (!typeDef_peek())
       return Result::error<TypeDef>(expectedColonError());
     consume();  // ':'
 
@@ -581,7 +581,7 @@ namespace Parser {
     Expression* left;
     Operator* op;
     Expression* right;
-    while ((opIndex = operator_peek_index()) != INDEX_T_NOT_FOUND) {
+    while ((opIndex = operator_tryConsume_index()) != INDEX_T_NOT_FOUND) {
       op = operatorFromIndex(opIndex);
 
       left = ret.value;
@@ -598,7 +598,7 @@ namespace Parser {
     Expression* expr;
 
     if (literalExpression_peek())
-      return literalExpression_process(false);
+      return literalExpression_process();
 
     else if (peekEqual({ TokenType::PARENTS })) {
       ContextSwitcher switcher = switchContextToParents();
@@ -709,7 +709,7 @@ namespace Parser {
   };
   const int OP_AMOUNT = sizeof(operators) / sizeof(operators[0]);
 
-  index_t SyntaxChecker::operator_peek_index() {
+  index_t SyntaxChecker::operator_tryConsume_index() {
     for (int i = 0; i < OP_AMOUNT; i++) {
       if (tryConsume({ operatorTokens[i] }))
         return i;
@@ -730,8 +730,8 @@ namespace Parser {
     #undef nextLiteral
   }
 
-  Result::inst<Expression> SyntaxChecker::literalExpression_process(bool required) {
-    if (required && !literalExpression_peek())
+  Result::inst<Expression> SyntaxChecker::literalExpression_process() {
+    if (!literalExpression_peek())
       return Result::error<Expression>(expectedExpressionError());
 
     bool isPositive = tryConsume({ TokenType::PLUS });
@@ -789,11 +789,11 @@ namespace Parser {
       if (tryConsume({ TokenType::SEMI }))
         continue; // Technically not needed (better than ';')
       else if (variables_peek())
-        addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemiOnResult(variables_process(false)).expectValue() } });
+        addToOutput({ GlobalNode::Type::VAR_DECL, { .vars = expectSemiOnResult(variables_process()).expectValue() } });
       else if (function_peek())
-        addToOutput({ GlobalNode::Type::FUNC, { .func = function_process(false).expectValue() } });
+        addToOutput({ GlobalNode::Type::FUNC, { .func = function_process().expectValue() } });
       else if (using_peek())
-        addToOutput({ GlobalNode::Type::USING, { .using_ = expectSemiOnResult(using_process(false)).expectValue() } });
+        addToOutput({ GlobalNode::Type::USING, { .using_ = expectSemiOnResult(using_process()).expectValue() } });
       else
         Utils::error(syntaxError("Unexpected token"));
     }
