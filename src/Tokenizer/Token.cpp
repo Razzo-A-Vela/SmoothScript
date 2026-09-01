@@ -233,6 +233,10 @@ namespace Tokenizer {
         out << "DOUBLE_COLON";
         break;
       
+      case TokenType::COLON_EQUAL :
+        out << "COLON_EQUAL";
+        break;
+      
       
       case TokenType::IDENTIFIER :
         out << "IDENTIFIER(" << u.string << ')';

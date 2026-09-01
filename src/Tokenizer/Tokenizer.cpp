@@ -282,6 +282,8 @@ namespace Tokenizer {
         case ':' :
           if (tryConsume({ PreTokenType::SYMBOL, { .character = ':' } }, PreToken::typeCharEqual))
             ret->type = TokenType::DOUBLE_COLON;
+          else if (tryConsume({ PreTokenType::SYMBOL, { .character = '=' } }, PreToken::typeCharEqual))
+            ret->type = TokenType::COLON_EQUAL;
           else
             ret->type = TokenType::COLON;
           break;
