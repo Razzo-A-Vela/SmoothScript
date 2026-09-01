@@ -149,6 +149,20 @@ namespace Parser {
   }
 
 
+  void AutoVariable::print(std::ostream& out) {
+    if (isMutable)
+      out << "MUT ";
+    else if (isConst)
+      out << "CONST ";
+
+    name->print(out);
+    if (expr != NULL) {
+      out << " := ";
+      expr->print(out);
+    }
+  }
+
+
   void Variables::print(std::ostream& out) {
     out << ':';
     type->print(out);
@@ -499,6 +513,13 @@ namespace Parser {
     };
   }
 
+  Statement* Statement::autoVar(AutoVariable* autoVar) {
+    return new Statement {
+      .type = Statement::Type::AUTO_VAR,
+      .u = { .autoVar = autoVar },
+    };
+  }
+
   Statement* Statement::varDecl(Variables* vars) {
     return new Statement {
       .type = Statement::Type::VAR_DECL,
@@ -603,6 +624,10 @@ namespace Parser {
         u.scope->print(out);
         break;
       
+      case Type::AUTO_VAR :
+        u.autoVar->print(out);
+        break;
+      
       case Type::EXPRESSION :
         out << "EXPRESSION ( ";
         u.expr->print(out);
@@ -696,6 +721,10 @@ namespace Parser {
       case Type::USING :
         u.using_->print(out);
         out << ';';
+        break;
+      
+      case Type::AUTO_VAR :
+        u.autoVar->print(out);
         break;
     }
   }

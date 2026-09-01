@@ -89,6 +89,9 @@ namespace Parser {
     bool variables_peek(int offset = 0);
     Result::inst<Variables> variables_process();
 
+    bool autoVariable_peek(int offset = 0);
+    Result::inst<AutoVariable> autoVariable_process();
+
     bool function_peek(int offset = 0);
     Result::inst<Function> function_process();
     bool scope_peek(int offset = 0);
@@ -112,6 +115,7 @@ namespace Parser {
     Result::inst<ReturnType> returnType_process();
     
     Result::inst<Identifier> identifier_process();
+    bool rawIdentifier_peek(int offset = 0);
     Result::inst<Identifier> rawIdentifier_process();
 
     Result::inst<InitIdentifier> initIdentifier_process();

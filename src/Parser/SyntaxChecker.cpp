@@ -148,6 +148,36 @@ namespace Parser {
     );
   }
 
+  
+  bool SyntaxChecker::autoVariable_peek(int offset) {
+    if (peekEqual({ TokenType::MUT }, offset) || peekEqual({ TokenType::CONST }, offset))
+      offset += 1;
+    return rawIdentifier_peek(offset) && peekEqual({ TokenType::COLON_EQUAL }, offset + 1);
+  }
+
+  Result::inst<AutoVariable> SyntaxChecker::autoVariable_process() {
+    if (!autoVariable_peek())
+      return Result::error<AutoVariable>(expectedError("auto variable"));  //TODO: Better error (Maybe inside peek?)
+    
+    bool isMutable = tryConsume({ TokenType::MUT });
+    bool isConst = tryConsume({ TokenType::CONST });
+    Identifier* name;
+    expect(AutoVariable, Identifier, name, rawIdentifier_process());
+    consume();  // ':='
+
+    Expression* expr;
+    expect(AutoVariable, Expression, expr, expression_process(expectedExpressionError()));
+
+    return Result::success(
+      new AutoVariable {
+        .isMutable = isMutable,
+        .isConst = isConst,
+        .name = name,
+        .expr = expr
+      }
+    );
+  }
+
 
   bool SyntaxChecker::function_peek(int offset) {
     return peekEqual({ TokenType::FUNC }, offset);
@@ -307,6 +337,13 @@ namespace Parser {
       expect(Statement, Variables, vars, variables_process());
       expectSemi(Statement);
       return Result::success(Statement::varDecl(vars));
+    }
+
+    if (autoVariable_peek()) {
+      AutoVariable* autoVar;
+      expect(Statement, AutoVariable, autoVar, autoVariable_process());
+      expectSemi(Statement);
+      return Result::success(Statement::autoVar(autoVar));
     }
 
     Expression* expr;
@@ -533,10 +570,15 @@ namespace Parser {
     return rawIdentifier_process();
   }
 
+  bool SyntaxChecker::rawIdentifier_peek(int offset) {
+    return peekEqual({ TokenType::IDENTIFIER }, offset);
+  }
+
   Result::inst<Identifier> SyntaxChecker::rawIdentifier_process() {
-    if (peekEqual({ TokenType::IDENTIFIER }))
-      return Result::success(Identifier::simple(consume().value().u.string));
-    return Result::error<Identifier>(expectedError("identifier"));
+    if (!rawIdentifier_peek())
+      return Result::error<Identifier>(expectedError("identifier"));
+    
+    return Result::success(Identifier::simple(consume().value().u.string));
   }
 
   
@@ -794,6 +836,8 @@ namespace Parser {
         addToOutput({ GlobalNode::Type::FUNC, { .func = function_process().expectValue() } });
       else if (using_peek())
         addToOutput({ GlobalNode::Type::USING, { .using_ = expectSemiOnResult(using_process()).expectValue() } });
+      else if (autoVariable_peek())
+        addToOutput({ GlobalNode::Type::AUTO_VAR, { .autoVar = expectSemiOnResult(autoVariable_process()).expectValue() } });
       else
         Utils::error(syntaxError("Unexpected token"));
     }

@@ -76,6 +76,15 @@ namespace Parser {
     void print(std::ostream& out);
   };
 
+  struct AutoVariable {
+    bool isMutable;
+    bool isConst;
+    Identifier* name;
+    Expression* expr;
+
+    void print(std::ostream& out);
+  };
+
   struct Variables {
     Type* type;
     InitIdentifier* init;
@@ -198,7 +207,7 @@ namespace Parser {
   struct Statement {
     enum class Type {
       RETURN, IF, ELSE, WHILE, DO_WHILE, LOOP, BREAK,
-      CONTINUE, FOR, LABEL, GOTO, USING,
+      CONTINUE, FOR, LABEL, GOTO, USING, AUTO_VAR,
       
       VAR_DECL, SCOPE, EXPRESSION, NOTHING
     } type;
@@ -212,6 +221,7 @@ namespace Parser {
       For* for_;
       Identifier* name;
       Using* using_;
+      AutoVariable* autoVar;
     } u;
 
     static Statement* simple(Type type);
@@ -221,6 +231,7 @@ namespace Parser {
     static Statement* withStatementAndExpr(Type type, StatementAndExpr* statementAndExpr);
     static Statement* return_(nullable Expression* expr);
     static Statement* doWhile(DoWhile* doWhile);
+    static Statement* autoVar(AutoVariable* autoVar);
     static Statement* varDecl(Variables* vars);
     static Statement* using_(Using* using_);
     static Statement* scope(Scope* scope);
@@ -245,12 +256,13 @@ namespace Parser {
 
   struct GlobalNode {
     enum class Type {
-      VAR_DECL, FUNC, USING
+      VAR_DECL, FUNC, USING, AUTO_VAR
     } type;
     union {
       Variables* vars;
       Function* func;
       Using* using_;
+      AutoVariable* autoVar;
     } u;
 
     void print(std::ostream& out);
