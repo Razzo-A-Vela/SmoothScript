@@ -15,7 +15,7 @@ using :signed int cint;
 :float c = b-- + 3.2 - .1 + 2.;
 :size_t d, mut i = 3, const j;  // for variables, const is optional
 :byte mut e = d = 6;
-:char const otherChar = 'A';
+const otherChar := 'A';  // for variables, const is optional
 
 func h(:int a, b, c :int x) !;
 
@@ -35,6 +35,9 @@ func f() signed int {
   { a = +0o12; }
 
   using :int index_t;
+
+  abc := 1;
+  mut def := 2;
 
   for (:index_t mut i = 0; i < 10; i++) {}
 
