@@ -82,30 +82,39 @@ namespace Parser {
 
 
   ReturnType* ReturnType::noReturn() {
-    return new ReturnType{ false, false, false, NULL };
+    return new ReturnType{ ReturnTypeT::NO_RETURN, NULL };
   }
 
   ReturnType* ReturnType::unknown() {
-    return new ReturnType{ true, true, false, NULL };
+    return new ReturnType{ ReturnTypeT::UNKNOWN, NULL };
   }
 
   ReturnType* ReturnType::void_() {
-    return new ReturnType{ true, false, true, NULL };
+    return new ReturnType{ ReturnTypeT::VOID, NULL };
   }
 
   ReturnType* ReturnType::fromType(Type* type) {
-    return new ReturnType{ true, false, false, type };
+    return new ReturnType{ ReturnTypeT::WITH_TYPE, type };
   }
 
   void ReturnType::print(std::ostream& out) {
-    if (!doesReturn)
-      out << "noReturn";
-    else if (isVoid)
-      out << "void";
-    else if (isUnknown)
-      out << "unknown";
-    else
-      type->print(out);
+    switch (returnType) {
+      case ReturnTypeT::UNKNOWN :
+        out << "UNKNOWN";
+        break;
+      
+      case ReturnTypeT::VOID :
+        out << "VOID";
+        break;
+      
+      case ReturnTypeT::NO_RETURN :
+        out << "NO_RETURN";
+        break;
+      
+      case ReturnTypeT::WITH_TYPE :
+        type->print(out);
+        break;
+    }
   }
 
 

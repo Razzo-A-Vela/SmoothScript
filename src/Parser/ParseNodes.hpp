@@ -38,9 +38,9 @@ namespace Parser {
   };
 
   struct ReturnType {
-    bool doesReturn;
-    bool isUnknown;
-    bool isVoid;
+    enum class ReturnTypeT {
+      UNKNOWN, VOID, NO_RETURN, WITH_TYPE
+    } returnType;
     nullable Type* type;
 
     static ReturnType* noReturn();
