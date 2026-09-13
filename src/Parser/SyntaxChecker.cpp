@@ -626,10 +626,20 @@ namespace Parser {
     while ((opIndex = operator_tryConsume_index()) != INDEX_T_NOT_FOUND) {
       op = operatorFromIndex(opIndex);
 
-      left = ret.value;
       expect(Expression, Expression, right, baseExpression_process(identifierError));
 
-      ret = Result::success(Expression::binaryOp(left, op, right));
+      #define retBinaryOp ret.value->u.binaryOp
+      
+      if (ret.value->type == Expression::Type::BINARY_OP && op->precedence > retBinaryOp->op->precedence) {
+        left = retBinaryOp->right;
+        retBinaryOp->right = Expression::binaryOp(left, op, right);
+
+      } else {
+        left = ret.value;
+        ret = Result::success(Expression::binaryOp(left, op, right));
+      }
+
+      #undef retBinaryOp
     }
     
     return ret;
