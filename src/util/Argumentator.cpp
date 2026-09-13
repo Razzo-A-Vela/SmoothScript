@@ -1,6 +1,17 @@
 #include "Argumentator.hpp"
 
 namespace Utils {
+  Argumentator::Argumentator(int argc, char* argv[]) : argc(argc), argv(argv), programName(argv[0]), Processor(argc) {
+    int i;
+    for (i = programName.size() - 1; i >= 0; i--) {
+      if (programName.at(i) == '/' || programName.at(i) == '\\')
+        break;
+    }
+    i++;
+
+    programName = std::string(programName.substr(i));
+  }
+
   void Argumentator::usageError(std::string msg) {
     printUsage();
     Utils::error("Usage Error", msg);

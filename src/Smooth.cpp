@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
   char* mainFileParam;
   bool showHelp = false;
 
-  Utils::Argumentator argumentator(argc, argv, "smooth");
+  Utils::Argumentator argumentator(argc, argv);
   argumentator
     .requiredValue(mainFileParam, "mainFile")
     ->optionalFlag(showHelp, "-h")

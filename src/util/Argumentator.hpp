@@ -27,7 +27,7 @@ namespace Utils {
     std::vector<OptionalFlag> optionalFlags;
 
   public:
-    Argumentator(int argc, char* argv[], std::string programName) : argc(argc), argv(argv), programName(programName), Processor(argc) {}
+    Argumentator(int argc, char* argv[]);
 
     Argumentator* requiredValue(char*& toSet, std::string valueName);
     Argumentator* optionalFlag(bool& toSet, std::string flag);
