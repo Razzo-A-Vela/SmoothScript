@@ -32,7 +32,7 @@ func ahOk(:float x, y :int m) float {
 
 func f() signed int {
   ;
-  { a = +0o12; }
+  { a.l.k = +0o12; }
 
   using :int index_t;
 
@@ -45,7 +45,7 @@ func f() signed int {
     break;
 
   :int mut b;
-  :float const m = ahOk();
+  :float const m = ahOk().h;
 
   if (1 || !4 && 2) {
     b = 1;
@@ -83,13 +83,13 @@ func f() signed int {
 
   goto label;
 
-  g();
+  g().h.f.t;
 
   if (b != 1)
     return 2;
 
   :cstr const str = "Ciao";
-  :int d = (b = h(10, 11, 12, 13));
+  :int d = (b = h(10, 11, 12, 13).b().f);
   (a = 2);
   return b = (22);
   return (10);
