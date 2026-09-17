@@ -6,7 +6,7 @@ namespace Parser {
   }
 
   
-  
+
   SyntaxChecker::ContextSwitcher::~ContextSwitcher() {
     switchContextToPrevious();
   }
@@ -653,27 +653,28 @@ namespace Parser {
     Operator* op;
     Expression* right;
     while ((opIndex = operator_tryConsume_index()) != INDEX_T_NOT_FOUND) {
+      left = ret.value;
       op = operatorFromIndex(opIndex);
-
       expect(Expression, Expression, right, baseExpression_process(identifierError));
 
       if (op->type == Operator::Type::WALK) {
+        if (left->type != Expression::Type::BINARY_OP && left->type != Expression::Type::IDENTIFIER &&
+            left->type != Expression::Type::FUNC_CALL && left->type != Expression::Type::EXPR)
+          return Result::error<Expression>(syntaxError("Invalid Expression before '.'"));
+
         if (right->type != Expression::Type::IDENTIFIER && right->type != Expression::Type::FUNC_CALL)
           return Result::error<Expression>(syntaxError("Invalid Expression after '.'"));
       }
 
-      #define retBinaryOp ret.value->u.binaryOp
+
+      #define leftBinaryOp left->u.binaryOp
       
-      if (ret.value->type == Expression::Type::BINARY_OP && op->precedence > retBinaryOp->op->precedence) {
-        left = retBinaryOp->right;
-        retBinaryOp->right = Expression::binaryOp(left, op, right);
+      if (left->type == Expression::Type::BINARY_OP && op->precedence > leftBinaryOp->op->precedence)
+        leftBinaryOp->right = Expression::binaryOp(leftBinaryOp->right, op, right);
+      else
+        ret.value = Expression::binaryOp(left, op, right);
 
-      } else {
-        left = ret.value;
-        ret = Result::success(Expression::binaryOp(left, op, right));
-      }
-
-      #undef retBinaryOp
+      #undef leftBinaryOp
     }
     
     return ret;
