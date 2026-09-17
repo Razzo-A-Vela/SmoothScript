@@ -11,7 +11,18 @@
 #include <Tokenizer/Tokenizer.hpp>
 #include <Parser/Parser.hpp>
 
-const std::string version = "{version}";
+
+#define SMOOTH_VERSION_MAJOR 0
+#define SMOOTH_VERSION_MINOR 8
+#define SMOOTH_VERSION_PATCH 0
+
+#define SMOOTH_VERSION_CREATE(major, minor, patch) ((major * 1000000) + (minor * 1000) + patch)
+#define SMOOTH_VERSION SMOOTH_VERSION_CREATE(SMOOTH_VERSION_MAJOR, SMOOTH_VERSION_MINOR, SMOOTH_VERSION_PATCH)
+
+#define __EXPAND_STRINGIFY_AND_ADD_DOTS(x, y, z) __STRINGIFY(x) "." __STRINGIFY(y) "." __STRINGIFY(z)
+#define SMOOTH_VERSION_PRINTABLE __EXPAND_STRINGIFY_AND_ADD_DOTS(SMOOTH_VERSION_MAJOR, SMOOTH_VERSION_MINOR, SMOOTH_VERSION_PATCH)
+#define SMOOTH_VERSION_PRINTABLE_PRETTY "SmoothScript v" SMOOTH_VERSION_PRINTABLE
+
 
 //TODO: add consts in all the needed code
 //TODO: make use of size_t instead of int when necessary
@@ -41,8 +52,7 @@ int main(int argc, char* argv[]) {
 
   argumentator.checkRequiredParams();
   std::string mainFile = std::string(mainFileParam);
-
-  std::cout << "SmoothScript v" << version << "\n\n";
+  std::cout << SMOOTH_VERSION_PRINTABLE_PRETTY << "\n\n";
 
   if (!Utils::fileExists(mainFile))
     Utils::error("File error", std::string("File: \"") + mainFile + std::string("\" does not exist"));
