@@ -581,7 +581,22 @@ namespace Parser {
 
 
   Result::inst<Identifier> SyntaxChecker::identifier_process() {
-    return rawIdentifier_process();
+    Identifier* identifier;
+    Identifier* temp;
+    Identifier* last;
+
+    expect(Identifier, Identifier, identifier, rawIdentifier_process());
+    last = identifier;
+
+    while (
+      rawIdentifier_peek(1) &&
+            tryConsume({ TokenType::DOT })) {
+      expect(Identifier, Identifier, temp, rawIdentifier_process());
+      last->next = temp;
+      last = temp;
+    }
+
+    return Result::success(identifier);
   }
 
   bool SyntaxChecker::rawIdentifier_peek(int offset) {
@@ -641,6 +656,11 @@ namespace Parser {
       op = operatorFromIndex(opIndex);
 
       expect(Expression, Expression, right, baseExpression_process(identifierError));
+
+      if (op->type == Operator::Type::WALK) {
+        if (right->type != Expression::Type::IDENTIFIER && right->type != Expression::Type::FUNC_CALL)
+          return Result::error<Expression>(syntaxError("Invalid Expression after '.'"));
+      }
 
       #define retBinaryOp ret.value->u.binaryOp
       
@@ -741,7 +761,9 @@ namespace Parser {
   }
 
 
-  const TokenType operatorTokens[] = { 
+  const TokenType operatorTokens[] = {
+    TokenType::DOT,
+
     TokenType::ASTERISK, TokenType::SLASH,
 
     TokenType::PLUS, TokenType::MINUS,
@@ -758,6 +780,8 @@ namespace Parser {
     TokenType::AMPERSAND, TokenType::PIPE
   };
   const Operator operators[] = {  //? Unary operators are ALWAYS before binary operators
+    { Operator::Type::WALK, 3 },
+
     { Operator::Type::MULT, 2 }, { Operator::Type::DIV, 2 },
     
     { Operator::Type::ADD, 1 }, { Operator::Type::SUB, 1 },

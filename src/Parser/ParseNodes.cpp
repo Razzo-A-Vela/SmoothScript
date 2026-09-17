@@ -9,6 +9,11 @@ namespace Parser {
 
   void Identifier::print(std::ostream& out) {
     out << name;
+
+    if (next != NULL) {
+      out << '.';
+      next->print(out);
+    }
   }
 
 
@@ -271,6 +276,11 @@ namespace Parser {
       
       case Type::NOT_EQUALS :
         out << "!=";
+        break;
+      
+
+      case Type::WALK :
+        out << '.';
         break;
     }
 

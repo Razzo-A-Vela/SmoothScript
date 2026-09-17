@@ -11,6 +11,7 @@
 namespace Parser {
   struct Identifier {
     const char* name;
+    nullable Identifier* next = NULL;
 
     static Identifier* simple(const char* name);
 
@@ -113,7 +114,8 @@ namespace Parser {
       LESS, LESS_EQ, SHIFT_LEFT,
       GREATER, GREATER_EQ, SHIFT_RIGHT,
       AND, BIT_AND, OR, BIT_OR,
-      EQUALS, NOT_EQUALS
+      EQUALS, NOT_EQUALS,
+      WALK
     } type;
     int precedence;
 
