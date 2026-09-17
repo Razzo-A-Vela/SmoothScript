@@ -35,18 +35,9 @@ namespace Parser {
 
     public:
       ContextSwitcher(SyntaxChecker* checker, Context previous) : checker(checker), previous(previous), isDone(false) {}
+      ~ContextSwitcher();
 
-      ~ContextSwitcher() {
-        switchContextToPrevious();
-      }
-
-      void switchContextToPrevious() {
-        if (isDone)
-          return;
-        
-        checker->switchContextRaw(previous);
-        isDone = true;
-      }
+      void switchContextToPrevious();
     };
 
     int scopeDepth = 0;

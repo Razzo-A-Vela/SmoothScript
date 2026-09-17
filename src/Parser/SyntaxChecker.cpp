@@ -5,6 +5,20 @@ namespace Parser {
     return { tokens, 0 };
   }
 
+  
+  
+  SyntaxChecker::ContextSwitcher::~ContextSwitcher() {
+    switchContextToPrevious();
+  }
+  
+  void SyntaxChecker::ContextSwitcher::switchContextToPrevious() {
+    if (isDone)
+      return;
+    
+    checker->switchContextRaw(previous);
+    isDone = true;
+  }
+
 
 
   SyntaxChecker::Context SyntaxChecker::switchContextRaw(Context newContext) {
