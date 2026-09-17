@@ -153,6 +153,10 @@ namespace Tokenizer {
         out << "TILDE";
         break;
       
+      case TokenType::DOT :
+        out << "DOT";
+        break;
+      
 
       case TokenType::PARENTS :
         out << "( ";

@@ -366,6 +366,10 @@ namespace Tokenizer {
           ret->type = TokenType::TILDE;
           break;
         
+        case '.' :
+          ret->type = TokenType::DOT;
+          break;
+        
 
         default :
           ret->type = TokenType::SYMBOL;
