@@ -89,7 +89,7 @@ func f() signed int {
     return 2;
 
   :cstr const str = "Ciao";
-  :int d = (b = h(10, 11, 12, 13).b().f);
+  :int d = (.b = h(10, 11, 12, 13).b().f);
   (a = 2);
   return b = (22);
   return (10);
