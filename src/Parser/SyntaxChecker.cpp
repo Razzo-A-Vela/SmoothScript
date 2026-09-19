@@ -588,9 +588,7 @@ namespace Parser {
     expect(Identifier, Identifier, identifier, rawIdentifier_process());
     last = identifier;
 
-    while (
-      rawIdentifier_peek(1) &&
-            tryConsume({ TokenType::DOT })) {
+    while (rawIdentifier_peek(1) && tryConsume({ TokenType::DOT })) {
       expect(Identifier, Identifier, temp, rawIdentifier_process());
       last->next = temp;
       last = temp;
