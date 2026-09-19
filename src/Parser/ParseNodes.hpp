@@ -9,9 +9,16 @@
 #define nullableInCase(case)
 
 namespace Parser {
-  struct Identifier {
+  struct NamespaceIdentifier {
     const char* name;
-    nullable Identifier* next = NULL;
+    nullable NamespaceIdentifier* next = NULL;
+
+    void print(std::ostream& out);
+  };
+  
+  struct Identifier {
+    NamespaceIdentifier identifier;
+    bool globalScope;
 
     static Identifier* simple(const char* name);
 

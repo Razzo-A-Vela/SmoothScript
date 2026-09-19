@@ -581,17 +581,20 @@ namespace Parser {
 
 
   Result::inst<Identifier> SyntaxChecker::identifier_process() {
+    NamespaceIdentifier* last;
+    bool globalScope = false;
     Identifier* identifier;
-    Identifier* temp;
-    Identifier* last;
+
+    if (tryConsume({ TokenType::DOT }))
+      globalScope = true;
 
     expect(Identifier, Identifier, identifier, rawIdentifier_process());
-    last = identifier;
+    identifier->globalScope = globalScope;
+    last = &identifier->identifier;
 
-    while (rawIdentifier_peek(1) && tryConsume({ TokenType::DOT })) {
-      expect(Identifier, Identifier, temp, rawIdentifier_process());
-      last->next = temp;
-      last = temp;
+    while (peekEqual({ TokenType::IDENTIFIER }, 1) && tryConsume({ TokenType::DOT })) {
+      last->next = new NamespaceIdentifier { .name = consume().value().u.string };
+      last = last->next;
     }
 
     return Result::success(identifier);

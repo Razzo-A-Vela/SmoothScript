@@ -1,19 +1,29 @@
 #include "ParseNodes.hpp"
 
 namespace Parser {
-  Identifier* Identifier::simple(const char* name) {
-    return new Identifier {
-      .name = name
-    };
-  }
-
-  void Identifier::print(std::ostream& out) {
+  void NamespaceIdentifier::print(std::ostream& out) {
     out << name;
 
     if (next != NULL) {
       out << '.';
       next->print(out);
     }
+  }
+
+
+  Identifier* Identifier::simple(const char* name) {
+    return new Identifier {
+      .identifier = NamespaceIdentifier {
+        .name = name
+      }
+    };
+  }
+
+  void Identifier::print(std::ostream& out) {
+    if (globalScope)
+      out << '.';
+    
+    identifier.print(out);
   }
 
 
